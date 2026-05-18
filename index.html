@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Kiểm Tra Bắn Súng Đạn Thật - TQS QĐ34</title>
+    <title>Hệ Thống Kiểm Tra Bắn Súng Đạn Thật</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -21,77 +21,77 @@
         .active-pill { background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%); border-color: #facc15; }
     </style>
 </head>
-<body class="p-6 min-height-screen flex flex-col custom-scrollbar">
+<body class="p-4 sm:p-6 min-h-screen flex flex-col custom-scrollbar">
 
     <div class="mb-4 bg-slate-950 p-4 rounded-xl border border-slate-800/80 flex flex-col lg:flex-row justify-between items-center gap-4">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 w-full lg:w-auto">
             <span class="w-3 h-3 rounded-full bg-rose-500 animate-pulse" id="status-dot"></span>
-            <p class="text-xs text-slate-300 font-medium" id="status-text">Đang kết nối hệ thống...</p>
+            <p class="text-xs text-slate-300 font-medium" id="status-text">Đang thiết lập thiết bị...</p>
         </div>
         
-        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
-            <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-700 w-full sm:w-auto justify-center">
-                <button type="button" onclick="setDeviceRole('admin')" id="role-admin-btn" class="px-3 py-2 sm:py-1 text-[11px] font-bold rounded transition-all text-white bg-blue-600">
-                    <i class="fa-solid fa-keyboard mr-1"></i> MÁY GÕ ĐIỂM (ADMIN)
-                </button>
-                <button type="button" onclick="setDeviceRole('viewer')" id="role-viewer-btn" class="px-3 py-2 sm:py-1 text-[11px] font-bold rounded transition-all text-slate-400">
-                    <i class="fa-solid fa-eye mr-1"></i> MÁY XEM (VIEWER)
-                </button>
+        <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto justify-end">
+            <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-700 w-full sm:w-auto justify-center select-none">
+                <span id="role-admin-badge" class="px-3 py-1.5 text-[11px] font-bold rounded text-slate-500">
+                    <i class="fa-solid fa-keyboard mr-1"></i> MÁY NHẬP ĐIỂM
+                </span>
+                <span id="role-viewer-badge" class="px-3 py-1.5 text-[11px] font-bold rounded text-slate-500">
+                    <i class="fa-solid fa-eye mr-1"></i> MÁY XEM ĐIỆN THOẠI
+                </span>
             </div>
 
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                <label class="text-[11px] font-bold text-slate-400 uppercase whitespace-nowrap">Mã phòng:</label>
-                <input type="text" id="sync-room-id" value="thammuu34" onchange="changeSyncRoom(this.value)" class="w-full sm:w-48 bg-slate-900 border border-slate-700 text-yellow-400 font-bold px-3 py-1 text-xs rounded-lg focus:outline-none focus:border-yellow-500" placeholder="Nhập mã phòng">
-                <button onclick="forceSyncData()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-lg transition-all" title="Làm mới đồng bộ">
-                    <i class="fa-solid fa-rotate"></i>
+                <label class="text-[11px] font-bold text-slate-400 uppercase whitespace-nowrap">Mã kết nối:</label>
+                <input type="text" id="sync-room-id" class="w-full sm:w-64 bg-slate-900 border border-slate-700 text-yellow-400 font-mono font-bold px-3 py-1.5 text-xs rounded-lg focus:outline-none focus:border-yellow-500" placeholder="Chờ cấp mã phòng...">
+                <button onclick="forceSyncData()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-lg transition-all" title="Kết nối thủ công">
+                    <i class="fa-solid fa-link"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <header class="flex flex-col md:flex-row justify-between items-center gap-4 p-5 mb-6 bg-slate-900/80 border border-slate-800 rounded-2xl backdrop-blur-md shadow-xl">
+    <header class="flex flex-col xl:flex-row justify-between items-center gap-4 p-5 mb-6 bg-slate-900/80 border border-slate-800 rounded-2xl backdrop-blur-md shadow-xl">
         <div class="flex items-center gap-4">
-            <div class="bg-gradient-to-br from-red-600 to-red-900 w-14 h-14 rounded-xl flex items-center justify-center border border-yellow-500/30 shadow-lg">
-                <i class="fa-solid fa-crosshairs text-2xl text-yellow-400"></i>
+            <div class="bg-gradient-to-br from-red-600 to-red-900 w-12 h-12 rounded-xl flex items-center justify-center border border-yellow-500/30 shadow-lg">
+                <i class="fa-solid fa-crosshairs text-xl text-yellow-400"></i>
             </div>
             <div>
-                <h1 class="text-xl font-bold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-200">Hệ Thống Kiểm Tra Bắn Súng Đạn Thật</h1>
+                <h1 class="text-base sm:text-lg font-bold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-200">Hệ Thống Kiểm Tra Bắn Súng Đạn Thật</h1>
             </div>
         </div>
         
-        <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800" id="exercise-selector">
-            <button onclick="switchExercise(1)" id="ex-btn-1" class="px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 active-pill text-white">BÀI 1 (BIA 4)</button>
-            <button onclick="switchExercise(2)" id="ex-btn-2" class="px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400">BÀI 2 (BIA 7)</button>
-            <button onclick="switchExercise(3)" id="ex-btn-3" class="px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400">BÀI 3 (BIA 8)</button>
-            <button onclick="switchExercise(4)" id="ex-btn-4" class="px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400">BÀI 4 (TỔNG HỢP)</button>
+        <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 overflow-x-auto max-w-full custom-scrollbar" id="exercise-selector">
+            <button onclick="switchExercise(1)" id="ex-btn-1" class="px-3 py-2 text-[11px] font-bold rounded-lg transition-all text-white active-pill whitespace-nowrap">BÀI 1 (BIA 4)</button>
+            <button onclick="switchExercise(2)" id="ex-btn-2" class="px-3 py-2 text-[11px] font-bold rounded-lg transition-all text-slate-400 whitespace-nowrap">BÀI 2 (BIA 7)</button>
+            <button onclick="switchExercise(3)" id="ex-btn-3" class="px-3 py-2 text-[11px] font-bold rounded-lg transition-all text-slate-400 whitespace-nowrap">BÀI 3 (BIA 8)</button>
+            <button onclick="switchExercise(4)" id="ex-btn-4" class="px-3 py-2 text-[11px] font-bold rounded-lg transition-all text-slate-400 whitespace-nowrap">BÀI 4 (TỔNG HỢP)</button>
         </div>
 
-        <div class="flex gap-2">
-            <button onclick="exportToExcel()" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-lg shadow-emerald-950/50">
-                <i class="fa-solid fa-file-excel"></i> XUẤT FILE EXCEL
+        <div class="flex gap-2 w-full xl:w-auto justify-end">
+            <button onclick="exportToExcel()" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] font-bold rounded-xl transition flex items-center gap-2 shadow-lg shadow-emerald-950/50">
+                <i class="fa-solid fa-file-excel"></i> XUẤT EXCEL
             </button>
-            <button onclick="exportJSON()" class="px-3 py-2 bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-xl hover:bg-slate-700">
-                Lưu JSON
+            <button onclick="exportJSON()" class="px-3 py-2 bg-slate-800 border border-slate-700 text-slate-300 text-[11px] rounded-xl hover:bg-slate-700">
+                Sao lưu JSON
             </button>
         </div>
     </header>
 
     <div class="grid grid-cols-12 gap-6 items-start flex-grow mb-12">
-        <div id="left-control-panel" class="col-span-12 lg:col-span-3 space-y-4">
+        <div id="left-control-panel" class="col-span-12 lg:col-span-3 space-y-4 hidden">
             <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
                 <h2 class="text-sm font-bold text-yellow-500 uppercase tracking-wider border-b border-slate-800 pb-3" id="form-title"><i class="fa-solid fa-user-plus mr-2"></i>Xếp bệ bắn mới</h2>
                 <input type="hidden" id="s-uid">
                 <div>
-                    <label class="text-[11px] font-bold text-slate-400 uppercase">Họ và tên</label>
-                    <input type="text" id="s-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 mt-1 text-sm text-white focus:outline-none focus:border-yellow-500" placeholder="Nguyễn Văn Thắng">
+                    <label class="text-[11px] font-bold text-slate-400 uppercase">Họ và tên quân nhân</label>
+                    <input type="text" id="s-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 mt-1 text-sm text-white focus:outline-none focus:border-yellow-500" placeholder="Nguyễn Văn Thắng">
                 </div>
                 <div>
-                    <label class="text-[11px] font-bold text-slate-400 uppercase">Đơn vị (Nhập c1, c2, c3...)</label>
-                    <input type="text" id="s-unit" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 mt-1 text-sm text-white focus:outline-none focus:border-yellow-500" placeholder="c1 hoặc Đại đội 1">
+                    <label class="text-[11px] font-bold text-slate-400 uppercase">Đơn vị (Ví dụ: c1, c2...)</label>
+                    <input type="text" id="s-unit" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 mt-1 text-sm text-white focus:outline-none focus:border-yellow-500" placeholder="Đại đội 1">
                 </div>
                 <div>
                     <label class="text-[11px] font-bold text-slate-400 uppercase">Vị trí bệ bắn</label>
-                    <select id="s-bay" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 mt-1 text-sm text-yellow-400 font-bold focus:outline-none focus:border-yellow-500">
+                    <select id="s-bay" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 mt-1 text-sm text-yellow-400 font-bold focus:outline-none focus:border-yellow-500">
                         <option value="1">BỆ SỐ 1</option>
                         <option value="2">BỆ SỐ 2</option>
                         <option value="3">BỆ SỐ 3</option>
@@ -101,7 +101,7 @@
                     </select>
                 </div>
                 <div class="flex gap-2" id="action-buttons-group">
-                    <button onclick="registerSoldier()" id="btn-submit" class="w-full bg-gradient-to-r from-red-700 to-red-800 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:from-red-600 hover:to-red-700 transition shadow-md">
+                    <button onclick="registerSoldier()" id="btn-submit" class="w-full bg-gradient-to-r from-red-700 to-red-800 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:from-red-600 hover:to-red-700 transition shadow-md">
                         Vào bệ bắn
                     </button>
                 </div>
@@ -110,14 +110,14 @@
             <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-xl">
                 <h2 class="text-sm font-bold text-yellow-500 uppercase tracking-wider border-b border-slate-800 pb-3 mb-4"><i class="fa-solid fa-chart-pie mr-2"></i>Tỉ lệ thành tích</h2>
                 <div class="w-full flex justify-center items-center pb-2">
-                    <div style="position: relative; height:200px; width:200px">
+                    <div style="position: relative; height:180px; width:180px">
                         <canvas id="achievementChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="right-table-panel" class="col-span-12 lg:col-span-9 space-y-4">
+        <div id="right-table-panel" class="col-span-12 space-y-4">
             <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
                 <div class="overflow-x-auto custom-scrollbar">
                     <table class="w-full text-left border-collapse text-xs">
@@ -132,7 +132,7 @@
                                 <th class="text-center bg-slate-900/60 border-b border-r border-slate-800/60" colspan="3">Bia số 8 (Bài 3)</th>
                                 <th class="p-3 text-center border-r border-slate-800/60" rowspan="2">Tổng</th>
                                 <th class="p-3 border-r border-slate-800/60" rowspan="2">Xếp loại</th>
-                                <th class="p-3 text-center action-column" rowspan="2">Thao tác</th>
+                                <th class="p-3 text-center action-column" rowspan="2">Xóa</th>
                             </tr>
                             <tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center">
                                 <th class="p-2 border-r border-slate-800/40">V1</th><th class="p-2 border-r border-slate-800/40">V2</th><th class="p-2 border-r border-slate-800/60">V3</th>
@@ -149,47 +149,61 @@
     </div>
 
     <footer class="w-full text-center py-4 bg-slate-950/60 border-t border-slate-800 text-slate-400 text-xs mt-auto rounded-t-xl">
-        <p><i class="fa-solid fa-shield-halved text-yellow-500 mr-1"></i> Phần mềm được tạo bởi đồng chí Thiếu tá: <strong>Trương Công Sĩ</strong>, Trợ lý Tác Chiến, Phòng Tham mưu hành chính, Trường Quân sự Quân đoàn 34</p>
+        <p><i class="fa-solid fa-shield-halved text-yellow-500 mr-1"></i> Phần mềm điều hành bắn đạn thật | Trường Quân sự Quân đoàn 34</p>
     </footer>
 
     <script>
         let currentExercise = 1;
-        let mainData = JSON.parse(localStorage.getItem('shooting_v5_shared_list')) || [];
+        let mainData = [];
         let pieChartInstance = null;
-        let currentRoom = localStorage.getItem('sync_room_id') || 'thammuu34';
         
-        // Mặc định ban đầu là máy xem cho an toàn dữ liệu
-        let deviceRole = localStorage.getItem('device_role') || 'viewer';
+        // CHẾ ĐỘ THIẾT BỊ: Màn hình nhỏ dưới 1024px (Điện thoại) làm máy xem, ngược lại làm máy gõ điểm
+        let deviceRole = (window.innerWidth < 1024) ? 'viewer' : 'admin';
+        
+        // Tạo phòng theo ngày mặc định
+        let todayStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
+        let currentRoom = "room_" + todayStr;
 
         const MASTER_KEY = "$2a$10$Q9wC3DLyzOq0JM64EXJmGuwtG8flBOVIgLik4fsZNYhJOi.vAXCNS"; 
         const SYNC_SERVER = "https://api.jsonbin.io/v3/b";
 
-        document.getElementById('sync-room-id').value = currentRoom;
-
-        function setDeviceRole(role) {
-            deviceRole = role;
-            localStorage.setItem('device_role', role);
-            
-            const btnAdmin = document.getElementById('role-admin-btn');
-            const btnViewer = document.getElementById('role-viewer-btn');
+        // Khởi tạo hệ thống ngay khi tải trang
+        window.onload = function() {
             const leftPanel = document.getElementById('left-control-panel');
             const rightPanel = document.getElementById('right-table-panel');
-            
-            if(!btnAdmin || !btnViewer) return;
+            const badgeAdmin = document.getElementById('role-admin-badge');
+            const badgeViewer = document.getElementById('role-viewer-badge');
 
-            if(role === 'admin') {
-                btnAdmin.className = "px-3 py-2 sm:py-1 text-[11px] font-bold rounded transition-all text-white bg-blue-600";
-                btnViewer.className = "px-3 py-2 sm:py-1 text-[11px] font-bold rounded transition-all text-slate-400 bg-transparent";
+            if(deviceRole === 'admin') {
+                // Cấu hình giao diện Máy gõ điểm
+                if(badgeAdmin) badgeAdmin.className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-blue-600";
                 if(leftPanel) leftPanel.style.display = 'block';
                 if(rightPanel) rightPanel.className = "col-span-12 lg:col-span-9 space-y-4";
+                
+                document.getElementById('sync-room-id').value = "Đang xin cấp mã...";
+                updateStatus("Đang thiết lập kênh đẩy dữ liệu...", "loading");
+                
+                // Máy tính tự động đăng ký phòng trên mây
+                createNewBinOnCloud();
             } else {
-                btnViewer.className = "px-3 py-2 sm:py-1 text-[11px] font-bold rounded transition-all text-white bg-amber-600";
-                btnAdmin.className = "px-3 py-2 sm:py-1 text-[11px] font-bold rounded transition-all text-slate-400 bg-transparent";
+                // Cấu hình giao diện Điện thoại xem điểm
+                if(badgeViewer) badgeViewer.className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-amber-600";
                 if(leftPanel) leftPanel.style.display = 'none';
                 if(rightPanel) rightPanel.className = "col-span-12 space-y-4";
+                
+                // Lấy lại mã phòng cũ nếu điện thoại đã từng nhập trước đó
+                let savedRoom = localStorage.getItem('last_connected_room') || '';
+                document.getElementById('sync-room-id').value = savedRoom;
+                
+                if(savedRoom.length >= 20) {
+                    updateStatus("Đang kết nối lại phòng cũ...", "loading");
+                    downloadDataFromCloud();
+                } else {
+                    updateStatus("Chờ nhập Mã kết nối từ máy tính...", "error");
+                }
             }
             renderEngine();
-        }
+        };
 
         function updateStatus(text, type) {
             const dot = document.getElementById('status-dot');
@@ -201,29 +215,65 @@
             else { dot.className = "w-3 h-3 rounded-full bg-rose-500 animate-ping"; }
         }
 
-        function changeSyncRoom(newRoom) {
-            if(!newRoom.trim()) return;
-            currentRoom = newRoom.trim().toLowerCase().replace(/\s+/g, '');
-            localStorage.setItem('sync_room_id', currentRoom);
-            if(currentRoom.length >= 20) {
-                localStorage.setItem(`bin_id_room_${currentRoom}`, currentRoom);
-            }
-            downloadDataFromCloud(true);
+        function createNewBinOnCloud() {
+            fetch(SYNC_SERVER, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' },
+                body: JSON.stringify({ room: currentRoom, data: mainData })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if(res.metadata && res.metadata.id) {
+                    currentRoom = res.metadata.id;
+                    document.getElementById('sync-room-id').value = res.metadata.id;
+                    updateStatus("Kênh gõ điểm sẵn sàng trực tuyến!", "success");
+                }
+            })
+            .catch(() => updateStatus("Lỗi kết nối máy chủ Cloud", "error"));
         }
 
-        function normalizeUnitName(unitStr) {
-            let trimmed = unitStr.trim();
-            let match = trimmed.match(/^([cC])(\d+)$/);
-            if(match) return "Đại đội " + match[2];
-            return trimmed;
+        function downloadDataFromCloud() {
+            let targetRoomId = document.getElementById('sync-room-id').value.trim();
+            if (targetRoomId.length < 20) return;
+            
+            fetch(`${SYNC_SERVER}/${targetRoomId}/latest`, {
+                method: 'GET',
+                headers: { 'X-Master-Key': MASTER_KEY },
+                cache: 'no-store'
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.record && res.record.data) {
+                    // Máy gõ điểm chỉ cập nhật nếu mạng có biến động lớn, máy xem thì ép cập nhật liên tục
+                    if(deviceRole === 'viewer' || JSON.stringify(mainData) !== JSON.stringify(res.record.data)) {
+                        mainData = res.record.data;
+                        renderEngine();
+                    }
+                    if(deviceRole === 'viewer') {
+                        localStorage.setItem('last_connected_room', targetRoomId);
+                    }
+                    updateStatus("Kết nối thông suốt - Cập nhật trực tiếp", "success");
+                }
+            })
+            .catch(() => updateStatus("Mã kết nối không hợp lệ hoặc lỗi mạng", "error"));
         }
 
-        function switchExercise(exNum) {
-            currentExercise = exNum;
-            document.querySelectorAll('#exercise-selector button').forEach(b => b.classList.remove('active-pill', 'text-white'));
-            document.getElementById(`ex-btn-${exNum}`).classList.add('active-pill', 'text-white');
-            if(deviceRole === 'admin') cancelEdit();
-            renderEngine();
+        function uploadDataToCloud() {
+            if (deviceRole !== 'admin' || currentRoom.length < 20) return;
+            
+            fetch(`${SYNC_SERVER}/${currentRoom}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
+                body: JSON.stringify({ room: currentRoom, data: mainData })
+            })
+            .then(res => {
+                if(res.ok) updateStatus("Đã đồng bộ điểm số lên mây đám mây", "success");
+            });
+        }
+
+        function forceSyncData() {
+            updateStatus("Đang đồng bộ thủ công...", "loading");
+            downloadDataFromCloud();
         }
 
         function registerSoldier() {
@@ -233,7 +283,6 @@
             const bay = parseInt(document.getElementById('s-bay').value);
 
             if(!name || !unit) return alert("Vui lòng điền đủ tên và đơn vị!");
-            unit = normalizeUnitName(unit);
 
             mainData.push({
                 uid: Date.now(), name: name, unit: unit, bay: bay,
@@ -244,56 +293,9 @@
 
             document.getElementById('s-name').value = '';
             document.getElementById('s-unit').value = '';
-            pushDataState();
-        }
-
-        function editSoldier(uid) {
-            if(deviceRole !== 'admin') return;
-            const idx = mainData.findIndex(item => item.uid === uid);
-            if(idx === -1) return;
-            const item = mainData[idx];
-
-            document.getElementById('s-uid').value = item.uid;
-            document.getElementById('s-name').value = item.name;
-            document.getElementById('s-unit').value = item.unit;
-            document.getElementById('s-bay').value = item.bay;
-            document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-pen-to-square mr-2"></i>Cập nhật quân nhân`;
             
-            document.getElementById('action-buttons-group').innerHTML = `
-                <button onclick="saveEdit()" class="w-1/2 bg-blue-700 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-blue-600 transition shadow-md">Cập nhật</button>
-                <button onclick="cancelEdit()" class="w-1/2 bg-slate-700 text-slate-300 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-slate-600 transition">Hủy</button>
-            `;
-        }
-
-        function saveEdit() {
-            if(deviceRole !== 'admin') return;
-            const uid = parseInt(document.getElementById('s-uid').value);
-            const name = document.getElementById('s-name').value.trim();
-            let unit = document.getElementById('s-unit').value.trim();
-            const bay = parseInt(document.getElementById('s-bay').value);
-
-            if(!name || !unit) return alert("Không được để trống tên và đơn vị!");
-            unit = normalizeUnitName(unit);
-
-            const idx = mainData.findIndex(item => item.uid === uid);
-            if(idx !== -1) {
-                mainData[idx].name = name;
-                mainData[idx].unit = unit;
-                mainData[idx].bay = bay;
-                cancelEdit();
-                pushDataState();
-            }
-        }
-
-        function cancelEdit() {
-            document.getElementById('s-uid').value = '';
-            document.getElementById('s-name').value = '';
-            document.getElementById('s-unit').value = '';
-            document.getElementById('s-bay').value = '1';
-            document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-user-plus mr-2"></i>Xếp bệ bắn mới`;
-            document.getElementById('action-buttons-group').innerHTML = `
-                <button onclick="registerSoldier()" id="btn-submit" class="w-full bg-gradient-to-r from-red-700 to-red-800 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:from-red-600 hover:to-red-700 transition shadow-md">Vào bệ bắn</button>
-            `;
+            renderEngine();
+            uploadDataToCloud();
         }
 
         function modifyScore(uid, field, value) {
@@ -317,11 +319,11 @@
                 if(tdTotal) tdTotal.innerText = total;
                 if(tdRank) tdRank.innerHTML = getRankString(total, currentExercise === 4);
                 
-                localStorage.setItem('shooting_v5_shared_list', JSON.stringify(mainData));
                 updatePieChartLogic();
                 
+                // Chờ người dùng gõ xong 300ms rồi tự động truyền dữ liệu lên mây
                 clearTimeout(window.saveTimeout);
-                window.saveTimeout = setTimeout(uploadDataToCloud, 400);
+                window.saveTimeout = setTimeout(uploadDataToCloud, 300);
             }
         }
 
@@ -340,45 +342,11 @@
             }
         }
 
-        function updatePieChartLogic() {
-            let gioi = 0, kha = 0, dat = 0, khongDat = 0;
-            mainData.forEach(item => {
-                let score = (item.b4_1 + item.b4_2 + item.b4_3) + (item.b7_1 + item.b7_2 + item.b7_3) + (item.b8_1 + item.b8_2 + item.b8_3);
-                if(currentExercise === 1) score = item.b4_1 + item.b4_2 + item.b4_3;
-                else if(currentExercise === 2) score = item.b7_1 + item.b7_2 + item.b7_3;
-                else if(currentExercise === 3) score = item.b8_1 + item.b8_2 + item.b8_3;
-
-                if(score > 0) {
-                    if(currentExercise === 4) {
-                        if(score >= 72) gioi++; else if(score >= 65) kha++; else if(score >= 50) dat++; else khongDat++;
-                    } else {
-                        if(score >= 25) gioi++; else if(score >= 21) kha++; else if(score >= 15) dat++; else khongDat++;
-                    }
-                } else { khongDat++; }
-            });
-            if (pieChartInstance) {
-                pieChartInstance.data.datasets[0].data = [gioi, kha, dat, khongDat];
-                pieChartInstance.update();
-            } else {
-                const canvas = document.getElementById('achievementChart');
-                if(!canvas) return;
-                const ctx = canvas.getContext('2d');
-                pieChartInstance = new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels: ['Giỏi', 'Khá', 'Đạt', 'K.Đạt'],
-                        datasets: [{
-                            data: [gioi, kha, dat, khongDat],
-                            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
-                            borderWidth: 2, borderColor: '#0f172a'
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 } } } }
-                    }
-                });
-            }
+        function switchExercise(exNum) {
+            currentExercise = exNum;
+            document.querySelectorAll('#exercise-selector button').forEach(b => b.classList.remove('active-pill', 'text-white'));
+            document.getElementById(`ex-btn-${exNum}`).classList.add('active-pill', 'text-white');
+            renderEngine();
         }
 
         function renderEngine() {
@@ -396,10 +364,9 @@
                     target.innerHTML += `
                         <tr class="bg-slate-950/90 text-yellow-500 font-bold select-none">
                             <td colspan="16" class="p-2.5 text-center uppercase tracking-widest text-[10px] border-y border-slate-800">
-                                <i class="fa-solid fa-angles-right mr-2"></i> --- LOẠT BẮN SỐ ${currentLot} (GỒM 6 BỆ BẮN) --- <i class="fa-solid fa-angles-left ml-2"></i>
+                                --- LOẠT BẮN SỐ ${currentLot} (GỒM 6 BỆ BẮN) ---
                             </td>
-                        </tr>
-                    `;
+                        </tr>`;
                 }
 
                 let total = (item.b4_1 + item.b4_2 + item.b4_3) + (item.b7_1 + item.b7_2 + item.b7_3) + (item.b8_1 + item.b8_2 + item.b8_3);
@@ -408,9 +375,8 @@
                 else if(currentExercise === 3) total = item.b8_1 + item.b8_2 + item.b8_3;
 
                 const isAggr = currentExercise === 4;
-                
                 const styleAct = "w-11 bg-slate-950 border border-slate-800 text-center text-yellow-400 font-bold rounded py-1 focus:border-yellow-500 focus:outline-none";
-                const styleViewer = "w-11 bg-transparent text-center text-slate-200 font-semibold py-1 select-none font-mono text-xs";
+                const styleViewer = "w-11 bg-transparent text-center text-slate-200 font-semibold py-1 font-mono text-xs";
 
                 let inputAttr = (deviceRole === 'admin') ? `class="${styleAct}"` : `class="${styleViewer}" disabled`;
                 let isExerciseDisabled = (ex) => {
@@ -440,180 +406,101 @@
                         <td class="p-3 font-bold text-sm text-white border-r border-slate-800/40"><span id="total-${item.uid}">${total}</span></td>
                         <td class="p-3 text-left font-bold border-r border-slate-800/40" id="rank-${item.uid}">${getRankString(total, isAggr)}</td>
                         
-                        <td class="p-3 whitespace-nowrap space-x-1" style="display: ${(deviceRole === 'admin') ? 'table-cell' : 'none'}">
-                            <button onclick="editSoldier(${item.uid})" class="text-slate-400 hover:text-blue-400 transition px-1"><i class="fa-solid fa-user-pen"></i></button>
-                            <button onclick="purgeSoldier(${item.uid})" class="text-slate-500 hover:text-red-500 transition px-1"><i class="fa-solid fa-trash-can"></i></button>
+                        <td class="p-3 whitespace-nowrap action-column" style="display: ${(deviceRole === 'admin') ? 'table-cell' : 'none'}">
+                            <button onclick="purgeSoldier(${item.uid})" class="text-slate-500 hover:text-red-500 transition px-2"><i class="fa-solid fa-trash-can"></i></button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             });
             updatePieChartLogic();
         }
 
-        function uploadDataToCloud() {
-            if (deviceRole !== 'admin') return;
+        function updatePieChartLogic() {
+            let gioi = 0, kha = 0, dat = 0, khongDat = 0;
+            mainData.forEach(item => {
+                let score = (item.b4_1 + item.b4_2 + item.b4_3) + (item.b7_1 + item.b7_2 + item.b7_3) + (item.b8_1 + item.b8_2 + item.b8_3);
+                if(currentExercise === 1) score = item.b4_1 + item.b4_2 + item.b4_3;
+                else if(currentExercise === 2) score = item.b7_1 + item.b7_2 + item.b7_3;
+                else if(currentExercise === 3) score = item.b8_1 + item.b8_2 + item.b8_3;
 
-            updateStatus("Đang đồng bộ dữ liệu...", "loading");
-            let savedBinId = localStorage.getItem(`bin_id_room_${currentRoom}`);
-            
-            if (savedBinId && savedBinId.length >= 20) {
-                fetch(`${SYNC_SERVER}/${savedBinId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
-                    body: JSON.stringify({ room: currentRoom, data: mainData })
-                })
-                .then(res => {
-                    if(res.ok) {
-                        updateStatus("Mạng trực tuyến: Đã đồng bộ hoàn hảo", "success");
+                if(score > 0) {
+                    if(currentExercise === 4) {
+                        if(score >= 72) gioi++; else if(score >= 65) kha++; else if(score >= 50) dat++; else khongDat++;
                     } else {
-                        localStorage.removeItem(`bin_id_room_${currentRoom}`);
-                        createNewBinOnCloud();
+                        if(score >= 25) gioi++; else if(score >= 21) kha++; else if(score >= 15) dat++; else khongDat++;
                     }
-                })
-                .catch(() => updateStatus("Lỗi kết nối mạng", "error"));
-            } else {
-                createNewBinOnCloud();
-            }
-        }
-
-        function createNewBinOnCloud() {
-            if (deviceRole !== 'admin') return;
-            fetch(SYNC_SERVER, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' },
-                body: JSON.stringify({ room: currentRoom, data: mainData })
-            })
-            .then(res => res.json())
-            .then(res => {
-                if(res.metadata && res.metadata.id) {
-                    localStorage.setItem(`bin_id_room_${currentRoom}`, res.metadata.id);
-                    updateStatus(`Phòng mới: ${res.metadata.id}`, "success");
-                    alert(`KHỞI TẠO ĐƯỜNG TRUYỀN THÀNH CÔNG!\n\nMã ID kết nối của đồng chí là:\n\n${res.metadata.id}`);
-                }
-            })
-            .catch(() => updateStatus("Lỗi kết nối máy chủ", "error"));
-        }
-
-        function downloadDataFromCloud(isForce = false) {
-            let savedBinId = localStorage.getItem(`bin_id_room_${currentRoom}`);
-            if(currentRoom.length >= 20 && !savedBinId) {
-                savedBinId = currentRoom;
-                localStorage.setItem(`bin_id_room_${currentRoom}`, currentRoom);
-            }
-
-            if (!savedBinId) return;
-            if(isForce) updateStatus("Đang quét máy chủ...", "loading");
+                } else { khongDat++; }
+            });
             
-            fetch(`${SYNC_SERVER}/${savedBinId}/latest`, {
-                method: 'GET',
-                headers: { 'X-Master-Key': MASTER_KEY },
-                cache: 'no-store'
-            })
-            .then(res => res.json())
-            .then(res => {
-                if (res.record && res.record.data) {
-                    if(deviceRole === 'viewer' || JSON.stringify(mainData) !== JSON.stringify(res.record.data)) {
-                        mainData = res.record.data;
-                        localStorage.setItem('shooting_v5_shared_list', JSON.stringify(mainData));
-                        renderEngine();
-                    }
-                    updateStatus("Mạng trực tuyến: Kết nối thông suốt", "success");
-                }
-            }).catch(() => { if(isForce) updateStatus("Mã ID phòng không hợp lệ", "error"); });
-        }
-
-        function forceSyncData() {
-            const currentInputValue = document.getElementById('sync-room-id').value.trim();
-            if(currentInputValue.length >= 20) {
-                localStorage.setItem(`bin_id_room_${currentInputValue}`, currentInputValue);
-                currentRoom = currentInputValue;
-                downloadDataFromCloud(true);
+            const canvas = document.getElementById('achievementChart');
+            if(!canvas) return;
+            
+            if (pieChartInstance) {
+                pieChartInstance.data.datasets[0].data = [gioi, kha, dat, khongDat];
+                pieChartInstance.update();
             } else {
-                if (deviceRole === 'admin') {
-                    localStorage.removeItem(`bin_id_room_${currentRoom}`);
-                    uploadDataToCloud();
-                } else {
-                    downloadDataFromCloud(true);
-                }
+                const ctx = canvas.getContext('2d');
+                pieChartInstance = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Giỏi', 'Khá', 'Đạt', 'K.Đạt'],
+                        datasets: [{
+                            data: [gioi, kha, dat, khongDat],
+                            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+                            borderWidth: 2, borderColor: '#0f172a'
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } }
+                    }
+                });
             }
         }
-
-        setInterval(() => {
-            if (!document.activeElement || document.activeElement.tagName !== 'INPUT') {
-                downloadDataFromCloud();
-            }
-        }, 3000); 
 
         function purgeSoldier(uid) {
             if(deviceRole !== 'admin') return;
-            if(confirm("Xác nhận xóa hẳn quân nhân này khỏi lượt bắn?")) {
+            if(confirm("Xác nhận xóa quân nhân này?")) {
                 mainData = mainData.filter(d => d.uid !== uid);
-                cancelEdit();
-                pushDataState();
+                renderEngine();
+                uploadDataToCloud();
             }
         }
 
-        function pushDataState() {
-            localStorage.setItem('shooting_v5_shared_list', JSON.stringify(mainData));
-            renderEngine();
-            uploadDataToCloud();
-        }
+        // VÒNG LẶP ĐỒNG BỘ: Điện thoại tự động kéo dữ liệu về mỗi 3 giây
+        setInterval(() => {
+            if (deviceRole === 'viewer') {
+                downloadDataFromCloud();
+            }
+        }, 3000);
 
         function exportToExcel() {
             if(mainData.length === 0) return alert("Không có dữ liệu để xuất Excel!");
             let excelRows = [
                 ["BẢNG TỔNG HỢP KẾT QUẢ KIỂM TRA BẮN SÚNG ĐẠT THẬT"],
-                ["Chi tiết từng viên bắn (3 viên/bia) - Tự động tổng hợp và xếp loại thành tích"],
+                ["Tự động tổng hợp dữ liệu thời gian thực"],
                 [], 
-                ["STT", "Bệ bắn", "Bài hiện tại", "Họ và Tên", "Đơn vị", "Bia số 4 (Bài 1)", "", "", "Bia số 7 (Bài 2)", "", "", "Bia số 8 (Bài 3)", "", "", "Tổng điểm", "Xếp loại"],
+                ["STT", "Bệ bắn", "Bài bắn", "Họ và Tên", "Đơn vị", "Bia số 4 (Bài 1)", "", "", "Bia số 7 (Bài 2)", "", "", "Bia số 8 (Bài 3)", "", "", "Tổng điểm", "Xếp loại"],
                 ["", "", "", "", "", "Viên 1", "Viên 2", "Viên 3", "Viên 1", "Viên 2", "Viên 3", "Viên 1", "Viên 2", "Viên 3", "", ""]
             ];
-            let gioi = 0, kha = 0, dat = 0, khongDat = 0;
             mainData.forEach((item, index) => {
-                let bài_text = "Bài " + currentExercise;
                 let t = (item.b4_1 + item.b4_2 + item.b4_3) + (item.b7_1 + item.b7_2 + item.b7_3) + (item.b8_1 + item.b8_2 + item.b8_3);
                 if(currentExercise === 1) t = item.b4_1 + item.b4_2 + item.b4_3;
                 else if(currentExercise === 2) t = item.b7_1 + item.b7_2 + item.b7_3;
                 else if(currentExercise === 3) t = item.b8_1 + item.b8_2 + item.b8_3;
-
-                let xl = "";
-                if(currentExercise === 4) {
-                    if(t >= 72) { xl = "GIỎI"; gioi++; } else if(t >= 65) { xl = "KHÁ"; kha++; } else if(t >= 50) { xl = "ĐẠT"; dat++; } else { xl = "K.ĐẠT"; khongDat++; }
-                } else {
-                    if(t >= 25) { xl = "GIỎI"; gioi++; } else if(t >= 21) { xl = "KHÁ"; kha++; } else if(t >= 15) { xl = "ĐẠT"; dat++; } else { xl = "K.ĐẠT"; khongDat++; }
-                }
-                excelRows.push([ index + 1, "Bệ " + item.bay, bài_text, item.name, item.unit, item.b4_1, item.b4_2, item.b4_3, item.b7_1, item.b7_2, item.b7_3, item.b8_1, item.b8_2, item.b8_3, t, xl ]);
+                
+                let xl = (t >= 25) ? "GIỎI" : (t >= 21) ? "KHÁ" : (t >= 15) ? "ĐẠT" : "K.ĐẠT";
+                excelRows.push([ index + 1, "Bệ " + item.bay, "Bài " + currentExercise, item.name, item.unit, item.b4_1, item.b4_2, item.b4_3, item.b7_1, item.b7_2, item.b7_3, item.b8_1, item.b8_2, item.b8_3, t, xl ]);
             });
-            let tongQuanSo = mainData.length;
-            excelRows.push([]); excelRows.push([]);
-            excelRows.push(["THỐNG KÊ TỈ LỆ THÀNH TÍCH CHUNG (BÀI " + currentExercise + ")"]);
-            excelRows.push(["Xếp loại", "Số lượng (Đồng chí)", "Tỉ lệ phần centrum (%)"]);
-            excelRows.push(["Giỏi", gioi, ((gioi / tongQuanSo) * 100).toFixed(1) + "%"]);
-            excelRows.push(["Khá", kha, ((kha / tongQuanSo) * 100).toFixed(1) + "%"]);
-            excelRows.push(["Đạt", dat, ((dat / tongQuanSo) * 100).toFixed(1) + "%"]);
-            excelRows.push(["Không đạt", khongDat, ((khongDat / tongQuanSo) * 100).toFixed(1) + "%"]);
             let wb = XLSX.utils.book_new(); let ws = XLSX.utils.aoa_to_sheet(excelRows);
-            ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 15 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 15 } }, 
-                { s: { r: 3, c: 0 }, e: { r: 4, c: 0 } }, { s: { r: 3, c: 1 }, e: { r: 4, c: 1 } }, 
-                { s: { r: 3, c: 2 }, e: { r: 4, c: 2 } }, { s: { r: 3, c: 3 }, e: { r: 4, c: 3 } }, 
-                { s: { r: 3, c: 4 }, e: { r: 4, c: 4 } }, { s: { r: 3, c: 5 }, e: { r: 3, c: 7 } }, 
-                { s: { r: 3, c: 8 }, e: { r: 3, c: 10 } }, { s: { r: 3, c: 11 }, e: { r: 3, c: 13 } }, 
-                { s: { r: 3, c: 14 }, e: { r: 4, c: 14 } }, { s: { r: 3, c: 15 }, e: { r: 4, c: 15 } }
-            ];
-            XLSX.utils.book_append_sheet(wb, ws, "KetQuaBanSung");
-            XLSX.writeFile(wb, "Bao_Cao_Ket_Qua_Ban_Sung.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "KetQua");
+            XLSX.writeFile(wb, "Ket_Qua_Ban_Sung.xlsx");
         }
 
         function exportJSON() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mainData));
-            const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "backup_shooting.json");
+            const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "backup.json");
             document.body.appendChild(a); a.click(); a.remove();
         }
-
-        // Kích hoạt giao diện theo chế độ lưu trữ nền
-        setDeviceRole(deviceRole);
-        downloadDataFromCloud();
     </script>
 </body>
 </html>
