@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Thống Kê Điểm Kiểm Tra Bắn Súng Đạn Thật - TQS QĐ34 </title>
+    <title>Hệ Thống Kiểm Tra Bắn Súng Đạn Thật </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -86,7 +86,7 @@
                     <input type="text" id="s-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 mt-1 text-sm text-white focus:outline-none focus:border-yellow-500" placeholder="Trần Thanh Phương">
                 </div>
                 <div>
-                    <label class="text-[11px] font-bold text-slate-400 uppercase">Đơn vị (Ví dụ: c1, c2...)</label>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase">Đơn vị (Ví dụ: a1,b1,c11)</label>
                     <input type="text" id="s-unit" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 mt-1 text-sm text-white focus:outline-none focus:border-yellow-500" placeholder="a1,b1,c11,d4">
                 </div>
                 <div>
@@ -414,6 +414,7 @@
             updatePieChartLogic();
         }
 
+        // ĐÃ ĐƯỢC CHỈNH SỬA: SỬA PHẦN TỈ LỆ THÀNH TÍCH THÀNH PHẦN TRĂM (%) KHI DI CHUỘT/XEM TRÊN BIỂU ĐỒ
         function updatePieChartLogic() {
             let gioi = 0, kha = 0, dat = 0, khongDat = 0;
             mainData.forEach(item => {
@@ -451,7 +452,21 @@
                     },
                     options: {
                         responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } }
+                        plugins: { 
+                            legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        let value = context.parsed || 0;
+                                        let dataset = context.chart.data.datasets[0];
+                                        let total = dataset.data.reduce((acc, curr) => acc + curr, 0);
+                                        let percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return ` ${label}: ${value} người (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
                     }
                 });
             }
