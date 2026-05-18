@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Kiểm Tra Bắn Súng Đạn Thật - Phiên Bản Chuyên Nghiệp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%);
+            color: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .active-pill { background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%); border-color: #facc15; }
+    </style>
+</head>
+<body class="p-6 min-height-screen flex flex-col custom-scrollbar">
+
+    <div class="mb-4 bg-slate-950 p-4 rounded-xl border border-slate-800/80 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" id="status-dot"></span>
+            <p class="text-xs text-slate-300 font-medium" id="status-text">Đang thiết lập cổng kết nối trực tuyến...</p>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+            <label class="text-[11px] font-bold text-slate-400 uppercase whitespace-nowrap">Mã phòng kết nối:</label>
+            <input type="text" id="sync-room-id" value="thammuu34" onchange="changeSyncRoom(this.value)" class="w-full sm:w-48 bg-slate-900 border border-slate-700 text-yellow-400 font-bold px-3 py-1 text-xs rounded-lg focus:outline-none focus:border-yellow-500" placeholder="Nhập mã bí mật">
+            <button onclick="forceSyncData()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-lg transition" title="Làm mới đồng bộ ngay tức thì">
+                <i class="fa-solid fa-rotate animate-spin-hover"></i>
+            </button>
+        </div>
+    </div>
+
+    <header class="flex flex-col md:flex-row justify-between items-center gap-4 p-5 mb-6 bg-slate-900/80 border border-slate-800 rounded-2xl backdrop-blur-md shadow-xl">
+        <div class="flex items-center gap-4">
+            <div class="bg-gradient-to-br from-red-600 to-red-900 w-14 h-14 rounded-xl flex items-center justify-center border border-yellow-500/30 shadow-lg">
+                <i class="fa-solid fa-crosshairs text-2xl text-yellow-400"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-200">Hệ Thống Kiểm Tra Bắn Súng Đạn Thật</h1>
+            </div>
+        </div>
+        
+        <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800" id="exercise-selector">
+            <button onclick="switchExercise(1)" id="ex-btn-1" class="px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 active-pill text-white">BÀI 1 (BIA 4)</button>
+            <button onclick="switchExercise(2)" id="ex-btn-2" class="px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400">BÀI 2 (BIA 7)</button>
+            <button onclick="switchExercise(3)" id="ex-btn-3" class="px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400">BÀI 3 (BIA 8)</button>
+            <button onclick="switchExercise(4)" id="ex-btn-4" class="px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400">BÀI 4 (TỔNG HỢP)</button>
+        </div>
+
+        <div class="flex gap-2">
+            <button onclick="exportToExcel()" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-lg shadow-emerald-950/50">
+                <i class="fa-solid fa-file-excel"></i> XUẤT FILE EXCEL
+            </button>
+            <button onclick="exportJSON()" class="px-3 py-2 bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-xl hover:bg-slate-700">
+                Lưu JSON
+            </button>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-12 gap-6 items-start flex-grow mb-12">
+        
+        <div class="col-span-12 lg:col-span-3 space-y-4">
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
+                <h2 class="text-sm font-bold text-yellow-500 uppercase tracking-wider border-b border-slate-800 pb-3" id="form-title"><i class="fa-solid fa-user-plus mr-2"></i>Xếp bệ bắn mới</h2>
+                <input type="hidden" id="s-uid">
+                <div>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase">Họ và tên</label>
+                    <input type="text" id="s-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 mt-1 text-sm text-white focus:outline-none focus:border-yellow-500" placeholder="Nguyễn Văn Thắng">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase">Đơn vị (Nhập c1, c2, c3...)</label>
+                    <input type="text" id="s-unit" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 mt-1 text-sm text-white focus:outline-none focus:border-yellow-500" placeholder="c1 hoặc Đại đội 1">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase">Vị trí bệ bắn</label>
+                    <select id="s-bay" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 mt-1 text-sm text-yellow-400 font-bold focus:outline-none focus:border-yellow-500">
+                        <option value="1">BỆ SỐ 1</option>
+                        <option value="2">BỆ SỐ 2</option>
+                        <option value="3">BỆ SỐ 3</option>
+                        <option value="4">BỆ SỐ 4</option>
+                        <option value="5">BỆ SỐ 5</option>
+                        <option value="6">BỆ SỐ 6</option>
+                    </select>
+                </div>
+                <div class="flex gap-2" id="action-buttons-group">
+                    <button onclick="registerSoldier()" id="btn-submit" class="w-full bg-gradient-to-r from-red-700 to-red-800 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:from-red-600 hover:to-red-700 transition shadow-md">
+                        Vào bệ bắn
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-xl">
+                <h2 class="text-sm font-bold text-yellow-500 uppercase tracking-wider border-b border-slate-800 pb-3 mb-4"><i class="fa-solid fa-chart-pie mr-2"></i>Tỉ lệ thành tích</h2>
+                <div class="w-full flex justify-center items-center pb-2">
+                    <div style="position: relative; height:200px; width:200px">
+                        <canvas id="achievementChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-span-12 lg:col-span-9 space-y-4">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
+                                <th class="p-3 text-center border-r border-slate-800/60" rowspan="2">STT</th>
+                                <th class="p-3 border-r border-slate-800/60" rowspan="2">Bệ</th>
+                                <th class="p-3 border-r border-slate-800/60" rowspan="2">Họ và Tên</th>
+                                <th class="p-3 border-r border-slate-800/60" rowspan="2">Đơn vị</th>
+                                <th class="text-center bg-slate-900/60 border-b border-r border-slate-800/60" colspan="3">Bia số 4 (Bài 1)</th>
+                                <th class="text-center bg-slate-900/60 border-b border-r border-slate-800/60" colspan="3">Bia số 7 (Bài 2)</th>
+                                <th class="text-center bg-slate-900/60 border-b border-r border-slate-800/60" colspan="3">Bia số 8 (Bài 3)</th>
+                                <th class="p-3 text-center border-r border-slate-800/60" rowspan="2">Tổng</th>
+                                <th class="p-3 border-r border-slate-800/60" rowspan="2">Xếp loại</th>
+                                <th class="p-3 text-center" rowspan="2">Thao tác</th>
+                            </tr>
+                            <tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center">
+                                <th class="p-2 border-r border-slate-800/40">V1</th><th class="p-2 border-r border-slate-800/40">V2</th><th class="p-2 border-r border-slate-800/60">V3</th>
+                                <th class="p-2 border-r border-slate-800/40">V1</th><th class="p-2 border-r border-slate-800/40">V2</th><th class="p-2 border-r border-slate-800/60">V3</th>
+                                <th class="p-2 border-r border-slate-800/40">V1</th><th class="p-2 border-r border-slate-800/40">V2</th><th class="p-2 border-r border-slate-800/60">V3</th>
+                            </tr>
+                        </thead>
+                        <tbody id="render-target" class="divide-y divide-slate-800/60">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="w-full text-center py-4 bg-slate-950/60 border-t border-slate-800 text-slate-400 text-xs mt-auto rounded-t-xl">
+        <p><i class="fa-solid fa-shield-halved text-yellow-500 mr-1"></i> Phần mềm được tạo bởi đồng chí Thiếu tá: <strong>Trương Công Sĩ</strong>, Trợ lý Tác Chiến, Phòng Tham mưu hành chính, Trường Quân sự Quân đoàn 34</p>
+    </footer>
+
+    <script>
+        let currentExercise = 1;
+        let mainData = JSON.parse(localStorage.getItem('shooting_v5_shared_list')) || [];
+        let pieChartInstance = null;
+        let currentRoom = localStorage.getItem('sync_room_id') || 'thammuu34';
+
+        // Thiết lập mã phòng mặc định
+        document.getElementById('sync-room-id').value = currentRoom;
+
+        // BỘ ENGINE KẾT NỐI CLOUD MIỄN PHÍ TRỰC TIẾP QUA TRÌNH DUYỆT
+        const SYNC_SERVER = "https://api.jsonbin.io/v3/b";
+        const MASTER_KEY = "$2a$10$wz8.pZqY5eM1yqVfI48i6uH2r9Fm1F1hF8qgB3B6m6pZ3W2D8Y2h."; 
+        let binId = localStorage.getItem('sync_bin_id_' + currentRoom) || null;
+        let syncInterval = null;
+
+        function updateStatus(text, type) {
+            const dot = document.getElementById('status-dot');
+            const txt = document.getElementById('status-text');
+            txt.innerText = text;
+            if(type === 'success') { dot.className = "w-3 h-3 rounded-full bg-emerald-500 animate-pulse"; }
+            else if(type === 'loading') { dot.className = "w-3 h-3 rounded-full bg-blue-500 animate-spin"; }
+            else { dot.className = "w-3 h-3 rounded-full bg-rose-500 animate-ping"; }
+        }
+
+        function changeSyncRoom(newRoom) {
+            if(!newRoom.trim()) return;
+            currentRoom = newRoom.trim().toLowerCase();
+            localStorage.setItem('sync_room_id', currentRoom);
+            binId = localStorage.getItem('sync_bin_id_' + currentRoom) || null;
+            forceSyncData();
+        }
+
+        // Tự động nhận diện ký hiệu 'c' để phân tách Đại đội
+        function normalizeUnitName(unitStr) {
+            let trimmed = unitStr.trim();
+            let match = trimmed.match(/^([cC])(\d+)$/);
+            if(match) {
+                return "Đại đội " + match[2];
+            }
+            return trimmed;
+        }
+
+        function switchExercise(exNum) {
+            currentExercise = exNum;
+            document.querySelectorAll('#exercise-selector button').forEach(b => b.classList.remove('active-pill', 'text-white'));
+            document.getElementById(`ex-btn-${exNum}`).classList.add('active-pill', 'text-white');
+            cancelEdit();
+            renderEngine();
+        }
+
+        function registerSoldier() {
+            const name = document.getElementById('s-name').value.trim();
+            let unit = document.getElementById('s-unit').value.trim();
+            const bay = parseInt(document.getElementById('s-bay').value);
+
+            if(!name || !unit) return alert("Vui lòng điền đủ tên và đơn vị!");
+            unit = normalizeUnitName(unit);
+
+            mainData.push({
+                uid: Date.now(), name: name, unit: unit, bay: bay,
+                b4_1: 0, b4_2: 0, b4_3: 0,
+                b7_1: 0, b7_2: 0, b7_3: 0,
+                b8_1: 0, b8_2: 0, b8_3: 0
+            });
+
+            document.getElementById('s-name').value = '';
+            document.getElementById('s-unit').value = '';
+            pushDataState();
+        }
+
+        function editSoldier(uid) {
+            const idx = mainData.findIndex(item => item.uid === uid);
+            if(idx === -1) return;
+            const item = mainData[idx];
+
+            document.getElementById('s-uid').value = item.uid;
+            document.getElementById('s-name').value = item.name;
+            document.getElementById('s-unit').value = item.unit;
+            document.getElementById('s-bay').value = item.bay;
+
+            document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-pen-to-square mr-2"></i>Cập nhật quân nhân`;
+            
+            const btnGroup = document.getElementById('action-buttons-group');
+            btnGroup.innerHTML = `
+                <button onclick="saveEdit()" class="w-1/2 bg-blue-700 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-blue-600 transition shadow-md">Cập nhật</button>
+                <button onclick="cancelEdit()" class="w-1/2 bg-slate-700 text-slate-300 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-slate-600 transition">Hủy</button>
+            `;
+        }
+
+        function saveEdit() {
+            const uid = parseInt(document.getElementById('s-uid').value);
+            const name = document.getElementById('s-name').value.trim();
+            let unit = document.getElementById('s-unit').value.trim();
+            const bay = parseInt(document.getElementById('s-bay').value);
+
+            if(!name || !unit) return alert("Không được để trống tên và đơn vị!");
+            unit = normalizeUnitName(unit);
+
+            const idx = mainData.findIndex(item => item.uid === uid);
+            if(idx !== -1) {
+                mainData[idx].name = name;
+                mainData[idx].unit = unit;
+                mainData[idx].bay = bay;
+                cancelEdit();
+                pushDataState();
+            }
+        }
+
+        function cancelEdit() {
+            document.getElementById('s-uid').value = '';
+            document.getElementById('s-name').value = '';
+            document.getElementById('s-unit').value = '';
+            document.getElementById('s-bay').value = '1';
+            document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-user-plus mr-2"></i>Xếp bệ bắn mới`;
+            document.getElementById('action-buttons-group').innerHTML = `
+                <button onclick="registerSoldier()" id="btn-submit" class="w-full bg-gradient-to-r from-red-700 to-red-800 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:from-red-600 hover:to-red-700 transition shadow-md">Vào bệ bắn</button>
+            `;
+        }
+
+        function modifyScore(uid, field, value) {
+            let num = parseInt(value) || 0;
+            if(num > 10) num = 10;
+            
+            const idx = mainData.findIndex(item => item.uid === uid);
+            if(idx !== -1) {
+                mainData[idx][field] = num;
+                
+                const item = mainData[idx];
+                let total = 0;
+                if(currentExercise === 1) total = item.b4_1 + item.b4_2 + item.b4_3;
+                else if(currentExercise === 2) total = item.b7_1 + item.b7_2 + item.b7_3;
+                else if(currentExercise === 3) total = item.b8_1 + item.b8_2 + item.b8_3;
+                else total = (item.b4_1 + item.b4_2 + item.b4_3) + (item.b7_1 + item.b7_2 + item.b7_3) + (item.b8_1 + item.b8_2 + item.b8_3);
+                
+                document.getElementById(`total-${uid}`).innerText = total;
+                document.getElementById(`rank-${uid}`).innerHTML = getRankString(total, currentExercise === 4);
+                
+                localStorage.setItem('shooting_v5_shared_list', JSON.stringify(mainData));
+                updatePieChartLogic();
+                
+                clearTimeout(window.saveTimeout);
+                window.saveTimeout = setTimeout(uploadDataToCloud, 1000);
+            }
+        }
+
+        function getRankString(score, isAggregate) {
+            if(score === 0) return '<span class="text-slate-600">-</span>';
+            if(isAggregate) {
+                if(score >= 72) return '<span class="text-emerald-400 font-bold">GIỎI</span>';
+                if(score >= 65) return '<span class="text-blue-400 font-bold">KHÁ</span>';
+                if(score >= 50) return '<span class="text-amber-500 font-bold">ĐẠT</span>';
+                return '<span class="text-red-500 font-bold">K.ĐẠT</span>';
+            } else {
+                if(score >= 25) return '<span class="text-emerald-400 font-bold">GIỎI</span>';
+                if(score >= 21) return '<span class="text-blue-400 font-bold">KHÁ</span>';
+                if(score >= 15) return '<span class="text-amber-500 font-bold">ĐẠT</span>';
+                return '<span class="text-red-500 font-bold">K.ĐẠT</span>';
+            }
+        }
+
+        function updatePieChartLogic() {
+            let gioi = 0, kha = 0, dat = 0, khongDat = 0;
+            mainData.forEach(item => {
+                let score = 0;
+                if(currentExercise === 1) score = item.b4_1 + item.b4_2 + item.b4_3;
+                else if(currentExercise === 2) score = item.b7_1 + item.b7_2 + item.b7_3;
+                else if(currentExercise === 3) score = item.b8_1 + item.b8_2 + item.b8_3;
+                else score = (item.b4_1 + item.b4_2 + item.b4_3) + (item.b7_1 + item.b7_2 + item.b7_3) + (item.b8_1 + item.b8_2 + item.b8_3);
+
+                if(score > 0) {
+                    if(currentExercise === 4) {
+                        if(score >= 72) gioi++; else if(score >= 65) kha++; else if(score >= 50) dat++; else khongDat++;
+                    } else {
+                        if(score >= 25) gioi++; else if(score >= 21) kha++; else if(score >= 15) dat++; else khongDat++;
+                    }
+                } else { khongDat++; }
+            });
+            const chartData = [gioi, kha, dat, khongDat];
+            if (pieChartInstance) {
+                pieChartInstance.data.datasets[0].data = chartData;
+                pieChartInstance.update();
+            } else {
+                const ctx = document.getElementById('achievementChart').getContext('2d');
+                pieChartInstance = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Giỏi', 'Khá', 'Đạt', 'K.Đạt'],
+                        datasets: [{
+                            data: chartData,
+                            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+                            borderWidth: 2, borderColor: '#0f172a'
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 } } } }
+                    }
+                });
+            }
+        }
+
+        function renderEngine() {
+            const target = document.getElementById('render-target');
+            target.innerHTML = '';
+            let currentLot = 0;
+
+            mainData.forEach((item, index) => {
+                if (index % 6 === 0) {
+                    currentLot++;
+                    target.innerHTML += `
+                        <tr class="bg-slate-950/90 text-yellow-500 font-bold select-none">
+                            <td colspan="16" class="p-2.5 text-center uppercase tracking-widest text-[10px] border-y border-slate-800">
+                                <i class="fa-solid fa-angles-right mr-2"></i> --- LOẠT BẮN SỐ ${currentLot} (GỒM 6 BỆ BẮN) --- <i class="fa-solid fa-angles-left ml-2"></i>
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                let total = 0;
+                if(currentExercise === 1) total = item.b4_1 + item.b4_2 + item.b4_3;
+                else if(currentExercise === 2) total = item.b7_1 + item.b7_2 + item.b7_3;
+                else if(currentExercise === 3) total = item.b8_1 + item.b8_2 + item.b8_3;
+                else total = (item.b4_1 + item.b4_2 + item.b4_3) + (item.b7_1 + item.b7_2 + item.b7_3) + (item.b8_1 + item.b8_2 + item.b8_3);
+
+                const isAggr = currentExercise === 4;
+                const styleAct = "w-11 bg-slate-950 border border-slate-800 text-center text-yellow-400 font-bold rounded py-1 focus:border-yellow-500 focus:outline-none";
+                const styleDis = "w-11 bg-slate-900/30 border border-slate-900 text-center text-slate-700 rounded py-1 cursor-not-allowed select-none";
+
+                target.innerHTML += `
+                    <tr class="hover:bg-slate-800/20 transition-all text-center">
+                        <td class="p-3 text-slate-500 border-r border-slate-800/40">${index + 1}</td>
+                        <td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">Bệ ${item.bay}</td>
+                        <td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td>
+                        <td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td>
+                        <td class="p-1"><input type="number" value="${item.b4_1}" oninput="modifyScore(${item.uid}, 'b4_1', this.value)" ${(currentExercise===1||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
+                        <td class="p-1"><input type="number" value="${item.b4_2}" oninput="modifyScore(${item.uid}, 'b4_2', this.value)" ${(currentExercise===1||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
+                        <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b4_3}" oninput="modifyScore(${item.uid}, 'b4_3', this.value)" ${(currentExercise===1||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
+                        <td class="p-1"><input type="number" value="${item.b7_1}" oninput="modifyScore(${item.uid}, 'b7_1', this.value)" ${(currentExercise===2||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
+                        <td class="p-1"><input type="number" value="${item.b7_2}" oninput="modifyScore(${item.uid}, 'b7_2', this.value)" ${(currentExercise===2||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
+                        <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b7_3}" oninput="modifyScore(${item.uid}, 'b7_3', this.value)" ${(currentExercise===2||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
+                        <td class="p-1"><input type="number" value="${item.b8_1}" oninput="modifyScore(${item.uid}, 'b8_1', this.value)" ${(currentExercise===3||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
+                        <td class="p-1"><input type="number" value="${item.b8_2}" oninput="modifyScore(${item.uid}, 'b8_2', this.value)" ${(currentExercise===3||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
+                        <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b8_3}" oninput="modifyScore(${item.uid}, 'b8_3', this.value)" ${(currentExercise===3||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
+                        <td class="p-3 font-bold text-sm text-white border-r border-slate-800/40"><span id="total-${item.uid}">${total}</span></td>
+                        <td class="p-3 text-left font-bold border-r border-slate-800/40" id="rank-${item.uid}">${getRankString(total, isAggr)}</td>
+                        <td class="p-3 whitespace-nowrap space-x-1">
+                            <button onclick="editSoldier(${item.uid})" class="text-slate-400 hover:text-blue-400 transition px-1" title="Sửa tên/bệ"><i class="fa-solid fa-user-pen"></i></button>
+                            <button onclick="purgeSoldier(${item.uid})" class="text-slate-500 hover:text-red-500 transition px-1" title="Xóa quân nhân"><i class="fa-solid fa-trash-can"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            updatePieChartLogic();
+        }
+
+        // ĐỒNG BỘ ĐÁM MÂY - ĐẨY DỮ LIỆU LÊN
+        function uploadDataToCloud() {
+            if (!binId) {
+                updateStatus("Đang đồng bộ lần đầu...", "loading");
+                fetch(SYNC_SERVER, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
+                    body: JSON.stringify({ room: currentRoom, data: mainData })
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if(res.record) {
+                        binId = res.metadata.id;
+                        localStorage.setItem('sync_bin_id_' + currentRoom, binId);
+                        updateStatus("Mạng trực tuyến: Đã đồng bộ hoàn hảo", "success");
+                    }
+                }).catch(err => updateStatus("Lỗi kết nối mạng", "error"));
+            } else {
+                fetch(`${SYNC_SERVER}/${binId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
+                    body: JSON.stringify({ room: currentRoom, data: mainData })
+                })
+                .then(res => {
+                    if(res.ok) updateStatus("Mạng trực tuyến: Đã đồng bộ hoàn hảo", "success");
+                }).catch(err => updateStatus("Lỗi cập nhật mạng", "error"));
+            }
+        }
+
+        // ĐỒNG BỘ ĐÁM MÂY - TẢI DỮ LIỆU VỀ
+        function downloadDataFromCloud(isForce = false) {
+            if (!binId) return;
+            if(isForce) updateStatus("Đang kéo dữ liệu...", "loading");
+            
+            fetch(`${SYNC_SERVER}/${binId}/latest`, {
+                method: 'GET',
+                headers: { 'X-Master-Key': MASTER_KEY }
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.record && res.record.data) {
+                    if(JSON.stringify(mainData) !== JSON.stringify(res.record.data)) {
+                        mainData = res.record.data;
+                        localStorage.setItem('shooting_v5_shared_list', JSON.stringify(mainData));
+                        renderEngine();
+                    }
+                    updateStatus("Mạng trực tuyến: Đã đồng bộ hoàn hảo", "success");
+                }
+            }).catch(err => { if(isForce) updateStatus("Không thể tải dữ liệu mạng", "error"); });
+        }
+
+        function forceSyncData() {
+            updateStatus("Đang rà soát mạng phòng...", "loading");
+            if(binId) {
+                downloadDataFromCloud(true);
+            } else {
+                updateStatus("Đang đồng bộ tạo phòng...", "loading");
+                uploadDataToCloud();
+            }
+        }
+
+        // THIẾT LẬP VÒNG LẶP ĐỒNG BỘ REALTIME TỰ ĐỘNG KHÔNG CẦN F5 (CỨ 3 GIÂY QUÉT MỘT LẦN)
+        function startRealtimeSyncEngine() {
+            if(syncInterval) clearInterval(syncInterval);
+            syncInterval = setInterval(() => {
+                if (!document.activeElement || document.activeElement.tagName !== 'INPUT') {
+                    downloadDataFromCloud();
+                }
+            }, 3000); 
+        }
+
+        function purgeSoldier(uid) {
+            if(confirm("Xác nhận xóa hẳn quân nhân này khỏi lượt bắn?")) {
+                mainData = mainData.filter(d => d.uid !== uid);
+                cancelEdit();
+                pushDataState();
+            }
+        }
+
+        function pushDataState() {
+            localStorage.setItem('shooting_v5_shared_list', JSON.stringify(mainData));
+            renderEngine();
+            uploadDataToCloud();
+        }
+
+        function exportToExcel() {
+            if(mainData.length === 0) return alert("Không có dữ liệu để xuất Excel!");
+            let excelRows = [
+                ["BẢNG TỔNG HỢP KẾT QUẢ KIỂM TRA BẮN SÚNG ĐẠT THẬT"],
+                ["Chi tiết từng viên bắn (3 viên/bia) - Tự động tổng hợp và xếp loại thành tích"],
+                [], 
+                ["STT", "Bệ bắn", "Bài hiện tại", "Họ và Tên", "Đơn vị", "Bia số 4 (Bài 1)", "", "", "Bia số 7 (Bài 2)", "", "", "Bia số 8 (Bài 3)", "", "", "Tổng điểm", "Xếp loại"],
+                ["", "", "", "", "", "Viên 1", "Viên 2", "Viên 3", "Viên 1", "Viên 2", "Viên 3", "Viên 1", "Viên 2", "Viên 3", "", ""]
+            ];
+            let gioi = 0, kha = 0, dat = 0, khongDat = 0;
+            mainData.forEach((item, index) => {
+                let bài_text = "Bài " + currentExercise;
+                let t = 0;
+                if(currentExercise === 1) t = item.b4_1 + item.b4_2 + item.b4_3;
+                else if(currentExercise === 2) t = item.b7_1 + item.b7_2 + item.b7_3;
+                else if(currentExercise === 3) t = item.b8_1 + item.b8_2 + item.b8_3;
+                else t = (item.b4_1 + item.b4_2 + item.b4_3) + (item.b7_1 + item.b7_2 + item.b7_3) + (item.b8_1 + item.b8_2 + item.b8_3);
+
+                let xl = "";
+                if(currentExercise === 4) {
+                    if(t >= 72) { xl = "GIỎI"; gioi++; } else if(t >= 65) { xl = "KHÁ"; kha++; } else if(t >= 50) { xl = "ĐẠT"; dat++; } else { xl = "K.ĐẠT"; khongDat++; }
+                } else {
+                    if(t >= 25) { xl = "GIỎI"; gioi++; } else if(t >= 21) { xl = "KHÁ"; kha++; } else if(t >= 15) { xl = "ĐẠT"; dat++; } else { xl = "K.ĐẠT"; khongDat++; }
+                }
+                excelRows.push([ index + 1, "Bệ " + item.bay, bài_text, item.name, item.unit, item.b4_1, item.b4_2, item.b4_3, item.b7_1, item.b7_2, item.b7_3, item.b8_1, item.b8_2, item.b8_3, t, xl ]);
+            });
+            let tongQuanSo = mainData.length;
+            excelRows.push([]); excelRows.push([]);
+            excelRows.push(["THỐNG KÊ TỈ LỆ THÀNH TÍCH CHUNG (BÀI " + currentExercise + ")"]);
+            excelRows.push(["Xếp loại", "Số lượng (Đồng chí)", "Tỉ lệ phần trăm (%)"]);
+            excelRows.push(["Giỏi", gioi, ((gioi / tongQuanSo) * 100).toFixed(1) + "%"]);
+            excelRows.push(["Khá", kha, ((kha / tongQuanSo) * 100).toFixed(1) + "%"]);
+            excelRows.push(["Đạt", dat, ((dat / tongQuanSo) * 100).toFixed(1) + "%"]);
+            excelRows.push(["Không đạt", khongDat, ((khongDat / tongQuanSo) * 100).toFixed(1) + "%"]);
+            let wb = XLSX.utils.book_new(); let ws = XLSX.utils.aoa_to_sheet(excelRows);
+            ws['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 15 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 15 } }, 
+                { s: { r: 3, c: 0 }, e: { r: 4, c: 0 } }, { s: { r: 3, c: 1 }, e: { r: 4, c: 1 } }, 
+                { s: { r: 3, c: 2 }, e: { r: 4, c: 2 } }, { s: { r: 3, c: 3 }, e: { r: 4, c: 3 } }, 
+                { s: { r: 3, c: 4 }, e: { r: 4, c: 4 } }, { s: { r: 3, c: 5 }, e: { r: 3, c: 7 } }, 
+                { s: { r: 3, c: 8 }, e: { r: 3, c: 10 } }, { s: { r: 3, c: 11 }, e: { r: 3, c: 13 } }, 
+                { s: { r: 3, c: 14 }, e: { r: 4, c: 14 } }, { s: { r: 3, c: 15 }, e: { r: 4, c: 15 } }
+            ];
+            XLSX.utils.book_append_sheet(wb, ws, "KetQuaBanSung");
+            XLSX.writeFile(wb, "Bao_Cao_Ket_Qua_Ban_Sung.xlsx");
+        }
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mainData));
+            const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "backup_shooting.json");
+            document.body.appendChild(a); a.click(); a.remove();
+        }
+
+        // KHỞI ĐỘNG HỆ THỐNG
+        renderEngine();
+        forceSyncData();
+        startRealtimeSyncEngine();
+    </script>
+</body>
+</html>
