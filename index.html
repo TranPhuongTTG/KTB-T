@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Kiểm Tra Bắn Súng Đạn Thật</title>
+    <title>Hệ Thống Kiểm Tra Bắn Súng Đạn Thật - TQS QĐ34</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -30,19 +30,19 @@
         </div>
         
         <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
-            <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-700">
-                <button onclick="setDeviceRole('admin')" id="role-admin-btn" class="px-3 py-1 text-[11px] font-bold rounded transition-all text-white bg-blue-600">
+            <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-700 w-full sm:w-auto justify-center">
+                <button type="button" onclick="setDeviceRole('admin')" id="role-admin-btn" class="px-3 py-2 sm:py-1 text-[11px] font-bold rounded transition-all text-white bg-blue-600">
                     <i class="fa-solid fa-keyboard mr-1"></i> MÁY GÕ ĐIỂM (ADMIN)
                 </button>
-                <button onclick="setDeviceRole('viewer')" id="role-viewer-btn" class="px-3 py-1 text-[11px] font-bold rounded transition-all text-slate-400">
+                <button type="button" onclick="setDeviceRole('viewer')" id="role-viewer-btn" class="px-3 py-2 sm:py-1 text-[11px] font-bold rounded transition-all text-slate-400">
                     <i class="fa-solid fa-eye mr-1"></i> MÁY XEM (VIEWER)
                 </button>
             </div>
 
-            <div class="flex items-center gap-2">
-                <label class="text-[11px] font-bold text-slate-400 uppercase whitespace-nowrap">Mã phòng kết nối:</label>
-                <input type="text" id="sync-room-id" value="thammuu34" onchange="changeSyncRoom(this.value)" class="w-48 bg-slate-900 border border-slate-700 text-yellow-400 font-bold px-3 py-1 text-xs rounded-lg focus:outline-none focus:border-yellow-500" placeholder="Nhập mã phòng">
-                <button onclick="forceSyncData()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-lg transition" title="Làm mới đồng bộ">
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <label class="text-[11px] font-bold text-slate-400 uppercase whitespace-nowrap">Mã phòng:</label>
+                <input type="text" id="sync-room-id" value="thammuu34" onchange="changeSyncRoom(this.value)" class="w-full sm:w-48 bg-slate-900 border border-slate-700 text-yellow-400 font-bold px-3 py-1 text-xs rounded-lg focus:outline-none focus:border-yellow-500" placeholder="Nhập mã phòng">
+                <button onclick="forceSyncData()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-lg transition-all" title="Làm mới đồng bộ">
                     <i class="fa-solid fa-rotate"></i>
                 </button>
             </div>
@@ -77,7 +77,7 @@
     </header>
 
     <div class="grid grid-cols-12 gap-6 items-start flex-grow mb-12">
-        <div class="col-span-12 lg:col-span-3 space-y-4" id="left-control-panel">
+        <div id="left-control-panel" class="col-span-12 lg:col-span-3 space-y-4">
             <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
                 <h2 class="text-sm font-bold text-yellow-500 uppercase tracking-wider border-b border-slate-800 pb-3" id="form-title"><i class="fa-solid fa-user-plus mr-2"></i>Xếp bệ bắn mới</h2>
                 <input type="hidden" id="s-uid">
@@ -86,7 +86,7 @@
                     <input type="text" id="s-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 mt-1 text-sm text-white focus:outline-none focus:border-yellow-500" placeholder="Nguyễn Văn Thắng">
                 </div>
                 <div>
-                    <label class="text-[11px] font-bold text-slate-400 uppercase">Đơn vị (Nhập a,b,c,d)</label>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase">Đơn vị (Nhập c1, c2, c3...)</label>
                     <input type="text" id="s-unit" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 mt-1 text-sm text-white focus:outline-none focus:border-yellow-500" placeholder="c1 hoặc Đại đội 1">
                 </div>
                 <div>
@@ -117,7 +117,7 @@
             </div>
         </div>
 
-        <div class="col-span-12 lg:col-span-9 space-y-4" id="right-table-panel">
+        <div id="right-table-panel" class="col-span-12 lg:col-span-9 space-y-4">
             <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
                 <div class="overflow-x-auto custom-scrollbar">
                     <table class="w-full text-left border-collapse text-xs">
@@ -158,7 +158,7 @@
         let pieChartInstance = null;
         let currentRoom = localStorage.getItem('sync_room_id') || 'thammuu34';
         
-        // Mặc định trên mọi thiết bị mới mở lên sẽ là chế độ Máy Xem để an toàn dữ liệu đám mây
+        // Mặc định ban đầu là máy xem cho an toàn dữ liệu
         let deviceRole = localStorage.getItem('device_role') || 'viewer';
 
         const MASTER_KEY = "$2a$10$Q9wC3DLyzOq0JM64EXJmGuwtG8flBOVIgLik4fsZNYhJOi.vAXCNS"; 
@@ -172,17 +172,21 @@
             
             const btnAdmin = document.getElementById('role-admin-btn');
             const btnViewer = document.getElementById('role-viewer-btn');
+            const leftPanel = document.getElementById('left-control-panel');
+            const rightPanel = document.getElementById('right-table-panel');
             
+            if(!btnAdmin || !btnViewer) return;
+
             if(role === 'admin') {
-                btnAdmin.className = "px-3 py-1 text-[11px] font-bold rounded transition-all text-white bg-blue-600";
-                btnViewer.className = "px-3 py-1 text-[11px] font-bold rounded transition-all text-slate-400 bg-transparent";
-                document.getElementById('left-control-panel').style.display = 'block';
-                document.getElementById('right-table-panel').className = "col-span-12 lg:col-span-9 space-y-4";
+                btnAdmin.className = "px-3 py-2 sm:py-1 text-[11px] font-bold rounded transition-all text-white bg-blue-600";
+                btnViewer.className = "px-3 py-2 sm:py-1 text-[11px] font-bold rounded transition-all text-slate-400 bg-transparent";
+                if(leftPanel) leftPanel.style.display = 'block';
+                if(rightPanel) rightPanel.className = "col-span-12 lg:col-span-9 space-y-4";
             } else {
-                btnViewer.className = "px-3 py-1 text-[11px] font-bold rounded transition-all text-white bg-amber-600";
-                btnAdmin.className = "px-3 py-1 text-[11px] font-bold rounded transition-all text-slate-400 bg-transparent";
-                document.getElementById('left-control-panel').style.display = 'none';
-                document.getElementById('right-table-panel').className = "col-span-12 space-y-4";
+                btnViewer.className = "px-3 py-2 sm:py-1 text-[11px] font-bold rounded transition-all text-white bg-amber-600";
+                btnAdmin.className = "px-3 py-2 sm:py-1 text-[11px] font-bold rounded transition-all text-slate-400 bg-transparent";
+                if(leftPanel) leftPanel.style.display = 'none';
+                if(rightPanel) rightPanel.className = "col-span-12 space-y-4";
             }
             renderEngine();
         }
@@ -383,7 +387,6 @@
             target.innerHTML = '';
             let currentLot = 0;
 
-            // Ẩn/Hiện cột thao tác dựa vào phân quyền máy
             const actionThs = document.querySelectorAll('.action-column');
             actionThs.forEach(th => th.style.display = (deviceRole === 'admin') ? 'table-cell' : 'none');
 
@@ -406,9 +409,7 @@
 
                 const isAggr = currentExercise === 4;
                 
-                // Trạng thái ô nhập điểm cho máy Admin và máy Xem
                 const styleAct = "w-11 bg-slate-950 border border-slate-800 text-center text-yellow-400 font-bold rounded py-1 focus:border-yellow-500 focus:outline-none";
-                const styleDis = "w-11 bg-slate-900/30 border border-slate-900 text-center text-slate-400 rounded py-1 cursor-not-allowed select-none";
                 const styleViewer = "w-11 bg-transparent text-center text-slate-200 font-semibold py-1 select-none font-mono text-xs";
 
                 let inputAttr = (deviceRole === 'admin') ? `class="${styleAct}"` : `class="${styleViewer}" disabled`;
@@ -450,7 +451,6 @@
         }
 
         function uploadDataToCloud() {
-            // MÁY XEM (VIEWER) KHÔNG ĐƯỢC PHÉP ĐẨY DỮ LIỆU LÊN ĐÁM MÂY CHỐNG GHI ĐÈ LỖI
             if (deviceRole !== 'admin') return;
 
             updateStatus("Đang đồng bộ dữ liệu...", "loading");
@@ -488,7 +488,7 @@
                 if(res.metadata && res.metadata.id) {
                     localStorage.setItem(`bin_id_room_${currentRoom}`, res.metadata.id);
                     updateStatus(`Phòng mới: ${res.metadata.id}`, "success");
-                    alert(`KHỞI TẠO ĐƯỜNG TRUYỀN THÀNH CÔNG!\n\nĐồng chí hãy nhập mã này vào điện thoại:\n\n${res.metadata.id}`);
+                    alert(`KHỞI TẠO ĐƯỜNG TRUYỀN THÀNH CÔNG!\n\nMã ID kết nối của đồng chí là:\n\n${res.metadata.id}`);
                 }
             })
             .catch(() => updateStatus("Lỗi kết nối máy chủ", "error"));
@@ -512,8 +512,6 @@
             .then(res => res.json())
             .then(res => {
                 if (res.record && res.record.data) {
-                    // Máy gõ điểm (Admin) chỉ tải xuống nếu mạng có dữ liệu khác hẳn mà máy nội bộ chưa có gì
-                    // Máy xem (Viewer) thì luôn luôn ép cập nhật dữ liệu từ đám mây xuống màn hình
                     if(deviceRole === 'viewer' || JSON.stringify(mainData) !== JSON.stringify(res.record.data)) {
                         mainData = res.record.data;
                         localStorage.setItem('shooting_v5_shared_list', JSON.stringify(mainData));
@@ -539,3 +537,83 @@
                 }
             }
         }
+
+        setInterval(() => {
+            if (!document.activeElement || document.activeElement.tagName !== 'INPUT') {
+                downloadDataFromCloud();
+            }
+        }, 3000); 
+
+        function purgeSoldier(uid) {
+            if(deviceRole !== 'admin') return;
+            if(confirm("Xác nhận xóa hẳn quân nhân này khỏi lượt bắn?")) {
+                mainData = mainData.filter(d => d.uid !== uid);
+                cancelEdit();
+                pushDataState();
+            }
+        }
+
+        function pushDataState() {
+            localStorage.setItem('shooting_v5_shared_list', JSON.stringify(mainData));
+            renderEngine();
+            uploadDataToCloud();
+        }
+
+        function exportToExcel() {
+            if(mainData.length === 0) return alert("Không có dữ liệu để xuất Excel!");
+            let excelRows = [
+                ["BẢNG TỔNG HỢP KẾT QUẢ KIỂM TRA BẮN SÚNG ĐẠT THẬT"],
+                ["Chi tiết từng viên bắn (3 viên/bia) - Tự động tổng hợp và xếp loại thành tích"],
+                [], 
+                ["STT", "Bệ bắn", "Bài hiện tại", "Họ và Tên", "Đơn vị", "Bia số 4 (Bài 1)", "", "", "Bia số 7 (Bài 2)", "", "", "Bia số 8 (Bài 3)", "", "", "Tổng điểm", "Xếp loại"],
+                ["", "", "", "", "", "Viên 1", "Viên 2", "Viên 3", "Viên 1", "Viên 2", "Viên 3", "Viên 1", "Viên 2", "Viên 3", "", ""]
+            ];
+            let gioi = 0, kha = 0, dat = 0, khongDat = 0;
+            mainData.forEach((item, index) => {
+                let bài_text = "Bài " + currentExercise;
+                let t = (item.b4_1 + item.b4_2 + item.b4_3) + (item.b7_1 + item.b7_2 + item.b7_3) + (item.b8_1 + item.b8_2 + item.b8_3);
+                if(currentExercise === 1) t = item.b4_1 + item.b4_2 + item.b4_3;
+                else if(currentExercise === 2) t = item.b7_1 + item.b7_2 + item.b7_3;
+                else if(currentExercise === 3) t = item.b8_1 + item.b8_2 + item.b8_3;
+
+                let xl = "";
+                if(currentExercise === 4) {
+                    if(t >= 72) { xl = "GIỎI"; gioi++; } else if(t >= 65) { xl = "KHÁ"; kha++; } else if(t >= 50) { xl = "ĐẠT"; dat++; } else { xl = "K.ĐẠT"; khongDat++; }
+                } else {
+                    if(t >= 25) { xl = "GIỎI"; gioi++; } else if(t >= 21) { xl = "KHÁ"; kha++; } else if(t >= 15) { xl = "ĐẠT"; dat++; } else { xl = "K.ĐẠT"; khongDat++; }
+                }
+                excelRows.push([ index + 1, "Bệ " + item.bay, bài_text, item.name, item.unit, item.b4_1, item.b4_2, item.b4_3, item.b7_1, item.b7_2, item.b7_3, item.b8_1, item.b8_2, item.b8_3, t, xl ]);
+            });
+            let tongQuanSo = mainData.length;
+            excelRows.push([]); excelRows.push([]);
+            excelRows.push(["THỐNG KÊ TỈ LỆ THÀNH TÍCH CHUNG (BÀI " + currentExercise + ")"]);
+            excelRows.push(["Xếp loại", "Số lượng (Đồng chí)", "Tỉ lệ phần centrum (%)"]);
+            excelRows.push(["Giỏi", gioi, ((gioi / tongQuanSo) * 100).toFixed(1) + "%"]);
+            excelRows.push(["Khá", kha, ((kha / tongQuanSo) * 100).toFixed(1) + "%"]);
+            excelRows.push(["Đạt", dat, ((dat / tongQuanSo) * 100).toFixed(1) + "%"]);
+            excelRows.push(["Không đạt", khongDat, ((khongDat / tongQuanSo) * 100).toFixed(1) + "%"]);
+            let wb = XLSX.utils.book_new(); let ws = XLSX.utils.aoa_to_sheet(excelRows);
+            ws['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 15 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 15 } }, 
+                { s: { r: 3, c: 0 }, e: { r: 4, c: 0 } }, { s: { r: 3, c: 1 }, e: { r: 4, c: 1 } }, 
+                { s: { r: 3, c: 2 }, e: { r: 4, c: 2 } }, { s: { r: 3, c: 3 }, e: { r: 4, c: 3 } }, 
+                { s: { r: 3, c: 4 }, e: { r: 4, c: 4 } }, { s: { r: 3, c: 5 }, e: { r: 3, c: 7 } }, 
+                { s: { r: 3, c: 8 }, e: { r: 3, c: 10 } }, { s: { r: 3, c: 11 }, e: { r: 3, c: 13 } }, 
+                { s: { r: 3, c: 14 }, e: { r: 4, c: 14 } }, { s: { r: 3, c: 15 }, e: { r: 4, c: 15 } }
+            ];
+            XLSX.utils.book_append_sheet(wb, ws, "KetQuaBanSung");
+            XLSX.writeFile(wb, "Bao_Cao_Ket_Qua_Ban_Sung.xlsx");
+        }
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mainData));
+            const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "backup_shooting.json");
+            document.body.appendChild(a); a.click(); a.remove();
+        }
+
+        // Kích hoạt giao diện theo chế độ lưu trữ nền
+        setDeviceRole(deviceRole);
+        downloadDataFromCloud();
+    </script>
+</body>
+</html>
