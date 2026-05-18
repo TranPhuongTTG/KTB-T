@@ -23,17 +23,29 @@
 </head>
 <body class="p-6 min-height-screen flex flex-col custom-scrollbar">
 
-    <div class="mb-4 bg-slate-950 p-4 rounded-xl border border-slate-800/80 flex flex-col sm:flex-row justify-between items-center gap-3">
-        <div class="flex items-center gap-2">
+    <div class="mb-4 bg-slate-950 p-4 rounded-xl border border-slate-800/80 flex flex-col lg:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
             <span class="w-3 h-3 rounded-full bg-rose-500 animate-pulse" id="status-dot"></span>
             <p class="text-xs text-slate-300 font-medium" id="status-text">Đang kết nối hệ thống...</p>
         </div>
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-            <label class="text-[11px] font-bold text-slate-400 uppercase whitespace-nowrap">Mã phòng kết nối:</label>
-            <input type="text" id="sync-room-id" value="thammuu34" onchange="changeSyncRoom(this.value)" class="w-full sm:w-48 bg-slate-900 border border-slate-700 text-yellow-400 font-bold px-3 py-1 text-xs rounded-lg focus:outline-none focus:border-yellow-500" placeholder="Nhập mã phòng">
-            <button onclick="forceSyncData()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-lg transition" title="Làm mới đồng bộ">
-                <i class="fa-solid fa-rotate"></i>
-            </button>
+        
+        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
+            <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-700">
+                <button onclick="setDeviceRole('admin')" id="role-admin-btn" class="px-3 py-1 text-[11px] font-bold rounded transition-all text-white bg-blue-600">
+                    <i class="fa-solid fa-keyboard mr-1"></i> MÁY GÕ ĐIỂM (ADMIN)
+                </button>
+                <button onclick="setDeviceRole('viewer')" id="role-viewer-btn" class="px-3 py-1 text-[11px] font-bold rounded transition-all text-slate-400">
+                    <i class="fa-solid fa-eye mr-1"></i> MÁY XEM (VIEWER)
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <label class="text-[11px] font-bold text-slate-400 uppercase whitespace-nowrap">Mã phòng kết nối:</label>
+                <input type="text" id="sync-room-id" value="thammuu34" onchange="changeSyncRoom(this.value)" class="w-48 bg-slate-900 border border-slate-700 text-yellow-400 font-bold px-3 py-1 text-xs rounded-lg focus:outline-none focus:border-yellow-500" placeholder="Nhập mã phòng">
+                <button onclick="forceSyncData()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-lg transition" title="Làm mới đồng bộ">
+                    <i class="fa-solid fa-rotate"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -65,7 +77,7 @@
     </header>
 
     <div class="grid grid-cols-12 gap-6 items-start flex-grow mb-12">
-        <div class="col-span-12 lg:col-span-3 space-y-4">
+        <div class="col-span-12 lg:col-span-3 space-y-4" id="left-control-panel">
             <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
                 <h2 class="text-sm font-bold text-yellow-500 uppercase tracking-wider border-b border-slate-800 pb-3" id="form-title"><i class="fa-solid fa-user-plus mr-2"></i>Xếp bệ bắn mới</h2>
                 <input type="hidden" id="s-uid">
@@ -105,7 +117,7 @@
             </div>
         </div>
 
-        <div class="col-span-12 lg:col-span-9 space-y-4">
+        <div class="col-span-12 lg:col-span-9 space-y-4" id="right-table-panel">
             <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
                 <div class="overflow-x-auto custom-scrollbar">
                     <table class="w-full text-left border-collapse text-xs">
@@ -120,7 +132,7 @@
                                 <th class="text-center bg-slate-900/60 border-b border-r border-slate-800/60" colspan="3">Bia số 8 (Bài 3)</th>
                                 <th class="p-3 text-center border-r border-slate-800/60" rowspan="2">Tổng</th>
                                 <th class="p-3 border-r border-slate-800/60" rowspan="2">Xếp loại</th>
-                                <th class="p-3 text-center" rowspan="2">Thao tác</th>
+                                <th class="p-3 text-center action-column" rowspan="2">Thao tác</th>
                             </tr>
                             <tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center">
                                 <th class="p-2 border-r border-slate-800/40">V1</th><th class="p-2 border-r border-slate-800/40">V2</th><th class="p-2 border-r border-slate-800/60">V3</th>
@@ -145,11 +157,35 @@
         let mainData = JSON.parse(localStorage.getItem('shooting_v5_shared_list')) || [];
         let pieChartInstance = null;
         let currentRoom = localStorage.getItem('sync_room_id') || 'thammuu34';
+        
+        // Mặc định trên mọi thiết bị mới mở lên sẽ là chế độ Máy Xem để an toàn dữ liệu đám mây
+        let deviceRole = localStorage.getItem('device_role') || 'viewer';
 
         const MASTER_KEY = "$2a$10$Q9wC3DLyzOq0JM64EXJmGuwtG8flBOVIgLik4fsZNYhJOi.vAXCNS"; 
         const SYNC_SERVER = "https://api.jsonbin.io/v3/b";
 
         document.getElementById('sync-room-id').value = currentRoom;
+
+        function setDeviceRole(role) {
+            deviceRole = role;
+            localStorage.setItem('device_role', role);
+            
+            const btnAdmin = document.getElementById('role-admin-btn');
+            const btnViewer = document.getElementById('role-viewer-btn');
+            
+            if(role === 'admin') {
+                btnAdmin.className = "px-3 py-1 text-[11px] font-bold rounded transition-all text-white bg-blue-600";
+                btnViewer.className = "px-3 py-1 text-[11px] font-bold rounded transition-all text-slate-400 bg-transparent";
+                document.getElementById('left-control-panel').style.display = 'block';
+                document.getElementById('right-table-panel').className = "col-span-12 lg:col-span-9 space-y-4";
+            } else {
+                btnViewer.className = "px-3 py-1 text-[11px] font-bold rounded transition-all text-white bg-amber-600";
+                btnAdmin.className = "px-3 py-1 text-[11px] font-bold rounded transition-all text-slate-400 bg-transparent";
+                document.getElementById('left-control-panel').style.display = 'none';
+                document.getElementById('right-table-panel').className = "col-span-12 space-y-4";
+            }
+            renderEngine();
+        }
 
         function updateStatus(text, type) {
             const dot = document.getElementById('status-dot');
@@ -165,7 +201,10 @@
             if(!newRoom.trim()) return;
             currentRoom = newRoom.trim().toLowerCase().replace(/\s+/g, '');
             localStorage.setItem('sync_room_id', currentRoom);
-            forceSyncData();
+            if(currentRoom.length >= 20) {
+                localStorage.setItem(`bin_id_room_${currentRoom}`, currentRoom);
+            }
+            downloadDataFromCloud(true);
         }
 
         function normalizeUnitName(unitStr) {
@@ -179,11 +218,12 @@
             currentExercise = exNum;
             document.querySelectorAll('#exercise-selector button').forEach(b => b.classList.remove('active-pill', 'text-white'));
             document.getElementById(`ex-btn-${exNum}`).classList.add('active-pill', 'text-white');
-            cancelEdit();
+            if(deviceRole === 'admin') cancelEdit();
             renderEngine();
         }
 
         function registerSoldier() {
+            if(deviceRole !== 'admin') return;
             const name = document.getElementById('s-name').value.trim();
             let unit = document.getElementById('s-unit').value.trim();
             const bay = parseInt(document.getElementById('s-bay').value);
@@ -204,6 +244,7 @@
         }
 
         function editSoldier(uid) {
+            if(deviceRole !== 'admin') return;
             const idx = mainData.findIndex(item => item.uid === uid);
             if(idx === -1) return;
             const item = mainData[idx];
@@ -221,6 +262,7 @@
         }
 
         function saveEdit() {
+            if(deviceRole !== 'admin') return;
             const uid = parseInt(document.getElementById('s-uid').value);
             const name = document.getElementById('s-name').value.trim();
             let unit = document.getElementById('s-unit').value.trim();
@@ -251,6 +293,7 @@
         }
 
         function modifyScore(uid, field, value) {
+            if(deviceRole !== 'admin') return;
             let num = parseInt(value) || 0;
             if(num > 10) num = 10;
             if(num < 0) num = 0;
@@ -340,6 +383,10 @@
             target.innerHTML = '';
             let currentLot = 0;
 
+            // Ẩn/Hiện cột thao tác dựa vào phân quyền máy
+            const actionThs = document.querySelectorAll('.action-column');
+            actionThs.forEach(th => th.style.display = (deviceRole === 'admin') ? 'table-cell' : 'none');
+
             mainData.forEach((item, index) => {
                 if (index % 6 === 0) {
                     currentLot++;
@@ -358,8 +405,17 @@
                 else if(currentExercise === 3) total = item.b8_1 + item.b8_2 + item.b8_3;
 
                 const isAggr = currentExercise === 4;
+                
+                // Trạng thái ô nhập điểm cho máy Admin và máy Xem
                 const styleAct = "w-11 bg-slate-950 border border-slate-800 text-center text-yellow-400 font-bold rounded py-1 focus:border-yellow-500 focus:outline-none";
-                const styleDis = "w-11 bg-slate-900/30 border border-slate-900 text-center text-slate-700 rounded py-1 cursor-not-allowed select-none";
+                const styleDis = "w-11 bg-slate-900/30 border border-slate-900 text-center text-slate-400 rounded py-1 cursor-not-allowed select-none";
+                const styleViewer = "w-11 bg-transparent text-center text-slate-200 font-semibold py-1 select-none font-mono text-xs";
+
+                let inputAttr = (deviceRole === 'admin') ? `class="${styleAct}"` : `class="${styleViewer}" disabled`;
+                let isExerciseDisabled = (ex) => {
+                    if(deviceRole !== 'admin') return true;
+                    return !(currentExercise === ex || isAggr);
+                };
 
                 target.innerHTML += `
                     <tr class="hover:bg-slate-800/20 transition-all text-center">
@@ -367,18 +423,23 @@
                         <td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">Bệ ${item.bay}</td>
                         <td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td>
                         <td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td>
-                        <td class="p-1"><input type="number" value="${item.b4_1}" oninput="modifyScore(${item.uid}, 'b4_1', this.value)" ${(currentExercise===1||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
-                        <td class="p-1"><input type="number" value="${item.b4_2}" oninput="modifyScore(${item.uid}, 'b4_2', this.value)" ${(currentExercise===1||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
-                        <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b4_3}" oninput="modifyScore(${item.uid}, 'b4_3', this.value)" ${(currentExercise===1||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
-                        <td class="p-1"><input type="number" value="${item.b7_1}" oninput="modifyScore(${item.uid}, 'b7_1', this.value)" ${(currentExercise===2||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
-                        <td class="p-1"><input type="number" value="${item.b7_2}" oninput="modifyScore(${item.uid}, 'b7_2', this.value)" ${(currentExercise===2||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
-                        <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b7_3}" oninput="modifyScore(${item.uid}, 'b7_3', this.value)" ${(currentExercise===2||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
-                        <td class="p-1"><input type="number" value="${item.b8_1}" oninput="modifyScore(${item.uid}, 'b8_1', this.value)" ${(currentExercise===3||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
-                        <td class="p-1"><input type="number" value="${item.b8_2}" oninput="modifyScore(${item.uid}, 'b8_2', this.value)" ${(currentExercise===3||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
-                        <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b8_3}" oninput="modifyScore(${item.uid}, 'b8_3', this.value)" ${(currentExercise===3||isAggr)?`class="${styleAct}"`:`class="${styleDis}" disabled`}></td>
+                        
+                        <td class="p-1"><input type="number" value="${item.b4_1}" oninput="modifyScore(${item.uid}, 'b4_1', this.value)" ${inputAttr} ${isExerciseDisabled(1)?'disabled':''}></td>
+                        <td class="p-1"><input type="number" value="${item.b4_2}" oninput="modifyScore(${item.uid}, 'b4_2', this.value)" ${inputAttr} ${isExerciseDisabled(1)?'disabled':''}></td>
+                        <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b4_3}" oninput="modifyScore(${item.uid}, 'b4_3', this.value)" ${inputAttr} ${isExerciseDisabled(1)?'disabled':''}></td>
+                        
+                        <td class="p-1"><input type="number" value="${item.b7_1}" oninput="modifyScore(${item.uid}, 'b7_1', this.value)" ${inputAttr} ${isExerciseDisabled(2)?'disabled':''}></td>
+                        <td class="p-1"><input type="number" value="${item.b7_2}" oninput="modifyScore(${item.uid}, 'b7_2', this.value)" ${inputAttr} ${isExerciseDisabled(2)?'disabled':''}></td>
+                        <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b7_3}" oninput="modifyScore(${item.uid}, 'b7_3', this.value)" ${inputAttr} ${isExerciseDisabled(2)?'disabled':''}></td>
+                        
+                        <td class="p-1"><input type="number" value="${item.b8_1}" oninput="modifyScore(${item.uid}, 'b8_1', this.value)" ${inputAttr} ${isExerciseDisabled(3)?'disabled':''}></td>
+                        <td class="p-1"><input type="number" value="${item.b8_2}" oninput="modifyScore(${item.uid}, 'b8_2', this.value)" ${inputAttr} ${isExerciseDisabled(3)?'disabled':''}></td>
+                        <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b8_3}" oninput="modifyScore(${item.uid}, 'b8_3', this.value)" ${inputAttr} ${isExerciseDisabled(3)?'disabled':''}></td>
+                        
                         <td class="p-3 font-bold text-sm text-white border-r border-slate-800/40"><span id="total-${item.uid}">${total}</span></td>
                         <td class="p-3 text-left font-bold border-r border-slate-800/40" id="rank-${item.uid}">${getRankString(total, isAggr)}</td>
-                        <td class="p-3 whitespace-nowrap space-x-1">
+                        
+                        <td class="p-3 whitespace-nowrap space-x-1" style="display: ${(deviceRole === 'admin') ? 'table-cell' : 'none'}">
                             <button onclick="editSoldier(${item.uid})" class="text-slate-400 hover:text-blue-400 transition px-1"><i class="fa-solid fa-user-pen"></i></button>
                             <button onclick="purgeSoldier(${item.uid})" class="text-slate-500 hover:text-red-500 transition px-1"><i class="fa-solid fa-trash-can"></i></button>
                         </td>
@@ -388,14 +449,14 @@
             updatePieChartLogic();
         }
 
-        // CƠ CHẾ KHÔNG DÙNG HÀM TÌM KIẾM MÀ ĐỒNG BỘ TRỰC TIẾP QUA ID LƯU TRỮ CỤ CỤC BỘ VÀ ĐÁM MÂY
         function uploadDataToCloud() {
+            // MÁY XEM (VIEWER) KHÔNG ĐƯỢC PHÉP ĐẨY DỮ LIỆU LÊN ĐÁM MÂY CHỐNG GHI ĐÈ LỖI
+            if (deviceRole !== 'admin') return;
+
             updateStatus("Đang đồng bộ dữ liệu...", "loading");
-            
             let savedBinId = localStorage.getItem(`bin_id_room_${currentRoom}`);
             
-            if (savedBinId) {
-                // Nếu có Bin ID, cập nhật đè lên máy chủ
+            if (savedBinId && savedBinId.length >= 20) {
                 fetch(`${SYNC_SERVER}/${savedBinId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
@@ -416,54 +477,51 @@
         }
 
         function createNewBinOnCloud() {
-            // Khởi tạo một Bin độc lập mới hoàn toàn khi chưa có liên kết cục bộ
+            if (deviceRole !== 'admin') return;
             fetch(SYNC_SERVER, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'X-Master-Key': MASTER_KEY,
-                    'X-Bin-Private': 'false'
-                },
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' },
                 body: JSON.stringify({ room: currentRoom, data: mainData })
             })
             .then(res => res.json())
             .then(res => {
                 if(res.metadata && res.metadata.id) {
                     localStorage.setItem(`bin_id_room_${currentRoom}`, res.metadata.id);
-                    // Hiển thị mã ID ra màn hình để điện thoại có thể copy nhập vào trực tiếp
-                    updateStatus(`Đã tạo phòng! Hãy nhập ID này vào điện thoại: ${res.metadata.id}`, "success");
-                    alert(`HỆ THỐNG KHỞI TẠO PHÒNG MỚI THÀNH CÔNG!\n\nĐồng chí hãy nhập dãy mã số dưới đây vào ô "Mã phòng" trên Điện thoại để kết nối:\n\n${res.metadata.id}`);
+                    updateStatus(`Phòng mới: ${res.metadata.id}`, "success");
+                    alert(`KHỞI TẠO ĐƯỜNG TRUYỀN THÀNH CÔNG!\n\nĐồng chí hãy nhập mã này vào điện thoại:\n\n${res.metadata.id}`);
                 }
             })
-            .catch(() => updateStatus("Lỗi tạo luồng dữ liệu", "error"));
+            .catch(() => updateStatus("Lỗi kết nối máy chủ", "error"));
         }
 
         function downloadDataFromCloud(isForce = false) {
             let savedBinId = localStorage.getItem(`bin_id_room_${currentRoom}`);
-            // Nếu độ dài của ô nhập mã phòng tương đương độ dài mã BIN ID của JSONBin (độ dài 24 ký tự)
             if(currentRoom.length >= 20 && !savedBinId) {
                 savedBinId = currentRoom;
                 localStorage.setItem(`bin_id_room_${currentRoom}`, currentRoom);
             }
 
             if (!savedBinId) return;
-            if(isForce) updateStatus("Đang tải dữ liệu mạng...", "loading");
+            if(isForce) updateStatus("Đang quét máy chủ...", "loading");
             
             fetch(`${SYNC_SERVER}/${savedBinId}/latest`, {
                 method: 'GET',
-                headers: { 'X-Master-Key': MASTER_KEY }
+                headers: { 'X-Master-Key': MASTER_KEY },
+                cache: 'no-store'
             })
             .then(res => res.json())
             .then(res => {
                 if (res.record && res.record.data) {
-                    if(JSON.stringify(mainData) !== JSON.stringify(res.record.data)) {
+                    // Máy gõ điểm (Admin) chỉ tải xuống nếu mạng có dữ liệu khác hẳn mà máy nội bộ chưa có gì
+                    // Máy xem (Viewer) thì luôn luôn ép cập nhật dữ liệu từ đám mây xuống màn hình
+                    if(deviceRole === 'viewer' || JSON.stringify(mainData) !== JSON.stringify(res.record.data)) {
                         mainData = res.record.data;
                         localStorage.setItem('shooting_v5_shared_list', JSON.stringify(mainData));
                         renderEngine();
                     }
-                    updateStatus("Mạng trực tuyến: Đã đồng bộ hoàn hảo", "success");
+                    updateStatus("Mạng trực tuyến: Kết nối thông suốt", "success");
                 }
-            }).catch(() => { if(isForce) updateStatus("Mã phòng/ID không đúng", "error"); });
+            }).catch(() => { if(isForce) updateStatus("Mã ID phòng không hợp lệ", "error"); });
         }
 
         function forceSyncData() {
@@ -473,86 +531,11 @@
                 currentRoom = currentInputValue;
                 downloadDataFromCloud(true);
             } else {
-                localStorage.removeItem(`bin_id_room_${currentRoom}`);
-                uploadDataToCloud();
-            }
-        }
-
-        // Tự động quét để điện thoại cập nhật dữ liệu liên tục sau mỗi 3 giây
-        setInterval(() => {
-            if (!document.activeElement || document.activeElement.tagName !== 'INPUT') {
-                downloadDataFromCloud();
-            }
-        }, 3000); 
-
-        function purgeSoldier(uid) {
-            if(confirm("Xác nhận xóa hẳn quân nhân này khỏi lượt bắn?")) {
-                mainData = mainData.filter(d => d.uid !== uid);
-                cancelEdit();
-                pushDataState();
-            }
-        }
-
-        function pushDataState() {
-            localStorage.setItem('shooting_v5_shared_list', JSON.stringify(mainData));
-            renderEngine();
-            uploadDataToCloud();
-        }
-
-        function exportToExcel() {
-            if(mainData.length === 0) return alert("Không có dữ liệu để xuất Excel!");
-            let excelRows = [
-                ["BẢNG TỔNG HỢP KẾT QUẢ KIỂM TRA BẮN SÚNG ĐẠT THẬT"],
-                ["Chi tiết từng viên bắn (3 viên/bia) - Tự động tổng hợp và xếp loại thành tích"],
-                [], 
-                ["STT", "Bệ bắn", "Bài hiện tại", "Họ và Tên", "Đơn vị", "Bia số 4 (Bài 1)", "", "", "Bia số 7 (Bài 2)", "", "", "Bia số 8 (Bài 3)", "", "", "Tổng điểm", "Xếp loại"],
-                ["", "", "", "", "", "Viên 1", "Viên 2", "Viên 3", "Viên 1", "Viên 2", "Viên 3", "Viên 1", "Viên 2", "Viên 3", "", ""]
-            ];
-            let gioi = 0, kha = 0, dat = 0, khongDat = 0;
-            mainData.forEach((item, index) => {
-                let bài_text = "Bài " + currentExercise;
-                let t = (item.b4_1 + item.b4_2 + item.b4_3) + (item.b7_1 + item.b7_2 + item.b7_3) + (item.b8_1 + item.b8_2 + item.b8_3);
-                if(currentExercise === 1) t = item.b4_1 + item.b4_2 + item.b4_3;
-                else if(currentExercise === 2) t = item.b7_1 + item.b7_2 + item.b7_3;
-                else if(currentExercise === 3) t = item.b8_1 + item.b8_2 + item.b8_3;
-
-                let xl = "";
-                if(currentExercise === 4) {
-                    if(t >= 72) { xl = "GIỎI"; gioi++; } else if(t >= 65) { xl = "KHÁ"; kha++; } else if(t >= 50) { xl = "ĐẠT"; dat++; } else { xl = "K.ĐẠT"; khongDat++; }
+                if (deviceRole === 'admin') {
+                    localStorage.removeItem(`bin_id_room_${currentRoom}`);
+                    uploadDataToCloud();
                 } else {
-                    if(t >= 25) { xl = "GIỎI"; gioi++; } else if(t >= 21) { xl = "KHÁ"; kha++; } else if(t >= 15) { xl = "ĐẠT"; dat++; } else { xl = "K.ĐẠT"; khongDat++; }
+                    downloadDataFromCloud(true);
                 }
-                excelRows.push([ index + 1, "Bệ " + item.bay, bài_text, item.name, item.unit, item.b4_1, item.b4_2, item.b4_3, item.b7_1, item.b7_2, item.b7_3, item.b8_1, item.b8_2, item.b8_3, t, xl ]);
-            });
-            let tongQuanSo = mainData.length;
-            excelRows.push([]); excelRows.push([]);
-            excelRows.push(["THỐNG KÊ TỈ LỆ THÀNH TÍCH CHUNG (BÀI " + currentExercise + ")"]);
-            excelRows.push(["Xếp loại", "Số lượng (Đồng chí)", "Tỉ lệ phần偏差 (%)"]);
-            excelRows.push(["Giỏi", gioi, ((gioi / tongQuanSo) * 100).toFixed(1) + "%"]);
-            excelRows.push(["Khá", kha, ((kha / tongQuanSo) * 100).toFixed(1) + "%"]);
-            excelRows.push(["Đạt", dat, ((dat / tongQuanSo) * 100).toFixed(1) + "%"]);
-            excelRows.push(["Không đạt", khongDat, ((khongDat / tongQuanSo) * 100).toFixed(1) + "%"]);
-            let wb = XLSX.utils.book_new(); let ws = XLSX.utils.aoa_to_sheet(excelRows);
-            ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 15 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 15 } }, 
-                { s: { r: 3, c: 0 }, e: { r: 4, c: 0 } }, { s: { r: 3, c: 1 }, e: { r: 4, c: 1 } }, 
-                { s: { r: 3, c: 2 }, e: { r: 4, c: 2 } }, { s: { r: 3, c: 3 }, e: { r: 4, c: 3 } }, 
-                { s: { r: 3, c: 4 }, e: { r: 4, c: 4 } }, { s: { r: 3, c: 5 }, e: { r: 3, c: 7 } }, 
-                { s: { r: 3, c: 8 }, e: { r: 3, c: 10 } }, { s: { r: 3, c: 11 }, e: { r: 3, c: 13 } }, 
-                { s: { r: 3, c: 14 }, e: { r: 4, c: 14 } }, { s: { r: 3, c: 15 }, e: { r: 4, c: 15 } }
-            ];
-            XLSX.utils.book_append_sheet(wb, ws, "KetQuaBanSung");
-            XLSX.writeFile(wb, "Bao_Cao_Ket_Qua_Ban_Sung.xlsx");
+            }
         }
-
-        function exportJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mainData));
-            const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "backup_shooting.json");
-            document.body.appendChild(a); a.click(); a.remove();
-        }
-
-        renderEngine();
-        downloadDataFromCloud();
-    </script>
-</body>
-</html>
