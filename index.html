@@ -388,17 +388,14 @@
             updatePieChartLogic();
         }
 
-        function getBinNameLookup() {
-            return `bin_v5_room_${currentRoom}`;
-        }
-
-        // GIẢI PHÁP ĐỒNG BỘ MẠNG TẬP TRUNG THEO MÃ PHÒNG (SỬA LỖI TỰ ĐỘNG VỀ 0)
+        // CƠ CHẾ KHÔNG DÙNG HÀM TÌM KIẾM MÀ ĐỒNG BỘ TRỰC TIẾP QUA ID LƯU TRỮ CỤ CỤC BỘ VÀ ĐÁM MÂY
         function uploadDataToCloud() {
             updateStatus("Đang đồng bộ dữ liệu...", "loading");
             
-            // Bước 1: Thử cập nhật đè vào luồng cũ dựa theo ID phòng lưu ở LocalStorage
-            let savedBinId = localStorage.getItem(`id_of_${getBinNameLookup()}`);
+            let savedBinId = localStorage.getItem(`bin_id_room_${currentRoom}`);
+            
             if (savedBinId) {
+                // Nếu có Bin ID, cập nhật đè lên máy chủ
                 fetch(`${SYNC_SERVER}/${savedBinId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
@@ -408,111 +405,80 @@
                     if(res.ok) {
                         updateStatus("Mạng trực tuyến: Đã đồng bộ hoàn hảo", "success");
                     } else {
-                        localStorage.removeItem(`id_of_${getBinNameLookup()}`);
-                        findOrCreateRoomBin();
+                        localStorage.removeItem(`bin_id_room_${currentRoom}`);
+                        createNewBinOnCloud();
                     }
                 })
                 .catch(() => updateStatus("Lỗi kết nối mạng", "error"));
             } else {
-                findOrCreateRoomBin();
+                createNewBinOnCloud();
             }
         }
 
-        function findOrCreateRoomBin() {
-            // Bước 2: Truy quét trên máy chủ kiếm luồng dữ liệu trùng tên phòng
-            fetch(`${SYNC_SERVER}?name=${getBinNameLookup()}`, {
-                method: 'GET',
-                headers: { 'X-Master-Key': MASTER_KEY }
+        function createNewBinOnCloud() {
+            // Khởi tạo một Bin độc lập mới hoàn toàn khi chưa có liên kết cục bộ
+            fetch(SYNC_SERVER, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-Master-Key': MASTER_KEY,
+                    'X-Bin-Private': 'false'
+                },
+                body: JSON.stringify({ room: currentRoom, data: mainData })
             })
             .then(res => res.json())
-            .then(bins => {
-                if (bins && bins.length > 0) {
-                    let binId = bins[0].snippet.id;
-                    localStorage.setItem(`id_of_${getBinNameLookup()}`, binId);
-                    // Đẩy dữ liệu lên luồng vừa tìm thấy
-                    fetch(`${SYNC_SERVER}/${binId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
-                        body: JSON.stringify({ room: currentRoom, data: mainData })
-                    }).then(() => updateStatus("Mạng trực tuyến: Đã đồng bộ hoàn hảo", "success"));
-                } else {
-                    // Nếu chưa phòng nào tồn tại, tạo mới hoàn toàn luồng dữ liệu riêng biệt này
-                    fetch(SYNC_SERVER, {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json', 
-                            'X-Master-Key': MASTER_KEY,
-                            'X-Bin-Name': getBinNameLookup(),
-                            'X-Bin-Private': 'false'
-                        },
-                        body: JSON.stringify({ room: currentRoom, data: mainData })
-                    })
-                    .then(res => res.json())
-                    .then(res => {
-                        if(res.metadata && res.metadata.id) {
-                            localStorage.setItem(`id_of_${getBinNameLookup()}`, res.metadata.id);
-                            updateStatus("Mạng trực tuyến: Đã khởi tạo và đồng bộ", "success");
-                        }
-                    });
+            .then(res => {
+                if(res.metadata && res.metadata.id) {
+                    localStorage.setItem(`bin_id_room_${currentRoom}`, res.metadata.id);
+                    // Hiển thị mã ID ra màn hình để điện thoại có thể copy nhập vào trực tiếp
+                    updateStatus(`Đã tạo phòng! Hãy nhập ID này vào điện thoại: ${res.metadata.id}`, "success");
+                    alert(`HỆ THỐNG KHỞI TẠO PHÒNG MỚI THÀNH CÔNG!\n\nĐồng chí hãy nhập dãy mã số dưới đây vào ô "Mã phòng" trên Điện thoại để kết nối:\n\n${res.metadata.id}`);
                 }
-            }).catch(() => updateStatus("Lỗi quét phòng", "error"));
+            })
+            .catch(() => updateStatus("Lỗi tạo luồng dữ liệu", "error"));
         }
 
         function downloadDataFromCloud(isForce = false) {
+            let savedBinId = localStorage.getItem(`bin_id_room_${currentRoom}`);
+            // Nếu độ dài của ô nhập mã phòng tương đương độ dài mã BIN ID của JSONBin (độ dài 24 ký tự)
+            if(currentRoom.length >= 20 && !savedBinId) {
+                savedBinId = currentRoom;
+                localStorage.setItem(`bin_id_room_${currentRoom}`, currentRoom);
+            }
+
+            if (!savedBinId) return;
             if(isForce) updateStatus("Đang tải dữ liệu mạng...", "loading");
             
-            let savedBinId = localStorage.getItem(`id_of_${getBinNameLookup()}`);
-            if (savedBinId) {
-                fetch(`${SYNC_SERVER}/${savedBinId}/latest`, {
-                    method: 'GET',
-                    headers: { 'X-Master-Key': MASTER_KEY }
-                })
-                .then(res => res.json())
-                .then(res => {
-                    if (res.record && res.record.data) {
-                        if(JSON.stringify(mainData) !== JSON.stringify(res.record.data)) {
-                            mainData = res.record.data;
-                            localStorage.setItem('shooting_v5_shared_list', JSON.stringify(mainData));
-                            renderEngine();
-                        }
-                        updateStatus("Mạng trực tuyến: Đã đồng bộ hoàn hảo", "success");
-                    }
-                }).catch(() => { if(isForce) updateStatus("Lỗi tải luồng", "error"); });
-            } else {
-                // Nếu điện thoại chưa lưu ID luồng, tự động quét theo tên phòng để chập mạch vào máy tính
-                fetch(`${SYNC_SERVER}?name=${getBinNameLookup()}`, {
-                    method: 'GET',
-                    headers: { 'X-Master-Key': MASTER_KEY }
-                })
-                .then(res => res.json())
-                .then(bins => {
-                    if (bins && bins.length > 0) {
-                        localStorage.setItem(`id_of_${getBinNameLookup()}`, bins[0].snippet.id);
-                        downloadDataFromCloud(isForce);
-                    }
-                });
-            }
-        }
-
-        function forceSyncData() {
-            localStorage.removeItem(`id_of_${getBinNameLookup()}`);
-            updateStatus("Đang thiết lập lại kết nối...", "loading");
-            fetch(`${SYNC_SERVER}?name=${getBinNameLookup()}`, {
+            fetch(`${SYNC_SERVER}/${savedBinId}/latest`, {
                 method: 'GET',
                 headers: { 'X-Master-Key': MASTER_KEY }
             })
             .then(res => res.json())
-            .then(bins => {
-                if(bins && bins.length > 0) {
-                    localStorage.setItem(`id_of_${getBinNameLookup()}`, bins[0].snippet.id);
-                    downloadDataFromCloud(true);
-                } else {
-                    uploadDataToCloud();
+            .then(res => {
+                if (res.record && res.record.data) {
+                    if(JSON.stringify(mainData) !== JSON.stringify(res.record.data)) {
+                        mainData = res.record.data;
+                        localStorage.setItem('shooting_v5_shared_list', JSON.stringify(mainData));
+                        renderEngine();
+                    }
+                    updateStatus("Mạng trực tuyến: Đã đồng bộ hoàn hảo", "success");
                 }
-            });
+            }).catch(() => { if(isForce) updateStatus("Mã phòng/ID không đúng", "error"); });
         }
 
-        // Tự động kéo dữ liệu về máy điện thoại mỗi 3 giây nếu không gõ phím
+        function forceSyncData() {
+            const currentInputValue = document.getElementById('sync-room-id').value.trim();
+            if(currentInputValue.length >= 20) {
+                localStorage.setItem(`bin_id_room_${currentInputValue}`, currentInputValue);
+                currentRoom = currentInputValue;
+                downloadDataFromCloud(true);
+            } else {
+                localStorage.removeItem(`bin_id_room_${currentRoom}`);
+                uploadDataToCloud();
+            }
+        }
+
+        // Tự động quét để điện thoại cập nhật dữ liệu liên tục sau mỗi 3 giây
         setInterval(() => {
             if (!document.activeElement || document.activeElement.tagName !== 'INPUT') {
                 downloadDataFromCloud();
@@ -561,7 +527,7 @@
             let tongQuanSo = mainData.length;
             excelRows.push([]); excelRows.push([]);
             excelRows.push(["THỐNG KÊ TỈ LỆ THÀNH TÍCH CHUNG (BÀI " + currentExercise + ")"]);
-            excelRows.push(["Xếp loại", "Số lượng (Đồng chí)", "Tỉ lệ phần trăm (%)"]);
+            excelRows.push(["Xếp loại", "Số lượng (Đồng chí)", "Tỉ lệ phần偏差 (%)"]);
             excelRows.push(["Giỏi", gioi, ((gioi / tongQuanSo) * 100).toFixed(1) + "%"]);
             excelRows.push(["Khá", kha, ((kha / tongQuanSo) * 100).toFixed(1) + "%"]);
             excelRows.push(["Đạt", dat, ((dat / tongQuanSo) * 100).toFixed(1) + "%"]);
@@ -586,7 +552,7 @@
         }
 
         renderEngine();
-        forceSyncData();
+        downloadDataFromCloud();
     </script>
 </body>
 </html>
