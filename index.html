@@ -408,14 +408,19 @@
             let currentLot = 0;
             const actionThs = document.querySelectorAll('.action-column');
             actionThs.forEach(th => th.style.display = (deviceRole === 'admin') ? 'table-cell' : 'none');
+            
+            // Xác định số lượng người trong một loạt tùy theo bài bắn
+            let stepSize = (currentExercise === 5) ? 2 : 6;
+
             mainData.forEach((item, index) => {
-                if (index % 6 === 0) {
+                if (index % stepSize === 0) {
                     currentLot++;
-                    let colSpanVal = currentExercise === 5 ? 16 : 16;
+                    let colSpanVal = 16;
+                    let peopleText = (currentExercise === 5) ? "2 BỆ BẮN" : "6 BỆ BẮN";
                     target.innerHTML += `
                          <tr class="bg-slate-950/90 text-yellow-500 font-bold select-none">
                             <td colspan="${colSpanVal}" class="p-2.5 text-center uppercase tracking-widest text-[10px] border-y border-slate-800">
-                                --- LOẠT BẮN SỐ ${currentLot} (GỒM 6 BỆ BẮN) ---
+                                --- LOẠT BẮN SỐ ${currentLot} (GỒM ${peopleText}) ---
                             </td>
                         </tr>`;
                 }
