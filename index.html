@@ -273,15 +273,18 @@
             let num = parseInt(value);
             if (isNaN(num)) num = 0;
             
-            // Đã gỡ bỏ khống chế điểm số tối đa cho K54 (Ngoại trừ Bia Ken chọn Trúng/Hụt chỉ lấy 0 hoặc 1)
-            if (field === 'k54_ken1' || field === 'k54_ken2') {
-                num = num > 1 ? 1 : (num < 0 ? 0 : num);
-            } else if (!field.startsWith('k54_')) {
-                // Giữ nguyên khống chế cho súng trường AK/STV (0 - 10 điểm mỗi viên)
-                if(num > 10) num = 10;
-                if(num < 0) num = 0;
+            // Xử lý điều kiện lọc điểm số đầu vào
+            if (field.startsWith('k54_')) {
+                if (field === 'k54_ken1' || field === 'k54_ken2') {
+                    // Trạng thái Bia Ken bắt buộc chỉ lấy 0 (Hụt) hoặc 1 (Trúng)
+                    num = num > 1 ? 1 : (num < 0 ? 0 : num);
+                } else {
+                    // BỎ HOÀN TOÀN KHỐNG CHẾ CHẶN TRÊN (MAX 10) CHO K54. Cho phép nhập thoải mái điểm tổng loạt bắn.
+                    if (num < 0) num = 0;
+                }
             } else {
-                // Với K54, cho phép gõ điểm thoải mái, chỉ chặn dưới không cho điểm âm
+                // Giữ nguyên luật súng trường AK/STV (Điểm số tính theo từng viên từ 0 đến 10)
+                if(num > 10) num = 10;
                 if(num < 0) num = 0;
             }
             
