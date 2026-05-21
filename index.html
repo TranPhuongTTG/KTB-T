@@ -633,5 +633,53 @@
             document.body.appendChild(a); a.click(); a.remove();
         }
     </script>
+
+    <div class="fixed bottom-4 right-4 z-50 bg-slate-950/95 border-2 border-red-600 p-3 rounded-xl shadow-2xl flex flex-col gap-2 min-w-[260px] backdrop-blur-md">
+        <div class="text-[11px] font-bold text-yellow-500 uppercase tracking-wider text-center border-b border-slate-800 pb-1.5 flex items-center justify-between">
+            <span><i class="fa-solid fa-calculator mr-1"></i> TIỆN ÍCH TÍNH TỔNG</span>
+            <span id="quick-calc-result" class="text-yellow-400 font-black text-sm bg-slate-900 px-2 py-0.5 rounded border border-slate-800">0</span>
+        </div>
+        <div class="flex gap-1.5 items-center">
+            <input type="text" id="quick-calc-input" 
+                   class="flex-grow bg-slate-900 border border-slate-800 text-yellow-400 font-bold text-center text-sm px-2 py-1.5 rounded-lg focus:outline-none focus:border-red-500" 
+                   placeholder="Ví dụ: 8+8+8">
+            <button onclick="executeQuickCalc()" 
+                    class="bg-red-700 hover:bg-red-600 text-yellow-400 font-black px-3 py-1.5 rounded-lg border border-yellow-500/20 text-xs transition-all tracking-wider shadow-md active:scale-95">
+                KQ
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Tự động định dạng thêm dấu " + " khi người dùng gõ số
+        document.getElementById('quick-calc-input').addEventListener('input', function(e) {
+            let val = this.value;
+            // Lọc bỏ toàn bộ ký tự không phải số
+            let numbers = val.replace(/[^0-9]/g, '');
+            if (numbers.length > 0) {
+                // Tách các chữ số đơn lẻ ra và nối lại bằng dấu " + "
+                this.value = numbers.split('').join(' + ');
+            } else {
+                this.value = '';
+            }
+        });
+
+        // Xử lý tính toán khi nhấn nút "KQ"
+        function executeQuickCalc() {
+            let val = document.getElementById('quick-calc-input').value;
+            if(!val.trim()) {
+                document.getElementById('quick-calc-result').innerText = "0";
+                return;
+            }
+            try {
+                // Tiến hành tính toán chuỗi an toàn
+                let sanitizedExpression = val.replace(/[^0-9+\s]/g, '');
+                let res = Function('"use strict";return (' + sanitizedExpression + ')')();
+                document.getElementById('quick-calc-result').innerText = isNaN(res) ? "0" : res;
+            } catch (err) {
+                document.getElementById('quick-calc-result').innerText = "Lỗi";
+            }
+        }
+    </script>
 </body>
 </html>
