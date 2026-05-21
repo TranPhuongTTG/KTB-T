@@ -123,7 +123,7 @@
                 <div class="overflow-x-auto custom-scrollbar">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead id="header-target">
-                            </thead>
+                        </thead>
                         <tbody id="render-target" class="divide-y divide-slate-800/60">
                         </tbody>
                     </table>
@@ -259,7 +259,8 @@
                 b4_1: 0, b4_2: 0, b4_3: 0,
                 b7_1: 0, b7_2: 0, b7_3: 0,
                 b8_1: 0, b8_2: 0, b8_3: 0,
-                k54_4d: 0, k54_ken1: 0, k54_ken2: 0, k54_8e2: 0, k54_8e1_3: 0, k54_8e2_3: 0
+                k54_4d_1: 0, k54_4d_2: 0, k54_4d_3: 0, k54_4d_4: 0,
+                k54_ken1: 0, k54_ken2: 0, k54_8e2: 0, k54_8e1_3: 0, k54_8e2_3: 0
             });
             document.getElementById('s-name').value = '';
             document.getElementById('s-unit').value = '';
@@ -270,19 +271,16 @@
 
         function modifyScore(uid, field, value) {
             if(deviceRole !== 'admin') return;
-            let num = parseInt(value) || 0;
+            let num = parseInt(value);
+            if (isNaN(num)) num = 0;
             
-            // Ép điều kiện giới hạn điểm tùy theo bài bắn
-            if (field.startsWith('k54_')) {
-                if (field === 'k54_ken1' || field === 'k54_ken2') {
-                    num = num > 1 ? 1 : (num < 0 ? 0 : num);
-                } else {
-                    // BỎ HOÀN TOÀN KHỐNG CHẾ CHẶN TRÊN (MAX 10) CHO K54 ĐỂ NHẬP ĐIỂM THOẢI MÁI
-                    if (num < 0) num = 0;
-                }
+            // Bỏ khống chế điểm dưới (0đ vẫn nhập bình thường), chỉ khống chế điểm tối đa của mỗi ô là 10 điểm
+            if (field === 'k54_ken1' || field === 'k54_ken2') {
+                if (num > 1) num = 1;
+                if (num < 0) num = 0;
             } else {
-                if(num > 10) num = 10;
-                if(num < 0) num = 0;
+                if (num > 10) num = 10;
+                if (num < 0) num = 0;
             }
             
             const idx = mainData.findIndex(item => item.uid === uid);
@@ -307,13 +305,28 @@
             if (exercise === 2) return item.b7_1 + item.b7_2 + item.b7_3;
             if (exercise === 3) return item.b8_1 + item.b8_2 + item.b8_3;
             if (exercise === 4) return (item.b4_1 + item.b4_2 + item.b4_3) + (item.b7_1 + item.b7_2 + item.b7_3) + (item.b8_1 + item.b8_2 + item.b8_3);
+            
             if (exercise === 5) {
-                // Đếm số bia Ken bắn trúng
-                let hitKenCount = (item.k54_ken1 || 0) + (item.k54_ken2 || 0);
-                // Logic phạt: Nếu không bắn trúng bất kỳ bia Ken nào (hitKenCount == 0), mục tiêu 8e/2 bị trừ 10 điểm
-                let base8e2 = item.k54_8e2 || 0;
-                let final8e2 = hitKenCount === 0 ? Math.max(0, base8e2 - 10) : base8e2;
-                return (item.k54_4d || 0) + final8e2 + (item.k54_8e1_3 || 0) + (item.k54_8e2_3 || 0);
+                // 1. Tính tổng Bia 4D từ 4 mục tiêu độc lập
+                let total4d = (item.k54_4d_1 || 0) + (item.k54_4d_2 || 0) + (item.k54_4d_3 || 0) + (item.k54_4d_4 || 0);
+                
+                // 2. Lấy điểm các bia thành phần khác
+                let bia8e2 = item.k54_8e2 || 0;
+                let bia8e1_3 = item.k54_8e1_3 || 0;
+                let bia8e2_3 = item.k54_8e2_3 || 0;
+                
+                // 3. Ràng buộc Bia Ken: 0 là Hụt, 1 là Trúng
+                let ken1 = item.k54_ken1 !== undefined ? item.k54_ken1 : 0;
+                let ken2 = item.k54_ken2 !== undefined ? item.k54_ken2 : 0;
+                
+                // Điều kiện phạt: Chỉ cần chọn hụt 1 ô (hoặc cả 2 ô) -> Bị phạt trừ thẳng 10 điểm
+                let penalty = (ken1 === 0 || ken2 === 0) ? 10 : 0;
+                
+                // 4. Điểm tổng = (Bia 4D + Bia 8e/2 + Bia 8e1/3 + Bia 8e2/3) - Điểm phạt Ken nếu hụt
+                let finalTotal = (total4d + bia8e2 + bia8e1_3 + bia8e2_3) - penalty;
+                
+                // Tránh hiển thị điểm âm dưới 0 nếu tổng điểm của xạ thủ quá thấp
+                return Math.max(0, finalTotal);
             }
             return 0;
         }
@@ -350,7 +363,6 @@
             const target = document.getElementById('render-target');
             if(!target || !headTarget) return;
 
-            // Đổi cấu trúc tiêu đề bảng theo bài bắn
             if (currentExercise === 5) {
                 headTarget.innerHTML = `
                     <tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-center">
@@ -358,7 +370,7 @@
                         <th class="p-3 border-r border-slate-800/60" rowspan="2">Bệ</th>
                         <th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Họ và Tên</th>
                         <th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Đơn vị</th>
-                        <th class="p-2 border-r border-slate-800/60">Bia 4d</th>
+                        <th class="p-2 border-r border-slate-800/60" colspan="4">Bia 4d (4 mục tiêu)</th>
                         <th class="p-2 border-r border-slate-800/60" colspan="2">Bia Ken</th>
                         <th class="p-2 border-r border-slate-800/60">Bia 8e/2</th>
                         <th class="p-2 border-r border-slate-800/60">Bia 8e1/3</th>
@@ -368,12 +380,15 @@
                         <th class="p-3 action-column" rowspan="2">Xóa</th>
                     </tr>
                     <tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center">
-                        <th class="p-2 border-r border-slate-800/40">Nhập điểm</th>
+                        <th class="p-2 border-r border-slate-800/40">MT1</th>
+                        <th class="p-2 border-r border-slate-800/40">MT2</th>
+                        <th class="p-2 border-r border-slate-800/40">MT3</th>
+                        <th class="p-2 border-r border-slate-800/40">MT4</th>
                         <th class="p-2 border-r border-slate-800/40">Bia 1</th>
                         <th class="p-2 border-r border-slate-800/40">Bia 2</th>
-                        <th class="p-2 border-r border-slate-800/40">Nhập điểm (-10 nếu hụt)</th>
-                        <th class="p-2 border-r border-slate-800/40">Nhập điểm</th>
-                        <th class="p-2 border-r border-slate-800/40">Nhập điểm</th>
+                        <th class="p-2 border-r border-slate-800/40">Điểm</th>
+                        <th class="p-2 border-r border-slate-800/40">Điểm</th>
+                        <th class="p-2 border-r border-slate-800/40">Điểm</th>
                     </tr>`;
             } else {
                 headTarget.innerHTML = `
@@ -403,7 +418,7 @@
             mainData.forEach((item, index) => {
                 if (index % 6 === 0) {
                     currentLot++;
-                    let colSpanVal = currentExercise === 5 ? 13 : 16;
+                    let colSpanVal = currentExercise === 5 ? 16 : 16;
                     target.innerHTML += `
                         <tr class="bg-slate-950/90 text-yellow-500 font-bold select-none">
                             <td colspan="${colSpanVal}" class="p-2.5 text-center uppercase tracking-widest text-[10px] border-y border-slate-800">
@@ -418,7 +433,6 @@
                 let inputAttr = (deviceRole === 'admin') ? `class="${styleAct}"` : `class="${styleViewer}" disabled`;
 
                 if (currentExercise === 5) {
-                    // Chế độ hiển thị riêng cho K54 Bài 2b
                     let radioChecked = (f, val) => (item[f] === val) ? 'checked' : '';
                     let radioDisabled = (deviceRole !== 'admin') ? 'disabled' : '';
                     target.innerHTML += `
@@ -428,7 +442,10 @@
                             <td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td>
                             <td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td>
                             
-                            <td class="p-1 border-r border-slate-800/40"><input type="number" min="0" value="${item.k54_4d || 0}" oninput="modifyScore(${item.uid}, 'k54_4d', this.value)" ${inputAttr}></td>
+                            <td class="p-1"><input type="number" min="0" max="10" value="${item.k54_4d_1 || 0}" oninput="modifyScore(${item.uid}, 'k54_4d_1', this.value)" ${inputAttr}></td>
+                            <td class="p-1"><input type="number" min="0" max="10" value="${item.k54_4d_2 || 0}" oninput="modifyScore(${item.uid}, 'k54_4d_2', this.value)" ${inputAttr}></td>
+                            <td class="p-1"><input type="number" min="0" max="10" value="${item.k54_4d_3 || 0}" oninput="modifyScore(${item.uid}, 'k54_4d_3', this.value)" ${inputAttr}></td>
+                            <td class="p-1 border-r border-slate-800/40"><input type="number" min="0" max="10" value="${item.k54_4d_4 || 0}" oninput="modifyScore(${item.uid}, 'k54_4d_4', this.value)" ${inputAttr}></td>
                             
                             <td class="p-1 border-r border-slate-800/40 text-[10px]">
                                 <label class="inline-flex items-center gap-1 cursor-pointer mr-1 text-emerald-400">
@@ -448,9 +465,9 @@
                                 </label>
                             </td>
 
-                            <td class="p-1 border-r border-slate-800/40"><input type="number" min="0" value="${item.k54_8e2 || 0}" oninput="modifyScore(${item.uid}, 'k54_8e2', this.value)" ${inputAttr}></td>
-                            <td class="p-1 border-r border-slate-800/40"><input type="number" min="0" value="${item.k54_8e1_3 || 0}" oninput="modifyScore(${item.uid}, 'k54_8e1_3', this.value)" ${inputAttr}></td>
-                            <td class="p-1 border-r border-slate-800/60"><input type="number" min="0" value="${item.k54_8e2_3 || 0}" oninput="modifyScore(${item.uid}, 'k54_8e2_3', this.value)" ${inputAttr}></td>
+                            <td class="p-1 border-r border-slate-800/40"><input type="number" min="0" max="10" value="${item.k54_8e2 || 0}" oninput="modifyScore(${item.uid}, 'k54_8e2', this.value)" ${inputAttr}></td>
+                            <td class="p-1 border-r border-slate-800/40"><input type="number" min="0" max="10" value="${item.k54_8e1_3 || 0}" oninput="modifyScore(${item.uid}, 'k54_8e1_3', this.value)" ${inputAttr}></td>
+                            <td class="p-1 border-r border-slate-800/60"><input type="number" min="0" max="10" value="${item.k54_8e2_3 || 0}" oninput="modifyScore(${item.uid}, 'k54_8e2_3', this.value)" ${inputAttr}></td>
                             
                             <td class="p-3 font-bold text-sm text-white border-r border-slate-800/40"><span id="total-${item.uid}">${total}</span></td>
                             <td class="p-3 text-left font-bold border-r border-slate-800/40" id="rank-${item.uid}">${getRankString(total, currentExercise)}</td>
@@ -460,7 +477,6 @@
                             </td>
                         </tr>`;
                 } else {
-                    // Chế độ hiển thị súng trường STV/AK cũ
                     let isAggr = currentExercise === 4;
                     let isExerciseDisabled = (ex) => {
                         if(deviceRole !== 'admin') return true;
@@ -482,7 +498,7 @@
                             <td class="p-1"><input type="number" value="${item.b7_2}" oninput="modifyScore(${item.uid}, 'b7_2', this.value)" ${inputAttr} ${isExerciseDisabled(2)?'disabled':''}></td>
                             <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b7_3}" oninput="modifyScore(${item.uid}, 'b7_3', this.value)" ${inputAttr} ${isExerciseDisabled(2)?'disabled':''}></td>
                             
-                            <td class="p-1"><input type="number" value="${item.b8_1}" oninput="modifyScore(${item.uid}, 'b8_1', this.value)" ${inputAttr} ${isExerciseDisabled(3)?'disabled':''}></td>
+                            <td class="p-1"><input type="number" value="${item.b8_1}" oninput="next=modifyScore(${item.uid}, 'b8_1', this.value)" ${inputAttr} ${isExerciseDisabled(3)?'disabled':''}></td>
                             <td class="p-1"><input type="number" value="${item.b8_2}" oninput="modifyScore(${item.uid}, 'b8_2', this.value)" ${inputAttr} ${isExerciseDisabled(3)?'disabled':''}></td>
                             <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b8_3}" oninput="modifyScore(${item.uid}, 'b8_3', this.value)" ${inputAttr} ${isExerciseDisabled(3)?'disabled':''}></td>
                             
@@ -579,10 +595,10 @@
             let excelRows = [];
             if(currentExercise === 5) {
                 excelRows = [
-                    ["BẢNG TỔNG HỢP KẾT QUẢ KIỂM TRA BẮN SÚNG NGẮN K54/2b"],
+                    ["BẢNG TỔNG HỢP KẾT QUẢ KIỂM TRA BẮN SÚNG NGẮN K54 BÀI 2b"],
                     ["Dữ liệu thời gian thực đồng bộ thao trường"],
                     [], 
-                    ["STT", "Bệ bắn", "Bài bắn", "Họ và Tên", "Đơn vị", "Bia 4d", "Bia Ken 1", "Bia Ken 2", "Bia 8e/2", "Bia 8e1/3", "Bia 8e2/3", "Tổng điểm", "Xếp loại"]
+                    ["STT", "Bệ bắn", "Bài bắn", "Họ và Tên", "Đơn vị", "Bia 4d-MT1", "Bia 4d-MT2", "Bia 4d-MT3", "Bia 4d-MT4", "Bia Ken 1", "Bia Ken 2", "Bia 8e/2", "Bia 8e1/3", "Bia 8e2/3", "Tổng điểm", "Xếp loại"]
                 ];
                 mainData.forEach((item, index) => {
                     let t = calculateTotal(item, 5);
@@ -590,7 +606,8 @@
                     let xlText = xlHtml.replace(/<\/?[^>]+(>|$)/g, "");
                     excelRows.push([
                         index + 1, "Bệ " + item.bay, "K54/2b", item.name, item.unit,
-                        item.k54_4d || 0, (item.k54_ken1===1?"Trúng":"Hụt"), (item.k54_ken2===1?"Trúng":"Hụt"),
+                        item.k54_4d_1 || 0, item.k54_4d_2 || 0, item.k54_4d_3 || 0, item.k54_4d_4 || 0,
+                        (item.k54_ken1 === 1 ? "Trúng" : "Hụt"), (item.k54_ken2 === 1 ? "Trúng" : "Hụt"),
                         item.k54_8e2 || 0, item.k54_8e1_3 || 0, item.k54_8e2_3 || 0, t, xlText
                     ]);
                 });
