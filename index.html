@@ -41,7 +41,7 @@
 
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <label class="text-[11px] font-bold text-slate-400 uppercase whitespace-nowrap">Mã kết nối:</label>
-                <input type="text" id="sync-room-id" class="w-full sm:w-64 bg-slate-900 border border-slate-700 text-yellow-400 font-mono font-bold px-3 py-1.5 text-xs rounded-lg focus:outline-none focus:border-yellow-500" placeholder="Chờ cấp mã phòng...">
+                <input type="text" id="sync-room-id" oninput="forceSyncData()" class="w-full sm:w-64 bg-slate-900 border border-slate-700 text-yellow-400 font-mono font-bold px-3 py-1.5 text-xs rounded-lg focus:outline-none focus:border-yellow-500" placeholder="Nhập mã từ máy nhập để xem...">
                 <button onclick="forceSyncData()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-lg transition-all" title="Kết nối thủ công">
                      <i class="fa-solid fa-link"></i>
                 </button>
@@ -56,13 +56,13 @@
             </div>
             <div>
                 <h1 class="text-base sm:text-lg font-bold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-200">HỆ THỐNG THỐNG KÊ KẾT QUẢ BẮN ĐẠN THẬT</h1>
-        </div>
+            </div>
         </div>
         
         <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 overflow-x-auto max-w-full custom-scrollbar" id="exercise-selector">
             <button onclick="switchExercise(1)" id="ex-btn-1" class="px-3 py-2 text-[11px] font-bold rounded-lg transition-all text-white active-pill whitespace-nowrap">BÀI 1 (BIA 4)</button>
             <button onclick="switchExercise(2)" id="ex-btn-2" class="px-3 py-2 text-[11px] font-bold rounded-lg transition-all text-slate-400 whitespace-nowrap">BÀI 2 (BIA 7)</button>
-         <button onclick="switchExercise(3)" id="ex-btn-3" class="px-3 py-2 text-[11px] font-bold rounded-lg transition-all text-slate-400 whitespace-nowrap">BÀI 3 (BIA 8)</button>
+            <button onclick="switchExercise(3)" id="ex-btn-3" class="px-3 py-2 text-[11px] font-bold rounded-lg transition-all text-slate-400 whitespace-nowrap">BÀI 3 (BIA 8)</button>
             <button onclick="switchExercise(4)" id="ex-btn-4" class="px-3 py-2 text-[11px] font-bold rounded-lg transition-all text-slate-400 whitespace-nowrap">BÀI 4 (TỔNG HỢP)</button>
             <button onclick="switchExercise(5)" id="ex-btn-5" class="px-3 py-2 text-[11px] font-bold rounded-lg transition-all text-slate-400 whitespace-nowrap">BÀI 5 (K54/2b)</button>
         </div>
@@ -101,16 +101,16 @@
                         <option value="6">BỆ SỐ 6</option>
                     </select>
                 </div>
-         <div class="flex gap-2" id="action-buttons-group">
+                <div class="flex gap-2" id="action-buttons-group">
                     <button onclick="registerSoldier()" id="btn-submit" class="w-full bg-gradient-to-r from-red-700 to-red-800 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:from-red-600 hover:to-red-700 transition shadow-md">
                         Vào bệ bắn
                     </button>
-           </div>
+                </div>
             </div>
 
             <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-xl">
                 <h2 class="text-sm font-bold text-yellow-500 uppercase tracking-wider border-b border-slate-800 pb-3 mb-4"><i class="fa-solid fa-chart-pie mr-2"></i>Tỉ lệ thành tích</h2>
-         <div class="w-full flex justify-center items-center pb-2">
+                <div class="w-full flex justify-center items-center pb-2">
                     <div style="position: relative; height:180px; width:180px">
                         <canvas id="achievementChart"></canvas>
                     </div>
@@ -125,7 +125,7 @@
                         <thead id="header-target">
                             </thead>
                         <tbody id="render-target" class="divide-y divide-slate-800/60">
-             </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -184,12 +184,9 @@
             const txt = document.getElementById('status-text');
             if(!txt || !dot) return;
             txt.innerText = text;
-            if(type === 'success') { dot.className = "w-3 h-3 rounded-full bg-emerald-500 animate-pulse";
-            }
-            else if(type === 'loading') { dot.className = "w-3 h-3 rounded-full bg-blue-500 animate-spin";
-            }
-            else { dot.className = "w-3 h-3 rounded-full bg-rose-500 animate-ping";
-            }
+            if(type === 'success') { dot.className = "w-3 h-3 rounded-full bg-emerald-500 animate-pulse"; }
+            else if(type === 'loading') { dot.className = "w-3 h-3 rounded-full bg-blue-500 animate-spin"; }
+            else { dot.className = "w-3 h-3 rounded-full bg-rose-500 animate-ping"; }
         }
 
         function createNewBinOnCloud() {
@@ -219,17 +216,14 @@
                 cache: 'no-store'
             })
             .then(res => res.json())
-            .then(res => 
-            {
+            .then(res => {
                 if (res.record && res.record.data) {
-                    if(deviceRole === 'viewer' || JSON.stringify(mainData) !== JSON.stringify(res.record.data)) {
-                        mainData = res.record.data;
-                        renderEngine();
-                     }
+                    mainData = res.record.data;
+                    renderEngine();
                     if(deviceRole === 'viewer') {
                         localStorage.setItem('last_connected_room', targetRoomId);
                     }
-                     updateStatus("Kết nối thông suốt - Cập nhật trực tiếp", "success");
+                    updateStatus("Kết nối thông suốt - Cập nhật trực tiếp", "success");
                 }
             })
             .catch(() => updateStatus("Mã kết nối không hợp lệ hoặc lỗi mạng", "error"));
@@ -276,7 +270,6 @@
             if(deviceRole !== 'admin') return;
             let num = parseInt(value) || 0;
             
-            // Ép điều kiện giới hạn điểm tùy theo bài bắn
             if (field.startsWith('k54_')) {
                 if (field === 'k54_ken1' || field === 'k54_ken2') {
                     num = num > 1 ? 1 : (num < 0 ? 0 : num);
@@ -300,7 +293,6 @@
                 if(tdRank) tdRank.innerHTML = getRankString(total, currentExercise);
                 
                 updatePieChartLogic();
-                
                 clearTimeout(saveTimeout);
                 saveTimeout = setTimeout(uploadDataToCloud, 500);
             }
@@ -312,9 +304,7 @@
             if (exercise === 3) return item.b8_1 + item.b8_2 + item.b8_3;
             if (exercise === 4) return (item.b4_1 + item.b4_2 + item.b4_3) + (item.b7_1 + item.b7_2 + item.b7_3) + (item.b8_1 + item.b8_2 + item.b8_3);
             if (exercise === 5) {
-                // Đếm số bia Ken bắn trúng
                 let hitKenCount = (item.k54_ken1 || 0) + (item.k54_ken2 || 0);
-                // Logic phạt: Nếu không bắn trúng bất kỳ bia Ken nào (hitKenCount == 0), mục tiêu 8e/2 bị trừ 10 điểm
                 let base8e2 = item.k54_8e2 || 0;
                 let final8e2 = hitKenCount === 0 ? Math.max(0, base8e2 - 10) : base8e2;
                 let total4d = (item.k54_4d_1 || 0) + (item.k54_4d_2 || 0) + (item.k54_4d_3 || 0) + (item.k54_4d_4 || 0);
@@ -355,7 +345,6 @@
             const target = document.getElementById('render-target');
             if(!target || !headTarget) return;
 
-            // Đổi cấu trúc tiêu đề bảng theo bài bắn
             if (currentExercise === 5) {
                 headTarget.innerHTML = `
                     <tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-center">
@@ -409,13 +398,13 @@
             const actionThs = document.querySelectorAll('.action-column');
             actionThs.forEach(th => th.style.display = (deviceRole === 'admin') ? 'table-cell' : 'none');
             
-            // Xác định số lượng người trong một loạt tùy theo bài bắn
+            // Nếu là Bài 5 thì 2 người 1 loạt, bài khác 6 người 1 loạt
             let stepSize = (currentExercise === 5) ? 2 : 6;
 
             mainData.forEach((item, index) => {
                 if (index % stepSize === 0) {
                     currentLot++;
-                    let colSpanVal = 16;
+                    let colSpanVal = (currentExercise === 5) ? 16 : 16;
                     let peopleText = (currentExercise === 5) ? "2 BỆ BẮN" : "6 BỆ BẮN";
                     target.innerHTML += `
                          <tr class="bg-slate-950/90 text-yellow-500 font-bold select-none">
@@ -426,19 +415,18 @@
                 }
 
                 let total = calculateTotal(item, currentExercise);
-                 const styleAct = "w-11 bg-slate-950 border border-slate-800 text-center text-yellow-400 font-bold rounded py-1 focus:border-yellow-500 focus:outline-none";
+                const styleAct = "w-11 bg-slate-950 border border-slate-800 text-center text-yellow-400 font-bold rounded py-1 focus:border-yellow-500 focus:outline-none";
                 const styleViewer = "w-11 bg-transparent text-center text-slate-200 font-semibold py-1 font-mono text-xs";
                 let inputAttr = (deviceRole === 'admin') ? `class="${styleAct}"` : `class="${styleViewer}" disabled`;
 
                 if (currentExercise === 5) {
-                    // Chế độ hiển thị riêng cho K54 Bài 2b
                     let radioChecked = (f, val) => (item[f] === val) ? 'checked' : '';
                     let radioDisabled = (deviceRole !== 'admin') ? 'disabled' : '';
                     target.innerHTML += `
                         <tr class="hover:bg-slate-800/20 transition-all text-center">
                             <td class="p-3 text-slate-500 border-r border-slate-800/40">${index + 1}</td>
                             <td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">Bệ ${item.bay}</td>
-                             <td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td>
+                            <td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td>
                             <td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td>
                             
                             <td class="p-1"><input type="number" min="5" max="10" value="${item.k54_4d_1 || 0}" oninput="modifyScore(${item.uid}, 'k54_4d_1', this.value)" ${inputAttr}></td>
@@ -455,14 +443,14 @@
                                 </label>
                             </td>
 
-                             <td class="p-1 border-r border-slate-800/40 text-[10px]">
+                            <td class="p-1 border-r border-slate-800/40 text-[10px]">
                                 <label class="inline-flex items-center gap-1 cursor-pointer mr-1 text-emerald-400">
                                      <input type="radio" name="ken2-${item.uid}" value="1" onchange="modifyScore(${item.uid}, 'k54_ken2', 1)" ${radioChecked('k54_ken2', 1)} ${radioDisabled}> Trúng
                                 </label>
-                                 <label class="inline-flex items-center gap-1 cursor-pointer text-red-400">
+                                <label class="inline-flex items-center gap-1 cursor-pointer text-red-400">
                                     <input type="radio" name="ken2-${item.uid}" value="0" onchange="modifyScore(${item.uid}, 'k54_ken2', 0)" ${radioChecked('k54_ken2', 0)} ${radioDisabled}> Hụt
                                 </label>
-                             </td>
+                            </td>
 
                             <td class="p-1 border-r border-slate-800/40"><input type="number" min="5" max="10" value="${item.k54_8e2 || 0}" oninput="modifyScore(${item.uid}, 'k54_8e2', this.value)" ${inputAttr}></td>
                             <td class="p-1 border-r border-slate-800/40"><input type="number" min="5" max="10" value="${item.k54_8e1_3 || 0}" oninput="modifyScore(${item.uid}, 'k54_8e1_3', this.value)" ${inputAttr}></td>
@@ -476,10 +464,9 @@
                             </td>
                         </tr>`;
                  } else {
-                    // Chế độ hiển thị súng trường STV/AK cũ
                     let isAggr = currentExercise === 4;
                     let isExerciseDisabled = (ex) => {
-                         if(deviceRole !== 'admin') return true;
+                        if(deviceRole !== 'admin') return true;
                         return !(currentExercise === ex || isAggr);
                     };
 
@@ -487,25 +474,25 @@
                          <tr class="hover:bg-slate-800/20 transition-all text-center">
                             <td class="p-3 text-slate-500 border-r border-slate-800/40">${index + 1}</td>
                             <td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">Bệ ${item.bay}</td>
-                               <td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td>
+                            <td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td>
                             <td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td>
                             
-                             <td class="p-1"><input type="number" value="${item.b4_1}" oninput="modifyScore(${item.uid}, 'b4_1', this.value)" ${inputAttr} ${isExerciseDisabled(1)?'disabled':''}></td>
+                            <td class="p-1"><input type="number" value="${item.b4_1}" oninput="modifyScore(${item.uid}, 'b4_1', this.value)" ${inputAttr} ${isExerciseDisabled(1)?'disabled':''}></td>
                             <td class="p-1"><input type="number" value="${item.b4_2}" oninput="modifyScore(${item.uid}, 'b4_2', this.value)" ${inputAttr} ${isExerciseDisabled(1)?'disabled':''}></td>
                             <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b4_3}" oninput="modifyScore(${item.uid}, 'b4_3', this.value)" ${inputAttr} ${isExerciseDisabled(1)?'disabled':''}></td>
                              
                             <td class="p-1"><input type="number" value="${item.b7_1}" oninput="modifyScore(${item.uid}, 'b7_1', this.value)" ${inputAttr} ${isExerciseDisabled(2)?'disabled':''}></td>
                             <td class="p-1"><input type="number" value="${item.b7_2}" oninput="modifyScore(${item.uid}, 'b7_2', this.value)" ${inputAttr} ${isExerciseDisabled(2)?'disabled':''}></td>
-                             <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b7_3}" oninput="modifyScore(${item.uid}, 'b7_3', this.value)" ${inputAttr} ${isExerciseDisabled(2)?'disabled':''}></td>
+                            <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b7_3}" oninput="modifyScore(${item.uid}, 'b7_3', this.value)" ${inputAttr} ${isExerciseDisabled(2)?'disabled':''}></td>
                             
                             <td class="p-1"><input type="number" value="${item.b8_1}" oninput="modifyScore(${item.uid}, 'b8_1', this.value)" ${inputAttr} ${isExerciseDisabled(3)?'disabled':''}></td>
-                             <td class="p-1"><input type="number" value="${item.b8_2}" oninput="modifyScore(${item.uid}, 'b8_2', this.value)" ${inputAttr} ${isExerciseDisabled(3)?'disabled':''}></td>
+                            <td class="p-1"><input type="number" value="${item.b8_2}" oninput="modifyScore(${item.uid}, 'b8_2', this.value)" ${inputAttr} ${isExerciseDisabled(3)?'disabled':''}></td>
                             <td class="p-1 border-r border-slate-800/60"><input type="number" value="${item.b8_3}" oninput="modifyScore(${item.uid}, 'b8_3', this.value)" ${inputAttr} ${isExerciseDisabled(3)?'disabled':''}></td>
                             
-                             <td class="p-3 font-bold text-sm text-white border-r border-slate-800/40"><span id="total-${item.uid}">${total}</span></td>
+                            <td class="p-3 font-bold text-sm text-white border-r border-slate-800/40"><span id="total-${item.uid}">${total}</span></td>
                             <td class="p-3 text-left font-bold border-r border-slate-800/40" id="rank-${item.uid}">${getRankString(total, currentExercise)}</td>
                             
-                             <td class="p-3 whitespace-nowrap action-column" style="display: ${(deviceRole === 'admin') ? 'table-cell' : 'none'}">
+                            <td class="p-3 whitespace-nowrap action-column" style="display: ${(deviceRole === 'admin') ? 'table-cell' : 'none'}">
                                 <button onclick="purgeSoldier(${item.uid})" class="text-slate-500 hover:text-red-500 transition px-2"><i class="fa-solid fa-trash-can"></i></button>
                             </td>
                         </tr>`;
@@ -518,9 +505,8 @@
             let gioi = 0, kha = 0, dat = 0, khongDat = 0;
             let activeShooters = 0;
 
-             mainData.forEach(item => {
+            mainData.forEach(item => {
                 let score = calculateTotal(item, currentExercise);
-
                 if(score > 0) {
                     activeShooters++;
                     if(currentExercise === 5) {
@@ -548,20 +534,20 @@
                     data: {
                         labels: ['Giỏi', 'Khá', 'Đạt', 'K.Đạt'],
                         datasets: [{
-                             data: chartData,
+                            data: chartData,
                             backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
                             borderWidth: 2, borderColor: '#0f172a'
                          }]
                     },
                     options: {
                         responsive: true, maintainAspectRatio: false,
-                         plugins: { 
+                        plugins: { 
                             legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } },
                             tooltip: {
                                  callbacks: {
                                     label: function(context) {
                                         let label = context.label || '';
-                                         let value = context.parsed || 0;
+                                        let value = context.parsed || 0;
                                         let dataset = context.chart.data.datasets[0];
                                         let total = dataset.data.reduce((acc, curr) => acc + curr, 0);
                                         let percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
@@ -589,6 +575,7 @@
                 downloadDataFromCloud();
             }
         }, 3000);
+
         function exportToExcel() {
             if(mainData.length === 0) return alert("Không có dữ liệu để xuất Excel!");
             let excelRows = [];
@@ -604,7 +591,7 @@
                     let xlHtml = getRankString(t, 5);
                     let xlText = xlHtml.replace(/<\/?[^>]+(>|$)/g, "");
                     excelRows.push([
-                         index + 1, "Bệ " + item.bay, "K54/2b", item.name, item.unit,
+                        index + 1, "Bệ " + item.bay, "K54/2b", item.name, item.unit,
                         item.k54_4d_1 || 0, item.k54_4d_2 || 0, item.k54_4d_3 || 0, item.k54_4d_4 || 0,
                         (item.k54_ken1===1?"Trúng":"Hụt"), (item.k54_ken2===1?"Trúng":"Hụt"),
                         item.k54_8e2 || 0, item.k54_8e1_3 || 0, item.k54_8e2_3 || 0, t, xlText
@@ -645,31 +632,20 @@
             <span id="quick-calc-result" class="text-yellow-400 font-black text-sm bg-slate-900 px-2 py-0.5 rounded border border-slate-800">0</span>
         </div>
         <div class="flex gap-1.5 items-center">
-            <input type="text" id="quick-calc-input" 
-                   class="flex-grow bg-slate-900 border border-slate-800 text-yellow-400 font-bold text-center text-sm px-2 py-1.5 rounded-lg focus:outline-none focus:border-red-500" 
-                   placeholder="Ví dụ: 8+8+8">
-            <button onclick="executeQuickCalc()" 
-                    class="bg-red-700 hover:bg-red-600 text-yellow-400 font-black px-3 py-1.5 rounded-lg border border-yellow-500/20 text-xs transition-all tracking-wider shadow-md active:scale-95">
-                KQ
-            </button>
+            <input type="text" id="quick-calc-input" class="flex-grow bg-slate-900 border border-slate-800 text-yellow-400 font-bold text-center text-sm px-2 py-1.5 rounded-lg focus:outline-none focus:border-red-500" placeholder="Ví dụ: 8+8+8">
+            <button onclick="executeQuickCalc()" class="bg-red-700 hover:bg-red-600 text-yellow-400 font-black px-3 py-1.5 rounded-lg border border-yellow-500/20 text-xs transition-all tracking-wider shadow-md active:scale-95">KQ</button>
         </div>
     </div>
 
     <script>
-        // Tự động định dạng thêm dấu " + " khi người dùng gõ số
         document.getElementById('quick-calc-input').addEventListener('input', function(e) {
             let val = this.value;
-            // Lọc bỏ toàn bộ ký tự không phải số
             let numbers = val.replace(/[^0-9]/g, '');
             if (numbers.length > 0) {
-                // Tách các chữ số đơn lẻ ra và nối lại bằng dấu " + "
                 this.value = numbers.split('').join(' + ');
-            } else {
-                this.value = '';
-            }
+            } else { this.value = ''; }
         });
 
-        // Xử lý tính toán khi nhấn nút "KQ"
         function executeQuickCalc() {
             let val = document.getElementById('quick-calc-input').value;
             if(!val.trim()) {
@@ -677,7 +653,6 @@
                 return;
             }
             try {
-                // Tiến hành tính toán chuỗi an toàn
                 let sanitizedExpression = val.replace(/[^0-9+\s]/g, '');
                 let res = Function('"use strict";return (' + sanitizedExpression + ')')();
                 document.getElementById('quick-calc-result').innerText = isNaN(res) ? "0" : res;
