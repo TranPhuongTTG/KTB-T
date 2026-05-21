@@ -257,7 +257,7 @@
                 b4_1: 0, b4_2: 0, b4_3: 0,
                 b7_1: 0, b7_2: 0, b7_3: 0,
                 b8_1: 0, b8_2: 0, b8_3: 0,
-                // Mặc định khởi tạo ban đầu k54_ken1 và k54_ken2 = -1 (Không có lựa chọn)
+                // Khởi tạo ban đầu cho các ô nhập liệu mục tiêu Bia 4d và trạng thái Bia Ken
                 k54_4d_1: 0, k54_4d_2: 0, k54_4d_3: 0, k54_4d_4: 0, k54_ken1: -1, k54_ken2: -1, k54_8e2: 0, k54_8e1_3: 0, k54_8e2_3: 0
             });
             document.getElementById('s-name').value = '';
@@ -273,9 +273,10 @@
             
             if (field.startsWith('k54_')) {
                 if (field === 'k54_ken1' || field === 'k54_ken2') {
-                    // Giữ nguyên giá trị thiết lập từ radio: 0 (Hụt), 1 (Trúng)
+                    // Giữ nguyên giá trị trạng thái radio 0 hoặc 1
                 } else {
                     if (isNaN(num)) num = 0;
+                    // SỬA LỖI: Các trường điểm lẻ của K54 khống chế tối đa là 10 điểm mỗi ô
                     if (num > 10) num = 10;
                     if (num < 0) num = 0;
                 }
@@ -301,7 +302,7 @@
             }
         }
 
-        // CẬP NHẬT CHÍNH XÁC QUY TẮC TÍNH ĐIỂM THEO YÊU CẦU MỚI
+        // HÀM TÍNH TỔNG ĐIỂM CHUẨN XÁC THEO 4 MỤC TIÊU BIA 4D CỦA BÀI 5
         function calculateTotal(item, exercise) {
             if (exercise === 1) return item.b4_1 + item.b4_2 + item.b4_3;
             if (exercise === 2) return item.b7_1 + item.b7_2 + item.b7_3;
@@ -314,12 +315,15 @@
                 let base8e2 = item.k54_8e2 || 0;
                 let final8e2 = base8e2;
 
-                // CHỈ PHẠT TRỪ 10 ĐIỂM KHI NGƯỜI DÙNG CHỌN HỤT (GIÁ TRỊ = 0) Ở CẢ HAI BIA KEN. CÁC TRƯỜNG HỢP KHÁC (BAO GỒM CHƯA CHỌN = -1) THÌ KHÔNG TRỪ.
+                // Quy tắc phạt: Chỉ khi gõ xác nhận hụt cả hai bia Ken (ken1 == 0 && ken2 == 0) thì mới bị trừ 10 điểm vào Bia 8e/2
                 if (ken1 === 0 && ken2 === 0) {
                     final8e2 = Math.max(0, base8e2 - 10);
                 }
                 
+                // Tính tổng cộng dồn 4 mục tiêu của bia 4d
                 let total4d = (item.k54_4d_1 || 0) + (item.k54_4d_2 || 0) + (item.k54_4d_3 || 0) + (item.k54_4d_4 || 0);
+                
+                // Tổng kết quả cuối cùng của quân nhân bài K54/2b
                 return total4d + final8e2 + (item.k54_8e1_3 || 0) + (item.k54_8e2_3 || 0);
             }
             return 0;
