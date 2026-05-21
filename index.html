@@ -268,38 +268,34 @@
         }
 
         function modifyScore(uid, field, value) {
-            if(deviceRole !== 'admin') return;
-            let num = parseInt(value);
-            
-            if (field.startsWith('k54_')) {
-                if (field === 'k54_ken1' || field === 'k54_ken2') {
-                    // Giữ nguyên giá trị thiết lập từ radio: 0 (Hụt), 1 (Trúng)
-                } else {
-                    if (isNaN(num)) num = 0;
-                    if (num > 10) num = 10;
-                    if (num < 0) num = 0;
-                }
-            } else {
-                if (isNaN(num)) num = 0;
-                if(num > 10) num = 10;
-                if(num < 0) num = 0;
-            }
-            
-            const idx = mainData.findIndex(item => item.uid === uid);
-            if(idx !== -1) {
-                mainData[idx][field] = num;
-                let total = calculateTotal(mainData[idx], currentExercise);
-                
-                const tdTotal = document.getElementById(`total-${uid}`);
-                const tdRank = document.getElementById(`rank-${uid}`);
-                if(tdTotal) tdTotal.innerText = total;
-                if(tdRank) tdRank.innerHTML = getRankString(total, currentExercise);
-                
-                updatePieChartLogic();
-                clearTimeout(saveTimeout);
-                saveTimeout = setTimeout(uploadDataToCloud, 500);
-            }
-        }
+    if(deviceRole !== 'admin') return;
+    let num = parseInt(value);
+    if (isNaN(num)) num = 0;
+
+    // Chỉ khống chế 10 cho các bài bắn AK/STV (exercise 1-4)
+    // Với K54 (exercise 5), cho phép nhập giá trị tự do (chỉ chặn số âm)
+    if (currentExercise !== 5) {
+        if (num > 10) num = 10;
+        if (num < 0) num = 0;
+    } else {
+        if (num < 0) num = 0; // Chỉ chặn số âm, không chặn cận trên
+    }
+    
+    const idx = mainData.findIndex(item => item.uid === uid);
+    if(idx !== -1) {
+        mainData[idx][field] = num;
+        let total = calculateTotal(mainData[idx], currentExercise);
+        
+        const tdTotal = document.getElementById(`total-${uid}`);
+        const tdRank = document.getElementById(`rank-${uid}`);
+        if(tdTotal) tdTotal.innerText = total;
+        if(tdRank) tdRank.innerHTML = getRankString(total, currentExercise);
+        
+        updatePieChartLogic();
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(uploadDataToCloud, 500);
+    }
+}
 
         // CẬP NHẬT CHÍNH XÁC QUY TẮC TÍNH ĐIỂM THEO YÊU CẦU MỚI
         function calculateTotal(item, exercise) {
@@ -440,10 +436,10 @@
                             <td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td>
                             <td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td>
                             
-                            <td class="p-1"><input type="number" min="5" max="10" value="${item.k54_4d_1 || 0}" oninput="modifyScore(${item.uid}, 'k54_4d_1', this.value)" ${inputAttr}></td>
-                            <td class="p-1"><input type="number" min="5" max="10" value="${item.k54_4d_2 || 0}" oninput="modifyScore(${item.uid}, 'k54_4d_2', this.value)" ${inputAttr}></td>
-                            <td class="p-1"><input type="number" min="5" max="10" value="${item.k54_4d_3 || 0}" oninput="modifyScore(${item.uid}, 'k54_4d_3', this.value)" ${inputAttr}></td>
-                            <td class="p-1 border-r border-slate-800/40"><input type="number" min="5" max="10" value="${item.k54_4d_4 || 0}" oninput="modifyScore(${item.uid}, 'k54_4d_4', this.value)" ${inputAttr}></td>
+                            <td class="p-1"><input type="number" min="5" max="100" value="${item.k54_4d_1 || 0}" oninput="modifyScore(${item.uid}, 'k54_4d_1', this.value)" ${inputAttr}></td>
+                            <td class="p-1"><input type="number" min="5" max="100" value="${item.k54_4d_2 || 0}" oninput="modifyScore(${item.uid}, 'k54_4d_2', this.value)" ${inputAttr}></td>
+                            <td class="p-1"><input type="number" min="5" max="100" value="${item.k54_4d_3 || 0}" oninput="modifyScore(${item.uid}, 'k54_4d_3', this.value)" ${inputAttr}></td>
+                            <td class="p-1 border-r border-slate-800/40"><input type="number" min="5" max="100" value="${item.k54_4d_4 || 0}" oninput="modifyScore(${item.uid}, 'k54_4d_4', this.value)" ${inputAttr}></td>
                             
                             <td class="p-1 border-r border-slate-800/40 text-[10px]">
                                 <label class="inline-flex items-center gap-1 cursor-pointer mr-1 text-emerald-400">
