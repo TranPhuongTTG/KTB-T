@@ -88,6 +88,15 @@
         </div>
 
         <div class="flex gap-2 w-full xl:w-auto justify-end">
+            <!-- CHỨC NĂNG THÊM MỚI THEO YÊU CẦU -->
+            <button onclick="exportShooterTemplate()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-[10px] font-bold rounded-xl transition flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-file-export"></i> XUẤT DS TRỐNG
+            </button>
+            <button onclick="document.getElementById('import-excel').click()" class="px-3 py-2 bg-indigo-700 hover:bg-indigo-600 text-white text-[10px] font-bold rounded-xl transition flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-file-import"></i> NHẬP DANH SÁCH
+            </button>
+            <input type="file" id="import-excel" class="hidden" accept=".xlsx, .xls" onchange="importShooters(event)">
+            
             <button onclick="exportToExcel()" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] font-bold rounded-xl transition flex items-center gap-2 shadow-lg">
                 <i class="fa-solid fa-file-excel"></i> XUẤT EXCEL
             </button>
@@ -206,6 +215,17 @@
         const MASTER_KEY = "$2a$10$Q9wC3DLyzOq0JM64EXJmGuwtG8flBOVIgLik4fsZNYhJOi.vAXCNS";
         const SYNC_SERVER = "https://api.jsonbin.io/v3/b";
 
+        // --- CHẶN F5 VÀ RELOAD TRANG ---
+        window.addEventListener('keydown', function(e) {
+            if ((e.which || e.keyCode) == 116 || (e.ctrlKey && (e.which || e.keyCode) == 82)) {
+                e.preventDefault();
+                alert("Hành động tải lại trang bị chặn để bảo vệ dữ liệu!");
+            }
+        });
+        window.onbeforeunload = function() {
+            return "Dữ liệu có thể chưa được lưu, bạn có chắc muốn rời khỏi trang?";
+        };
+
         function generateConnectionQR(roomId) {
             const container = document.getElementById('qrcode-container');
             container.innerHTML = ""; container.classList.remove('hidden');
@@ -214,7 +234,6 @@
         }
 
         window.onload = function() {
-            // LOAD LẠI DỮ LIỆU
             const savedData = localStorage.getItem('ShootingResults');
             if(savedData) mainData = JSON.parse(savedData);
 
@@ -233,6 +252,54 @@
             }
             renderEngine();
         };
+
+        // --- CHỨC NĂNG NHẬP XUẤT DANH SÁCH BAN ĐẦU ---
+        function exportShooterTemplate() {
+            let rows = [["Họ và Tên", "Đơn vị", "Bệ bắn"]];
+            if(mainData.length > 0) {
+                mainData.forEach(d => rows.push([d.name, d.unit, d.bay]));
+            } else {
+                rows.push(["Nguyễn Văn A", "Đại đội 1", "1"]);
+            }
+            let ws = XLSX.utils.aoa_to_sheet(rows);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "DanhSachQuânNhân");
+            XLSX.writeFile(wb, "Danh_Sach_Quan_Nhan_Mau.xlsx");
+        }
+
+        function importShooters(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const data = evt.target.result;
+                const workbook = XLSX.read(data, {type: 'binary'});
+                const sheetName = workbook.SheetNames[0];
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+                
+                if(json.length > 0) {
+                    if(confirm(`Tìm thấy ${json.length} quân nhân. Thêm vào danh sách hiện tại?`)) {
+                        json.forEach(row => {
+                            const name = row["Họ và Tên"] || row["Họ Tên"] || row["Tên"];
+                            const unit = row["Đơn vị"] || row["Đơn Vị"];
+                            const bay = row["Bệ bắn"] || row["Bệ"] || 1;
+                            if(name && unit) {
+                                mainData.push({ 
+                                    uid: Date.now() + Math.random(), 
+                                    name: name, unit: unit, bay: bay, 
+                                    b4_1:0, b4_2:0, b4_3:0, b7_1:0, b7_2:0, b7_3:0, b8_1:0, b8_2:0, b8_3:0, 
+                                    k54_4d_1:0, k54_4d_2:0, k54_4d_3:0, k54_4d_4:0, k54_ken1:-1, k54_ken2:-1, k54_8e2:0, k54_8e1_3:0, k54_8e2_3:0 
+                                });
+                            }
+                        });
+                        renderEngine(); uploadDataToCloud();
+                        alert("Đã nhập danh sách thành công!");
+                    }
+                }
+                e.target.value = ""; 
+            };
+            reader.readAsBinaryString(file);
+        }
 
         function updateStatus(t, ty) {
             const dot = document.getElementById('status-dot'); const txt = document.getElementById('status-text');
@@ -333,25 +400,21 @@
                 if(!(item.k54_ken1 === 1 || item.k54_ken2 === 1)) return alert("⚠️ Phải trúng bia Ken!");
             }
             activePadTarget = { uid, field }; padSum = 0; document.getElementById('score-pad-display').innerText = '0';
-            
-            // RENDER NÚT DYNAMIC
             const grid = document.getElementById('pad-grid');
             grid.innerHTML = '';
             let startNum = (currentExercise === 5) ? 5 : 1;
             for(let i = startNum; i <= 10; i++) {
                 grid.innerHTML += `<button onclick="handlePadClick(${i})" class="score-btn py-3 rounded-lg text-lg font-bold text-white">${i}</button>`;
             }
-
             if(currentExercise <= 4) document.getElementById('ok-btn-pad').classList.add('hidden'); else document.getElementById('ok-btn-pad').classList.remove('hidden');
             document.getElementById('score-pad-modal').classList.replace('hidden', 'flex');
         }
 
-        // KHI BẤM SỐ THÌ ĐIỀN ĐIỂM & TỰ ĐẮT (Bài 1-4) HOẶC CỘNG DỒN (Bài 5)
         function handlePadClick(val) {
             if(currentExercise <= 4) {
-                padSum = val; confirmPad(); // AK: Điền luôn & Tắt
+                padSum = val; confirmPad(); 
             } else {
-                padSum += val; // K54: Cộng dồn
+                padSum += val; 
                 document.getElementById('score-pad-display').innerText = padSum;
             }
         }
@@ -401,7 +464,6 @@
             updatePieChartLogic(); updateUnitStatistics();
         }
 
-        // STATS LOGIC
         function getUnitStatsData() {
             let stats = {}; let ex = currentExercise;
             let sumQS=0, sumG=0, sumK=0, sumD=0, sumH=0;
@@ -449,8 +511,6 @@
         function exportToExcel() {
             if(mainData.length === 0) return alert("Không có dữ liệu!");
             let wb = XLSX.utils.book_new(); let rows = []; let ex = currentExercise;
-            let fN = (ex === 5 ? "K54-BAI5" : (ex === 4 ? "AK-TONGHOP" : `AK-BAI-${ex}`));
-
             if(ex === 5) {
                 rows = [[`BẢNG ĐIỂM KIỂM TRA BẮN SÚNG NGẮN K54 - BÀI 5`], ["STT", "Bệ", "Họ Tên", "Đơn vị", "B4d-M1", "B4d-M2", "B4d-M3", "B4d-M4", "Ken 1", "Ken 2", "8e/2", "8e1/3", "8e2/3", "Tổng", "Loại"]];
                 mainData.forEach((d, i) => { let t = calculateTotal(d, 5); rows.push([i+1, d.bay, d.name, d.unit, d.k54_4d_1, d.k54_4d_2, d.k54_4d_3, d.k54_4d_4, d.k54_ken1===1?'T':(d.k54_ken1===0?'H':'-'), d.k54_ken2===1?'T':(d.k54_ken2===0?'H':'-'), d.k54_8e2, d.k54_8e1_3, d.k54_8e2_3, t, getRankString(t, 5).replace(/<\/?[^>]+(>|$)/g, "")]); });
@@ -465,12 +525,9 @@
             rows.push(["Đơn vị", "QS", "Giỏi", "% Giỏi", "Khá", "% Khá", "Đạt", "% Đạt", "K. Đạt", "% K. Đạt", "Tỉ lệ đạt trở lên"]);
             let dStats = getUnitStatsData();
             for(let u in dStats.stats) { let it = dStats.stats[u]; if(it.ts>0) rows.push([u, it.ts, it.g, (it.g/it.ts*100).toFixed(1)+"%", it.k, (it.k/it.ts*100).toFixed(1)+"%", it.d, (it.d/it.ts*100).toFixed(1)+"%", it.h, (it.h/it.ts*100).toFixed(1)+"%", (((it.g+it.k+it.d)/it.ts)*100).toFixed(1) + "%"]); }
-            
             let ws = XLSX.utils.aoa_to_sheet(rows); XLSX.utils.book_append_sheet(wb, ws, "KetQua");
             XLSX.writeFile(wb, `KetQua_Export.xlsx`);
         }
-
-        function exportJSON() { const blob = new Blob([JSON.stringify(mainData)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = "backup.json"; a.click(); }
     </script>
 </body>
 </html>
