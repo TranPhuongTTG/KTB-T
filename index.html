@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HỆ THỐNG THỐNG KÊ KẾT QUẢ BẮN ĐẠN THẬT STV 380, AK & K54</title>
     
+    <!-- Thư viện -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -19,12 +20,12 @@
             color: #f1f5f9;
         }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         .active-pill { background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%); border-color: #facc15; }
         .score-btn { transition: all 0.2s; background: #1e293b; border: 1px solid #334155; }
         .score-btn:hover { background: #334155; transform: translateY(-2px); border-color: #facc15; }
-        input:disabled { opacity: 0.4; cursor: not-allowed !important; background: #0f172a !important; }
+        input:disabled { opacity: 0.3; cursor: not-allowed !important; background: #0f172a !important; }
         .dropdown { position: relative; }
         .dropdown-menu { display: none; position: absolute; top: 100%; left: 0; padding-top: 8px; z-index: 100; }
         .dropdown:hover .dropdown-menu { display: block; }
@@ -35,7 +36,7 @@
 </head>
 <body class="p-4 sm:p-6 min-h-screen flex flex-col custom-scrollbar">
 
-    <!-- THANH TRẠNG THÁI & QR -->
+    <!-- THANH TRẠNG THÁI & QR CODE -->
     <div class="mb-4 bg-slate-950 p-4 rounded-xl border border-slate-800/80 flex flex-col lg:flex-row justify-between items-center gap-4 relative z-50">
         <div class="flex items-center gap-4 w-full lg:w-auto">
             <div id="qrcode-container" class="bg-white p-1 rounded-lg shrink-0 hidden lg:block shadow-lg"></div>
@@ -55,13 +56,13 @@
             </div>
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <label class="text-[11px] font-bold text-slate-400 uppercase whitespace-nowrap">Mã:</label>
-                <input type="text" id="sync-room-id" oninput="forceSyncData()" class="w-full sm:w-64 bg-slate-900 border border-slate-700 text-yellow-400 font-mono font-bold px-3 py-1.5 text-xs rounded-lg focus:outline-none focus:border-yellow-500" placeholder="Nhập mã...">
+                <input type="text" id="sync-room-id" oninput="forceSyncData()" class="w-full sm:w-64 bg-slate-900 border border-slate-700 text-yellow-400 font-mono font-bold px-3 py-1.5 text-xs rounded-lg focus:outline-none focus:border-yellow-500" placeholder="Mã kết nối...">
                 <button onclick="forceSyncData()" class="px-3 py-1.5 bg-blue-600 text-white text-[11px] font-bold rounded-lg transition-all"><i class="fa-solid fa-sync-alt"></i></button>
             </div>
         </div>
     </div>
 
-    <!-- HEADER -->
+    <!-- HEADER & CHỌN BÀI BẮN -->
     <header class="flex flex-col xl:flex-row justify-between items-center gap-4 p-5 mb-6 bg-slate-900/80 border border-slate-800 rounded-2xl backdrop-blur-md shadow-xl relative z-40">
         <div class="flex items-center gap-4">
             <div class="bg-gradient-to-br from-red-600 to-red-900 w-12 h-12 rounded-xl flex items-center justify-center border border-yellow-500/30">
@@ -94,8 +95,10 @@
        </div>
     </header>
 
+    <!-- GRID NỘI DUNG -->
     <div class="grid grid-cols-12 gap-6 items-start flex-grow mb-12">
-        <!-- FORM NHẬP -->
+        
+        <!-- PANEL NHẬP LIỆU -->
         <div id="left-control-panel" class="col-span-12 lg:col-span-3 space-y-4 hidden">
             <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
                 <h2 id="form-title" class="text-sm font-bold text-yellow-500 uppercase tracking-wider border-b border-slate-800 pb-3"><i class="fa-solid fa-user-plus mr-2"></i>Xếp bệ bắn mới</h2>
@@ -122,7 +125,6 @@
             </div>
         </div>
 
-        <!-- BẢNG ĐIỂM -->
         <div id="right-table-panel" class="col-span-12 space-y-4">
             <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl shadow-lg flex items-center gap-3 relative z-10">
                 <div class="relative flex-grow">
@@ -141,16 +143,16 @@
                 </div>
             </div>
 
-            <!-- THỐNG KÊ -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl flex flex-col items-center">
                     <h2 class="text-sm font-bold text-yellow-500 uppercase tracking-wider border-b border-slate-800 pb-3 mb-5 w-full">Tỉ lệ thành tích</h2>
                     <div style="position: relative; height:220px; width:220px"><canvas id="achievementChart"></canvas></div>
                 </div>
+
                 <div id="unit-stats-container" class="lg:col-span-2 animate-fade-in">
                     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl h-full flex flex-col">
                         <div class="bg-slate-950 p-4 border-b border-slate-800">
-                            <h2 id="unit-stats-title" class="text-sm font-bold text-yellow-500 uppercase tracking-widest">THỐNG KÊ THEO ĐƠN VỊ</h2>
+                            <h2 id="unit-stats-title" class="text-sm font-bold text-yellow-500 uppercase tracking-widest flex items-center gap-2">THỐNG KÊ CHI TIẾT THEO ĐƠN VỊ</h2>
                         </div>
                         <div class="overflow-x-auto flex-grow max-h-[300px] custom-scrollbar">
                             <table class="w-full text-[10px] text-center border-collapse">
@@ -162,7 +164,7 @@
                                         <th class="p-3 border-r border-slate-700 text-blue-400">Khá (%)</th>
                                         <th class="p-3 border-r border-slate-700 text-amber-500">Đạt (%)</th>
                                         <th class="p-3 border-r border-slate-700 text-red-500">K. ĐẠT (%)</th>
-                                        <th class="p-3">Tỉ lệ Đạt</th>
+                                        <th class="p-3">Tỉ lệ đạt</th>
                                     </tr>
                                 </thead>
                                 <tbody id="unit-stats-target" class="divide-y divide-slate-800"></tbody>
@@ -174,7 +176,7 @@
         </div>
     </div>
 
-    <!-- FOOTER GỐC -->
+    <!-- FOOTER GỐC (TUYỆT ĐỐI GIỮ NGUYÊN) -->
     <footer class="w-full text-center py-4 bg-red-600 border-t border-red-700 text-yellow-400 text-xs mt-auto rounded-t-xl font-bold shadow-lg">
          <p><i class="fa-solid fa-shield-halved mr-1 text-yellow-400"></i> Phần mềm được tạo bởi Đồng chí Thượng uý Trần Thanh Phương , Đồng chí Thiếu tá Trương Công Sĩ , Trợ lý Tác Chiến, Đồng chí Thiếu tá Lê Anh Tuấn, Trợ lý Đào tạo, Trường Quân sự Quân đoàn 34</p>
     </footer>
@@ -188,11 +190,11 @@
             </div>
             <div class="p-6 text-center">
                 <span id="score-pad-display" class="text-6xl font-black text-yellow-400 block mb-8">0</span>
-                <div class="grid grid-cols-5 gap-2 mb-8">
+                <div class="grid grid-cols-5 gap-2 mb-8" id="pad-grid">
                     <button onclick="handlePadClick(1)" class="score-btn py-3 rounded-lg text-lg font-bold text-white">1</button>
                     <button onclick="handlePadClick(2)" class="score-btn py-3 rounded-lg text-lg font-bold text-white">2</button>
                     <button onclick="handlePadClick(3)" class="score-btn py-3 rounded-lg text-lg font-bold text-white">3</button>
-                    <button onclick="handlePadClick(4)" class="score-btn py-3 rounded-lg text-lg font-bold text-white">4</button>
+                    <button onclick="handlePadClick(4)" class="score-btn py-4 rounded-lg text-lg font-bold text-white">4</button>
                     <button onclick="handlePadClick(5)" class="score-btn py-3 rounded-lg text-lg font-bold text-white">5</button>
                     <button onclick="handlePadClick(6)" class="score-btn py-3 rounded-lg text-lg font-bold text-white">6</button>
                     <button onclick="handlePadClick(7)" class="score-btn py-3 rounded-lg text-lg font-bold text-white">7</button>
@@ -201,7 +203,7 @@
                     <button onclick="handlePadClick(10)" class="score-btn py-3 rounded-lg text-lg font-bold text-white">10</button>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="resetPad()" class="flex-1 bg-slate-800 text-slate-300 py-3.5 rounded-xl font-bold text-xs uppercase">Xóa</button>
+                    <button onclick="resetPad()" class="flex-1 bg-slate-800 text-slate-300 py-3.5 rounded-xl font-bold text-xs uppercase hover:bg-slate-700">Xóa</button>
                     <button id="ok-btn-pad" onclick="confirmPad()" class="flex-[2] bg-red-700 text-white py-3.5 rounded-xl font-bold text-xs uppercase shadow-lg shadow-red-950/50">Đồng ý</button>
                 </div>
             </div>
@@ -225,19 +227,9 @@
         }
 
         window.onload = function() {
-            // Khôi phục dữ liệu từ LocalStorage
-            const savedData = localStorage.getItem('ShootingResults');
-            if(savedData) mainData = JSON.parse(savedData);
-
             const urlParams = new URLSearchParams(window.location.search);
             const rURL = urlParams.get('room'); const roleURL = urlParams.get('role');
-            
-            if(rURL) {
-                deviceRole = roleURL || 'viewer';
-                document.getElementById('sync-room-id').value = rURL;
-                downloadDataFromCloud();
-            }
-
+            if(rURL) { deviceRole = roleURL || 'viewer'; document.getElementById('sync-room-id').value = rURL; downloadDataFromCloud(); }
             if(deviceRole === 'admin') {
                 document.getElementById('role-admin-badge').className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-blue-600 shadow-md";
                 document.getElementById('left-control-panel').style.display = 'block';
@@ -258,7 +250,7 @@
         }
 
         function createNewBinOnCloud() {
-            updateStatus("Đang khởi tạo...", "loading");
+            updateStatus("Khởi tạo...", "loading");
             fetch(SYNC_SERVER, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' }, body: JSON.stringify({ room: currentRoom, data: mainData }) })
             .then(res => res.json()).then(res => {
                 if(res.metadata && res.metadata.id) { currentRoom = res.metadata.id; document.getElementById('sync-room-id').value = res.metadata.id; updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(res.metadata.id); }
@@ -268,26 +260,24 @@
         function downloadDataFromCloud() {
             let target = document.getElementById('sync-room-id').value.trim(); if (target.length < 20) return;
             fetch(`${SYNC_SERVER}/${target}/latest`, { method: 'GET', headers: { 'X-Master-Key': MASTER_KEY }, cache: 'no-store' })
-            .then(res => res.json()).then(res => {
-                if (res.record && res.record.data) { mainData = res.record.data; localStorage.setItem('ShootingResults', JSON.stringify(mainData)); renderEngine(); updateStatus("Đồng bộ OK", "success"); generateConnectionQR(target); }
-            });
+            .then(res => res.json()).then(res => { if (res.record && res.record.data) { mainData = res.record.data; renderEngine(); updateStatus("Đồng bộ thành công", "success"); generateConnectionQR(target); } });
         }
 
         function uploadDataToCloud() {
-            localStorage.setItem('ShootingResults', JSON.stringify(mainData));
             if (deviceRole !== 'admin' || currentRoom.length < 20) return;
             fetch(`${SYNC_SERVER}/${currentRoom}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY }, body: JSON.stringify({ room: currentRoom, data: mainData }) });
         }
 
         function forceSyncData() { downloadDataFromCloud(); }
 
+        // LOGIC BỆ BẮN CHUẨN XÁC
         function registerSoldier() {
             const n = document.getElementById('s-name').value.trim();
             const u = document.getElementById('s-unit').value.trim();
             const b = document.getElementById('s-bay').value;
             const editUid = document.getElementById('edit-uid').value;
 
-            if(!n || !u) return alert("Vui lòng nhập Tên và Đơn vị!");
+            if(!n || !u) return alert("Vui lòng điền đủ Tên và Đơn vị!");
 
             if(editUid) {
                 const idx = mainData.findIndex(d => d.uid == editUid);
@@ -306,7 +296,6 @@
             document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-user-edit mr-2 text-blue-400"></i>Sửa thông tin';
             document.getElementById('btn-submit').innerText = "Cập nhật"; document.getElementById('btn-cancel-edit').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-
         function cancelEdit() {
             document.getElementById('s-name').value = ''; document.getElementById('s-unit').value = ''; document.getElementById('edit-uid').value = '';
             document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-user-plus mr-2"></i>Xếp bệ bắn mới';
@@ -351,14 +340,17 @@
                 if(!(item.k54_ken1 === 1 || item.k54_ken2 === 1)) return alert("⚠️ Phải trúng bia Ken mới mở được Bia 8e!");
             }
             activePadTarget = { uid, field }; padSum = 0; document.getElementById('score-pad-display').innerText = '0';
-            const okBtn = document.getElementById('ok-btn-pad');
-            if(currentExercise <= 4) okBtn.classList.add('hidden'); else okBtn.classList.remove('hidden');
+            if(currentExercise <= 4) document.getElementById('ok-btn-pad').classList.add('hidden'); else document.getElementById('ok-btn-pad').classList.remove('hidden');
             document.getElementById('score-pad-modal').classList.replace('hidden', 'flex');
         }
 
+        // KHI BẤM SỐ THÌ MÀN HÌNH PHẢI TẮT (YÊU CẦU MỚI)
         function handlePadClick(val) {
-            if(currentExercise <= 4) { padSum = val; confirmPad(); }
-            else { padSum += val; document.getElementById('score-pad-display').innerText = padSum; }
+            if(currentExercise <= 4) {
+                padSum = val; confirmPad(); // AK: Điền luôn & Tắt
+            } else {
+                padSum += val; confirmPad(); // K54: Cộng dồn & Tắt
+            }
         }
 
         function closeScorePad() { document.getElementById('score-pad-modal').classList.replace('flex', 'hidden'); activePadTarget = null; }
@@ -367,7 +359,7 @@
 
         function modifyScore(uid, field, value) {
             const idx = mainData.findIndex(item => item.uid === uid);
-            if(idx !== -1) { mainData[idx][field] = parseInt(value); uploadDataToCloud(); }
+            if(idx !== -1) { mainData[idx][field] = parseInt(value); clearTimeout(saveTimeout); saveTimeout = setTimeout(uploadDataToCloud, 1000); }
         }
 
         function renderEngine() {
@@ -380,13 +372,14 @@
             if (currentExercise === 5) {
                 head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase text-center"><th class="p-3 border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Bệ</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Họ và Tên</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Đơn vị</th><th class="p-2 border-r border-slate-800/60" colspan="4">Bia 4d</th><th class="p-2 border-r border-slate-800/60" colspan="2">Bia Ken</th><th class="p-2 border-r border-slate-800/60">8e/2</th><th class="p-2 border-r border-slate-800/60">8e1/3</th><th class="p-2 border-r border-slate-800/60">8e2/3</th><th class="p-3 border-r border-slate-800/60" rowspan="2">QS</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loại</th><th class="p-3 text-center" rowspan="2">#</th></tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center"><th class="p-2 border-r border-slate-800/40">M1</th><th class="p-2 border-r border-slate-800/40">M2</th><th class="p-2 border-r border-slate-800/40">M3</th><th class="p-2 border-r border-slate-800/40">M4</th><th class="p-2 border-r border-slate-800/40">B1</th><th class="p-2 border-r border-slate-800/40">B2</th><th>5-10đ</th><th>5-10đ</th><th>5-10đ</th></tr>`;
             } else {
-                let biaH = (currentExercise === 1) ? '<th colspan="3" class="text-center border-r border-slate-800/60">Bia số 4</th>' : (currentExercise === 2 ? '<th colspan="3" class="text-center border-r border-slate-800/60">Bia số 7</th>' : (currentExercise === 3 ? '<th colspan="3" class="text-center border-r border-slate-800/60">Bia số 8</th>' : '<th colspan="3" class="text-center">Bia 4</th><th colspan="3" class="text-center">Bia 7</th><th colspan="3" class="text-center border-r border-slate-800/60">Bia 8</th>'));
+                let biaH = (currentExercise === 1) ? '<th colspan="3" class="text-center border-r border-slate-800/60 uppercase">Bia số 4</th>' : (currentExercise === 2 ? '<th colspan="3" class="text-center border-r border-slate-800/60 uppercase">Bia số 7</th>' : (currentExercise === 3 ? '<th colspan="3" class="text-center border-r border-slate-800/60 uppercase">Bia số 8</th>' : '<th colspan="3" class="text-center uppercase">Bia 4</th><th colspan="3" class="text-center uppercase">Bia 7</th><th colspan="3" class="text-center border-r border-slate-800/60 uppercase">Bia 8</th>'));
                 head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase"><th class="p-3 text-center border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Bệ</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Họ Tên</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Đơn vị</th>${biaH}<th class="p-3 text-center border-r border-slate-800/60" rowspan="2">QS</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loại</th><th class="p-3 text-center" rowspan="2">#</th></tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center">${(currentExercise<=3)?'<th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th>':'<th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th>'}</tr>`;
             }
+
             target.innerHTML = ''; const step = (currentExercise === 5) ? 2 : 6;
             filtered.forEach((item, index) => {
-                let cs = (currentExercise === 5 || currentExercise === 4) ? 16 : 10;
-                if (index % step === 0) target.innerHTML += `<tr class="bg-slate-950/90 text-yellow-500 font-bold"><td colspan="${cs}" class="p-2 text-center tracking-widest text-[10px] border-y border-slate-800 uppercase">--- LOẠT BẮN SỐ ${Math.floor(index/step) + 1} ---</td></tr>`;
+                let colSp = (currentExercise === 5 || currentExercise === 4) ? 16 : 10;
+                if (index % step === 0) target.innerHTML += `<tr class="bg-slate-950/90 text-yellow-500 font-bold"><td colspan="${colSp}" class="p-2 text-center uppercase tracking-widest text-[10px] border-y border-slate-800 uppercase">--- LOẠT BẮN SỐ ${Math.floor(index/step) + 1} ---</td></tr>`;
                 let t = calculateTotal(item, currentExercise); 
                 const iS = (deviceRole === 'admin') ? "w-11 bg-slate-950 border border-slate-800 text-center text-yellow-400 font-bold rounded py-1 cursor-pointer" : "w-11 bg-transparent text-center text-slate-200 py-1";
                 const rO = (deviceRole === 'admin') ? "readonly" : "disabled";
@@ -394,7 +387,7 @@
 
                 if (currentExercise === 5) {
                     let is8eL = (item.k54_ken1 === 1 || item.k54_ken2 === 1) ? "" : "disabled";
-                    target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">${item.bay}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${item.k54_4d_1}" onclick="openScorePad(${item.uid},'k54_4d_1')" class="${iS}" ${rO}></td><td class="p-1"><input value="${item.k54_4d_2}" onclick="openScorePad(${item.uid},'k54_4d_2')" class="${iS}" ${rO}></td><td class="p-1"><input value="${item.k54_4d_3}" onclick="openScorePad(${item.uid},'k54_4d_3')" class="${iS}" ${rO}></td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_4d_4}" onclick="openScorePad(${item.uid},'k54_4d_4')" class="${iS}" ${rO}></td><td class="p-1 border-r border-slate-800/40 text-[10px]"><input type="radio" onchange="modifyScore(${item.uid},'k54_ken1',1);renderEngine();" ${item.k54_ken1===1?'checked':''} ${rO}> T <input type="radio" onchange="modifyScore(${item.uid},'k54_ken1',0);renderEngine();" ${item.k54_ken1===0?'checked':''} ${rO}> H</td><td class="p-1 border-r border-slate-800/40 text-[10px]"><input type="radio" onchange="modifyScore(${item.uid},'k54_ken2',1);renderEngine();" ${item.k54_ken2===1?'checked':''} ${rO}> T <input type="radio" onchange="modifyScore(${item.uid},'k54_ken2',0);renderEngine();" ${item.k54_ken2===0?'checked':''} ${rO}> H</td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_8e2}" onclick="openScorePad(${item.uid},'k54_8e2')" class="${iS}" ${rO} ${is8eL}></td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_8e1_3}" onclick="openScorePad(${item.uid},'k54_8e1_3')" class="${iS}" ${rO} ${is8eL}></td><td class="p-1 border-r border-slate-800/60"><input value="${item.k54_8e2_3}" onclick="openScorePad(${item.uid},'k54_8e2_3')" class="${iS}" ${rO} ${is8eL}></td><td class="p-3 font-bold text-white">${t}</td><td class="p-3 font-bold border-r border-slate-800/40 uppercase">${getRankString(t, 5)}</td>${actionH}</tr>`;
+                    target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">${item.bay}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${item.k54_4d_1}" onclick="openScorePad(${item.uid},'k54_4d_1')" class="${iS}" ${rO}></td><td class="p-1"><input value="${item.k54_4d_2}" onclick="openScorePad(${item.uid},'k54_4d_2')" class="${iS}" ${rO}></td><td class="p-1"><input value="${item.k54_4d_3}" onclick="openScorePad(${item.uid},'k54_4d_3')" class="${iS}" ${rO}></td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_4d_4}" onclick="openScorePad(${item.uid},'k54_4d_4')" class="${iS}" ${rO}></td><td class="p-1 border-r border-slate-800/40 text-[10px]"><input type="radio" onchange="modifyScore(${item.uid},'k54_ken1',1);renderEngine();" ${item.k54_ken1===1?'checked':''} ${rO}> T <input type="radio" onchange="modifyScore(${item.uid},'k54_ken1',0);renderEngine();" ${item.k54_ken1===0?'checked':''} ${rO}> H</td><td class="p-1 border-r border-slate-800/40 text-[10px]"><input type="radio" onchange="modifyScore(${item.uid},'k54_ken2',1);renderEngine();" ${item.k54_ken2===1?'checked':''} ${rO}> T <input type="radio" onchange="modifyScore(${item.uid},'k54_ken2',0);renderEngine();" ${item.k54_ken2===0?'checked':''} ${rO}> H</td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_8e2}" onclick="openScorePad(${item.uid},'k54_8e2')" class="${iS}" ${rO} ${is8eL}></td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_8e1_3}" onclick="openScorePad(${item.uid},'k54_8e1_3')" class="${iS}" ${rO} ${is8eL}></td><td class="p-1 border-r border-slate-800/60"><input value="${item.k54_8e2_3}" onclick="openScorePad(${item.uid},'k54_8e2_3')" class="${iS}" ${rO} ${is8eL}></td><td class="p-3 font-bold text-white">${t}</td><td class="p-3 font-bold border-r border-slate-800/40 uppercase">${getRankString(t, 5)}</td>${actionH}</tr>`;
                 } else {
                     let sH = '';
                     if(currentExercise === 1 || currentExercise === 4) sH += `<td class="p-1"><input value="${item.b4_1}" onclick="openScorePad(${item.uid},'b4_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b4_2}" onclick="openScorePad(${item.uid},'b4_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b4_3}" onclick="openScorePad(${item.uid},'b4_3')" class="${iS}" readonly></td>`;
@@ -409,29 +402,43 @@
         // STATS LOGIC
         function getUnitStatsData() {
             let stats = {}; let ex = currentExercise;
-            let sumQS=0, sumG=0, sumK=0, sumD=0, sumH=0;
+            let sQS=0, sG=0, sK=0, sD=0, sH=0;
             mainData.forEach(i => {
-                let u = i.unit.toUpperCase().trim() || "CHƯA RÕ"; let c = calculateTotal(i, ex);
+                let u = i.unit.toUpperCase().trim() || "???"; let c = calculateTotal(i, ex);
                 if(!stats[u]) stats[u] = { ts: 0, g: 0, k: 0, d: 0, h: 0 };
                 if(c > 0 || (ex === 5 && i.k54_ken1 !== -1)) {
-                    stats[u].ts++; sumQS++; let gr, kr, dr;
+                    stats[u].ts++; sQS++; let gr, kr, dr;
                     if(ex === 5) { gr=240; kr=198; dr=150; } else if(ex === 4) { gr=72; kr=65; dr=50; } else { gr=25; kr=21; dr=15; }
-                    if(c >= gr) { stats[u].g++; sumG++; } else if(c >= kr) { stats[u].k++; sumK++; } else if(c >= dr) { stats[u].d++; sumD++; } else { stats[u].h++; sumH++; }
+                    if(c >= gr) { stats[u].g++; sG++; } else if(c >= kr) { stats[u].k++; sK++; } else if(c >= dr) { stats[u].d++; sD++; } else { stats[u].h++; sH++; }
                 }
             });
-            return { stats, sumQS, sumG, sumK, sumD, sumH };
+            return { stats, sQS, sG, sK, sD, sH };
         }
 
         function updateUnitStatistics() {
             const target = document.getElementById('unit-stats-target'); if(!target) return;
-            target.innerHTML = ''; const d = getStatsData();
+            target.innerHTML = ''; const d = getUnitStatsData();
             for(let u in d.stats) {
                 let it = d.stats[u]; if(it.ts === 0) continue;
                 let rP = (((it.g+it.k+it.d)/it.ts)*100).toFixed(1);
-                target.innerHTML += `<tr class="hover:bg-slate-800/40 transition-colors"><td class="p-3 font-bold text-yellow-500 border-r border-slate-800 text-left pl-6">${u}</td><td class="p-3 font-bold border-r border-slate-800 text-white">${it.ts}</td><td class="p-3 border-r border-slate-800 text-emerald-400">${it.g} <span class="text-[8px] opacity-60">(${(it.g/it.ts*100).toFixed(1)}%)</span></td><td class="p-3 border-r border-slate-800 text-blue-400">${it.k} <span class="text-[8px] opacity-60">(${(it.k/it.ts*100).toFixed(1)}%)</span></td><td class="p-3 border-r border-slate-800 text-amber-500">${it.d} <span class="text-[8px] opacity-60">(${(it.d/it.ts*100).toFixed(1)}%)</span></td><td class="p-3 border-r border-slate-800 text-red-500">${it.h} <span class="text-[8px] opacity-60">(${(it.h/it.ts*100).toFixed(1)}%)</span></td><td class="p-3 font-black text-emerald-400">${rP}%</td></tr>`;
+                target.innerHTML += `<tr class="hover:bg-slate-800/40">
+                    <td class="p-3 font-bold text-yellow-500 border-r border-slate-800 text-left pl-6">${u}</td>
+                    <td class="p-3 font-bold border-r border-slate-800 text-white">${it.ts}</td>
+                    <td class="p-3 border-r border-slate-800 text-emerald-400">${it.g} <span class="text-[9px] opacity-60">(${(it.g/it.ts*100).toFixed(1)}%)</span></td>
+                    <td class="p-3 border-r border-slate-800 text-blue-400">${it.k} <span class="text-[9px] opacity-60">(${(it.k/it.ts*100).toFixed(1)}%)</span></td>
+                    <td class="p-3 border-r border-slate-800 text-amber-500">${it.d} <span class="text-[9px] opacity-60">(${(it.d/it.ts*100).toFixed(1)}%)</span></td>
+                    <td class="p-3 border-r border-slate-800 text-red-500">${it.h} <span class="text-[9px] opacity-60">(${(it.h/it.ts*100).toFixed(1)}%)</span></td>
+                    <td class="p-3 font-black text-emerald-400">${rP}%</td></tr>`;
             }
-            if(d.sumQS > 0) {
-                target.innerHTML += `<tr class="bg-slate-950 font-bold border-t-2 border-slate-700"><td class="p-3 text-yellow-500 pl-6 text-left">TỔNG CỘNG HỆ THỐNG</td><td class="p-3 text-white border-r border-slate-800">${d.sumQS}</td><td class="p-3 text-emerald-400 border-r border-slate-800">${d.sumG} <span class="text-[9px]">(${(d.sumG/d.sumQS*100).toFixed(1)}%)</span></td><td class="p-3 text-blue-400 border-r border-slate-800">${d.sumK} <span class="text-[9px]">(${(d.sumK/d.sumQS*100).toFixed(1)}%)</span></td><td class="p-3 text-amber-500 border-r border-slate-800">${d.sumD} <span class="text-[9px]">(${(d.sumD/d.sumQS*100).toFixed(1)}%)</span></td><td class="p-3 text-red-500 border-r border-slate-800">${d.sumH} <span class="text-[9px]">(${(d.sumH/d.sumQS*100).toFixed(1)}%)</span></td><td class="p-3 text-emerald-400 font-black">${(((d.sumG+d.sumK+d.sumD)/d.sumQS)*100).toFixed(1)}%</td></tr>`;
+            if(d.sQS > 0) {
+                target.innerHTML += `<tr class="bg-slate-950 font-bold border-t-2 border-slate-700">
+                    <td class="p-3 text-yellow-500 pl-6 text-left">TỔNG CỘNG HỆ THỐNG</td>
+                    <td class="p-3 text-white border-r border-slate-800">${d.sQS}</td>
+                    <td class="p-3 text-emerald-400 border-r border-slate-800">${d.sG} <span class="text-[9px]">(${(d.sG/d.sQS*100).toFixed(1)}%)</span></td>
+                    <td class="p-3 text-blue-400 border-r border-slate-800">${d.sK} <span class="text-[9px]">(${(d.sK/d.sQS*100).toFixed(1)}%)</span></td>
+                    <td class="p-3 text-amber-500 border-r border-slate-800">${d.sD} <span class="text-[9px]">(${(d.sD/d.sQS*100).toFixed(1)}%)</span></td>
+                    <td class="p-3 text-red-500 border-r border-slate-800">${d.sH} <span class="text-[9px]">(${(d.sH/d.sQS*100).toFixed(1)}%)</span></td>
+                    <td class="p-3 text-emerald-400 font-black">${(((d.sG+d.sK+d.sD)/d.sQS)*100).toFixed(1)}%</td></tr>`;
             }
         }
 
@@ -448,16 +455,16 @@
             pieChartInstance = new Chart(ctx, { type: 'pie', data: { labels: ['Giỏi', 'Khá', 'Đạt', 'K. Đạt'], datasets: [{ data: [g, k, d, h], backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'], borderWidth: 2, borderColor: '#0f172a' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } } } });
         }
 
-        function purgeSoldier(uid) { if(deviceRole === 'admin' && confirm("Xóa quân nhân này?")) { mainData = mainData.filter(d => d.uid !== uid); renderEngine(); uploadDataToCloud(); } }
+        function purgeSoldier(uid) { if(deviceRole === 'admin' && confirm("Xóa quân nhân?")) { mainData = mainData.filter(d => d.uid !== uid); renderEngine(); uploadDataToCloud(); } }
         setInterval(() => { if (deviceRole === 'viewer') downloadDataFromCloud(); }, 3000);
 
         function exportToExcel() {
             if(mainData.length === 0) return alert("Không có dữ liệu!");
             let wb = XLSX.utils.book_new(); let rows = []; let ex = currentExercise;
-            let fileName = (ex === 5 ? "K54-BAI5" : (ex === 4 ? "AK-TONGHOP" : `AK-BAI-${ex}`));
+            let fN = (ex === 5 ? "K54-BAI5" : (ex === 4 ? "AK-TONGHOP" : `AK-BAI-${ex}`));
 
             if(ex === 5) {
-                rows = [[`BẢNG ĐIỂM KIỂM TRA BẮN SÚNG NGẮN K54 - BÀI 5`], ["STT", "Bệ", "Họ Tên", "Đơn vị", "B4d-M1", "B4d-M2", "B4d-M3", "B4d-M4", "Ken 1", "Ken 2", "8e/2", "8e1/3", "8e2/3", "Tổng", "Loại"]];
+                rows = [[`BẢNG ĐIỂM K54 - BÀI 5`], ["STT", "Bệ", "Họ Tên", "Đơn vị", "B4d-M1", "B4d-M2", "B4d-M3", "B4d-M4", "Ken 1", "Ken 2", "8e/2", "8e1/3", "8e2/3", "Tổng", "Loại"]];
                 mainData.forEach((d, i) => { let t = calculateTotal(d, 5); rows.push([i+1, d.bay, d.name, d.unit, d.k54_4d_1, d.k54_4d_2, d.k54_4d_3, d.k54_4d_4, d.k54_ken1===1?'T':(d.k54_ken1===0?'H':'-'), d.k54_ken2===1?'T':(d.k54_ken2===0?'H':'-'), d.k54_8e2, d.k54_8e1_3, d.k54_8e2_3, t, getRankString(t, 5).replace(/<\/?[^>]+(>|$)/g, "")]); });
             } else if(ex === 4) {
                 rows = [[`BẢNG ĐIỂM AK/STV - TỔNG HỢP`], ["STT", "Bệ", "Họ Tên", "Đơn vị", "V1(B4)", "V2(B4)", "V3(B4)", "V1(B7)", "V2(B7)", "V3(B7)", "V1(B8)", "V2(B8)", "V3(B8)", "Tổng", "Loại"]];
@@ -466,14 +473,12 @@
                 rows = [[`BẢNG ĐIỂM AK/STV - BÀI ${ex}`], ["STT", "Bệ", "Họ Tên", "Đơn vị", "Viên 1", "Viên 2", "Viên 3", "Tổng", "Loại"]];
                 mainData.forEach((d, i) => { let t = calculateTotal(d, ex); let v1=(ex===1?d.b4_1:(ex===2?d.b7_1:d.b8_1)), v2=(ex===1?d.b4_2:(ex===2?d.b7_2:d.b8_2)), v3=(ex===1?d.b4_3:(ex===2?d.b7_3:d.b8_3)); rows.push([i+1, d.bay, d.name, d.unit, v1, v2, v3, t, getRankString(t, ex).replace(/<\/?[^>]+(>|$)/g, "")]); });
             }
-
             rows.push([]); rows.push(["BẢNG THỐNG KÊ TỈ LỆ CHI TIẾT"]);
             rows.push(["Đơn vị", "QS", "Giỏi", "% Giỏi", "Khá", "% Khá", "Đạt", "% Đạt", "K. Đạt", "% K. Đạt", "Tỉ lệ đạt"]);
-            let d = getStatsData();
+            let d = getUnitStatsData();
             for(let u in d.stats) { let it = d.stats[u]; if(it.ts>0) rows.push([u, it.ts, it.g, (it.g/it.ts*100).toFixed(1)+"%", it.k, (it.k/it.ts*100).toFixed(1)+"%", it.d, (it.d/it.ts*100).toFixed(1)+"%", it.h, (it.h/it.ts*100).toFixed(1)+"%", (((it.g+it.k+it.d)/it.ts)*100).toFixed(1) + "%"]); }
-            
             let ws = XLSX.utils.aoa_to_sheet(rows); XLSX.utils.book_append_sheet(wb, ws, "KetQua");
-            XLSX.writeFile(wb, `KetQua_${fileName}.xlsx`);
+            XLSX.writeFile(wb, `KetQua_Bai_${ex}.xlsx`);
         }
 
         function exportJSON() { const blob = new Blob([JSON.stringify(mainData)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = "backup.json"; a.click(); }
