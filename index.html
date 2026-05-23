@@ -1,4 +1,4 @@
-
+--- START OF FILE Paste May 23, 2026 - 7:49PM ---
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -148,7 +148,7 @@
     </footer>
 
     <!-- MODAL NHẬP ĐIỂM -->
-    <div id="score-pad-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[110] hidden items-center justify-center p-4"><div class="bg-slate-900 border-2 border-slate-700 w-full max-w-[340px] rounded-3xl shadow-2xl overflow-hidden"><div class="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center"><h3 id="modal-pad-title" class="text-yellow-500 font-bold text-sm uppercase tracking-widest">Mời nhập số</h3><button onclick="closeScorePad()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button></div><div class="p-6 text-center"><span id="score-pad-display" class="text-6xl font-black text-yellow-400 block mb-8">0</span><div class="grid grid-cols-5 gap-2 mb-8" id="pad-grid"></div><div class="flex gap-2"><button onclick="resetPad()" class="flex-1 bg-slate-800 text-slate-300 py-3.5 rounded-xl font-bold text-xs uppercase hover:bg-slate-700">Xóa</button><button id="ok-btn-pad" onclick="confirmPad()" class="flex-[2] bg-red-700 text-white py-3.5 rounded-xl font-bold text-xs uppercase shadow-lg">XONG</button></div></div></div></div>
+    <div id="score-pad-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm p-4 z-[110] hidden items-center justify-center"><div class="bg-slate-900 border-2 border-slate-700 w-full max-w-[340px] rounded-3xl shadow-2xl overflow-hidden"><div class="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center"><h3 id="modal-pad-title" class="text-yellow-500 font-bold text-sm uppercase tracking-widest">Mời nhập số</h3><button onclick="closeScorePad()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button></div><div class="p-6 text-center"><span id="score-pad-display" class="text-6xl font-black text-yellow-400 block mb-8">0</span><div class="grid grid-cols-5 gap-2 mb-8" id="pad-grid"></div><div class="flex gap-2"><button onclick="resetPad()" class="flex-1 bg-slate-800 text-slate-300 py-3.5 rounded-xl font-bold text-xs uppercase hover:bg-slate-700">Xóa</button><button id="ok-btn-pad" onclick="confirmPad()" class="flex-[2] bg-red-700 text-white py-3.5 rounded-xl font-bold text-xs uppercase shadow-lg">XONG</button></div></div></div></div>
 
     <!-- MODAL BÀI 2 AH -->
     <div id="ak-b2-modal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[120] hidden items-center justify-center p-4"><div class="bg-slate-900 border-2 border-slate-700 w-full max-w-[95vw] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"><div class="bg-slate-800 p-4 flex justify-between items-center"><div class="text-left"><h3 id="b2-modal-title" class="text-yellow-500 font-bold text-sm uppercase">Ghi nhận bia Bài 2 (ẨN HIỆN)</h3></div><button onclick="closeB2Modal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button></div><div class="p-4 flex-grow overflow-x-auto overflow-y-auto custom-scrollbar"><div class="flex flex-row gap-8 justify-center min-w-max pb-8" id="b2-multi-container"></div></div><div class="bg-slate-950 p-6 flex justify-center gap-4"><button onclick="resetB2Targets()" class="px-8 bg-slate-800 text-slate-400 py-4 rounded-xl font-bold text-xs uppercase">Dựng lại tất cả</button><button onclick="saveB2Targets()" class="px-12 bg-red-700 text-white py-4 rounded-xl font-bold text-sm uppercase shadow-xl">Lưu kết quả loạt bắn</button></div></div></div>
@@ -175,7 +175,6 @@
             const container = document.getElementById('qrcode-container'); 
             container.innerHTML = ""; 
             container.classList.remove('hidden'); 
-            // Fix: Sử dụng origin và pathname để đảm bảo URL tuyệt đối
             let fullURL = window.location.origin + window.location.pathname + "?room=" + roomId + "&role=viewer"; 
             new QRCode(container, { text: fullURL, width: 72, height: 72, colorDark: "#0f172a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H }); 
         }
@@ -183,20 +182,16 @@
         window.onload = function() {
             const savedData = localStorage.getItem('ShootingResults'); if(savedData) mainData = JSON.parse(savedData);
             const urlParams = new URLSearchParams(window.location.search);
-            
-            // Xử lý Role từ URL ưu tiên hàng đầu
             if(urlParams.get('room')) {
                 currentRoom = urlParams.get('room');
                 document.getElementById('sync-room-id').value = currentRoom;
                 if(urlParams.get('role')) deviceRole = urlParams.get('role');
                 downloadDataFromCloud();
             }
-
             if(deviceRole === 'admin') { 
                 document.getElementById('role-admin-badge').className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-blue-600 shadow-md"; 
                 document.getElementById('left-control-panel').style.display = 'block'; 
                 document.getElementById('right-table-panel').className = "col-span-12 lg:col-span-9 space-y-4"; 
-                // Nếu chưa có room (lần đầu mở), mới tạo mới. Nếu có rồi (F5), dùng lại.
                 if(!currentRoom) createNewBinOnCloud(); 
                 else { updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(currentRoom); }
             }
@@ -210,58 +205,10 @@
         };
 
         function resetExerciseData() { if(confirm("CẢNH BÁO: Hành động này sẽ xoá sạch danh sách quân nhân của BÀI BẮN HIỆN TẠI. Đồng ý?")) { const rK = 'round_' + currentExercise; const bK = 'bay_' + currentExercise; mainData.forEach(d => { d[rK] = null; d[bK] = null; }); uploadDataToCloud(); renderEngine(); } }
-        
-        function forceSyncData() { 
-            currentRoom = document.getElementById('sync-room-id').value.trim();
-            downloadDataFromCloud(); 
-        }
-
-        function createNewBinOnCloud() { 
-            fetch(SYNC_SERVER, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' }, 
-                body: JSON.stringify({ room: "auto_" + Date.now(), data: mainData }) 
-            })
-            .then(res => res.json())
-            .then(res => { 
-                if(res.metadata && res.metadata.id) { 
-                    currentRoom = res.metadata.id; 
-                    document.getElementById('sync-room-id').value = currentRoom; 
-                    updateStatus("Trực tuyến (Admin)", "success"); 
-                    generateConnectionQR(currentRoom); 
-                    // Thêm ID vào URL mà không reload để khi F5 không bị tạo room mới
-                    window.history.replaceState(null, "", "?room=" + currentRoom);
-                } 
-            }); 
-        }
-
-        function downloadDataFromCloud() { 
-            let t = document.getElementById('sync-room-id').value.trim(); 
-            if (t.length < 20) return; 
-            fetch(`${SYNC_SERVER}/${t}/latest`, { 
-                method: 'GET', 
-                headers: { 'X-Master-Key': MASTER_KEY }, 
-                cache: 'no-store' 
-            })
-            .then(res => res.json())
-            .then(res => { 
-                if (res.record && res.record.data) { 
-                    mainData = res.record.data; 
-                    renderEngine(); 
-                    updateStatus("Đồng bộ OK", "success"); 
-                } 
-            }).catch(e => updateStatus("Lỗi kết nối", "error")); 
-        }
-
-        function uploadDataToCloud() { 
-            localStorage.setItem('ShootingResults', JSON.stringify(mainData)); 
-            if (deviceRole !== 'admin' || !currentRoom || currentRoom.length < 20) return; 
-            fetch(`${SYNC_SERVER}/${currentRoom}`, { 
-                method: 'PUT', 
-                headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY }, 
-                body: JSON.stringify({ room: currentRoom, data: mainData }) 
-            }); 
-        }
+        function forceSyncData() { currentRoom = document.getElementById('sync-room-id').value.trim(); downloadDataFromCloud(); }
+        function createNewBinOnCloud() { fetch(SYNC_SERVER, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' }, body: JSON.stringify({ room: "auto_" + Date.now(), data: mainData }) }).then(res => res.json()).then(res => { if(res.metadata && res.metadata.id) { currentRoom = res.metadata.id; document.getElementById('sync-room-id').value = currentRoom; updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(currentRoom); window.history.replaceState(null, "", "?room=" + currentRoom); } }); }
+        function downloadDataFromCloud() { let t = document.getElementById('sync-room-id').value.trim(); if (t.length < 20) return; fetch(`${SYNC_SERVER}/${t}/latest`, { method: 'GET', headers: { 'X-Master-Key': MASTER_KEY }, cache: 'no-store' }).then(res => res.json()).then(res => { if (res.record && res.record.data) { mainData = res.record.data; renderEngine(); updateStatus("Đồng bộ OK", "success"); } }).catch(e => updateStatus("Lỗi kết nối", "error")); }
+        function uploadDataToCloud() { localStorage.setItem('ShootingResults', JSON.stringify(mainData)); if (deviceRole !== 'admin' || !currentRoom || currentRoom.length < 20) return; fetch(`${SYNC_SERVER}/${currentRoom}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY }, body: JSON.stringify({ room: currentRoom, data: mainData }) }); }
 
         function registerSoldier() {
             const n = document.getElementById('s-name').value.trim(); const u = document.getElementById('s-unit').value.trim(); const b = document.getElementById('s-bay').value; const r = parseInt(document.getElementById('s-round').value) || 1; const editUid = document.getElementById('edit-uid').value;
@@ -345,13 +292,27 @@
         function modifyScore(uid, f, v) { const idx = mainData.findIndex(d => d.uid === uid); if(idx !== -1) { mainData[idx][f] = parseInt(v); if(currentExercise === 5 || currentExercise === 7) mainData[idx].k54_mode = currentExercise; uploadDataToCloud(); renderEngine(); } }
         function purgeSoldier(uid) { if(confirm("Xóa quân nhân khỏi bài này?")) { const idx = mainData.findIndex(d => d.uid === uid); if(idx !== -1) { mainData[idx]['round_' + currentExercise] = null; mainData[idx]['bay_' + currentExercise] = null; uploadDataToCloud(); renderEngine(); } } }
 
-        function openB2LoatModal(roundNo) { if(deviceRole !== 'admin') return; const rK = 'round_6'; const soldiers = mainData.filter(d => d[rK] == roundNo).sort((a,b) => a.bay_6 - b.bay_6); if(soldiers.length === 0) return; activeB2Uids = soldiers.map(s => s.uid); tempMultiB2Hits = {}; const container = document.getElementById('b2-multi-container'); container.innerHTML = ''; soldiers.forEach(s => { tempMultiB2Hits[s.uid] = s.ak_b2 ? {...s.ak_b2} : { hit6:0, hit5:0, hit10:0, hit7b:0, hit8cn:0, hit8cc:0 }; container.innerHTML += `<div class="bg-slate-800/40 border border-slate-700 p-6 rounded-3xl shadow-xl min-w-[320px]"><div class="mb-6 text-center border-b border-slate-700 pb-4"><div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mx-auto mb-2">B${s.bay_6}</div><h4 class="text-white font-bold text-sm uppercase">${s.name}</h4><p class="text-[10px] text-slate-400">${s.unit}</p></div><div class="flex flex-col gap-10 items-center"><div class="flex gap-10">${renderTargetSVG(s.uid, 'hit8cn', '8c Ngang', 60, 40, '<rect x="10" y="20" width="80" height="30" fill="#166534" stroke="#facc15" stroke-width="2"/><circle cx="50" cy="35" r="5" fill="#facc15"/>')}${renderTargetSVG(s.uid, 'hit8cc', '8c Chếch', 60, 40, '<path d="M20 50 L80 20 L90 35 L30 65 Z" fill="#166534" stroke="#facc15" stroke-width="2"/>')}</div><div class="flex gap-10">${renderTargetSVG(s.uid, 'hit10', 'Bia 10', 50, 50, '<circle cx="50" cy="50" r="45" fill="#1e293b" stroke="#facc15" stroke-width="3"/><rect x="40" y="10" width="20" height="80" fill="#166534"/>')}${renderTargetSVG(s.uid, 'hit7b', 'Bia 7b', 50, 60, '<path d="M10 100 L50 10 L90 100 Z" fill="#166534" stroke="#facc15" stroke-width="3"/>')}</div><div class="flex gap-10">${renderTargetSVG(s.uid, 'hit6', 'Bia 6', 50, 60, '<path d="M20 20 H80 V100 H20 Z" fill="#166534" stroke="#facc15" stroke-width="2"/><rect x="35" y="10" width="30" height="20" fill="#166534"/>')}<div onclick="toggleMultiB2Target(${s.uid}, 'hit5')" id="multi-bia-${s.uid}-hit5" class="target-container flex flex-col items-center"><svg width="40" height="40" viewBox="0 0 100 100"><rect x="30" y="30" width="40" height="40" fill="#166534" stroke="#facc15" stroke-width="2"/></svg><span class="text-[8px] mt-2 font-bold uppercase text-slate-500">Bia 5</span></div></div></div></div>`; }); document.getElementById('ak-b2-modal').classList.replace('hidden', 'flex'); refreshMultiB2UI(); }
+        function openB2LoatModal(roundNo) { if(deviceRole !== 'admin') return; const rK = 'round_6'; const soldiers = mainData.filter(d => d[rK] == roundNo).sort((a,b) => a.bay_6 - b.bay_6); if(soldiers.length === 0) return; activeB2Uids = soldiers.map(s => s.uid); tempMultiB2Hits = {}; const container = document.getElementById('b2-multi-container'); container.innerHTML = ''; soldiers.forEach(s => { tempMultiB2Hits[s.uid] = s.ak_b2 ? {...s.ak_b2} : { hit6:0, hit5:0, hit10:0, hit7b:0, hit8cn:0, hit8cc:0 }; container.innerHTML += `<div class="bg-slate-800/40 border border-slate-700 p-6 rounded-3xl shadow-xl min-w-[320px]"><div class="mb-6 text-center border-b border-slate-700 pb-4"><div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mx-auto mb-2">B${s.bay_6}</div><h4 class="text-white font-bold text-sm uppercase">${s.name}</h4><p class="text-[10px] text-slate-400">${s.unit}</p></div><div class="flex flex-col gap-10 items-center"><div class="flex gap-10">${renderTargetSVG(s.uid, 'hit8cn', '8c Ngang', 60, 40, '<rect x="10" y="20" width="80" height="30" fill="#166534" stroke="#facc15" stroke-width="2"/><circle cx="50" cy="35" r="5" fill="#facc15"/>')}${renderTargetSVG(s.uid, 'hit8cc', '8c Chếch', 60, 40, '<path d="M20 50 L80 20 L90 35 L30 65 Z" fill="#166534" stroke="#facc15" stroke-width="2"/>')}</div><div class="flex gap-10">${renderTargetSVG(s.uid, 'hit10', 'Bia 10', 50, 50, '<circle cx="50" cy="50" r="45" fill="#1e293b" stroke="#facc15" stroke-width="3"/><rect x="40" y="10" width="20" height="80" fill="#166534"/>')}${renderTargetSVG(s.uid, 'hit7b', 'Bia 7b', 50, 60, '<path d="M10 100 L50 10 L90 100 Z" fill="#166534" stroke="#facc15" stroke-width="3"/>')}</div><div class="flex gap-10">${renderTargetSVG(s.uid, 'hit6', 'Bia 6', 50, 60, '<path d="M20 20 H80 V100 H20 Z" fill="#166534" stroke="#facc15" stroke-width="2"/><rect x="35" y="10" width="30" height="20" fill="#166534"/>')}<div onclick="toggleMultiB2Target(${s.uid}, 'hit5')" id="multi-bia-${s.uid}-hit5" class="target-container flex flex-col items-center"><svg width="40" height="40" viewBox="0 0 100 100"><rect x="30" y="30" width="40" height="40" fill="#166534" stroke="#facc15" stroke-width="2"/></svg><span class="text-[8px] mt-2 font-bold uppercase text-slate-500">Bia 5</span></div></div></div></div>`; }); 
+            const modal = document.getElementById('ak-b2-modal');
+            modal.classList.add('flex'); modal.classList.remove('hidden');
+            refreshMultiB2UI(); 
+        }
         function renderTargetSVG(uid, key, label, w, h, paths) { return `<div onclick="toggleMultiB2Target(${uid}, '${key}')" id="multi-bia-${uid}-${key}" class="target-container text-center flex flex-col items-center"><svg width="${w}" height="${h}" viewBox="0 0 100 ${(h/w)*100}">${paths}</svg><span class="text-[8px] mt-2 font-bold uppercase text-slate-500">${label}</span></div>`; }
         function toggleMultiB2Target(uid, key) { tempMultiB2Hits[uid][key] = tempMultiB2Hits[uid][key] === 1 ? 0 : 1; refreshMultiB2UI(); }
         function refreshMultiB2UI() { for(let uid in tempMultiB2Hits) { for(let key in tempMultiB2Hits[uid]) { const el = document.getElementById(`multi-bia-${uid}-${key}`); if(tempMultiB2Hits[uid][key] === 1) el.classList.add('target-down'); else el.classList.remove('target-down'); } } }
-        function saveB2Targets() { for(let uid in tempMultiB2Hits) { const idx = mainData.findIndex(d => d.uid == uid); if(idx !== -1) mainData[idx].ak_b2 = tempMultiB2Hits[uid]; } uploadDataToCloud(); renderEngine(); closeB2Modal(); }
+        
+        function saveB2Targets() { 
+            for(let uid in tempMultiB2Hits) { const idx = mainData.findIndex(d => d.uid == uid); if(idx !== -1) mainData[idx].ak_b2 = tempMultiB2Hits[uid]; } 
+            uploadDataToCloud(); 
+            renderEngine(); 
+            closeB2Modal(); 
+        }
         function resetB2Targets() { for(let uid in tempMultiB2Hits) { tempMultiB2Hits[uid] = { hit6:0, hit5:0, hit10:0, hit7b:0, hit8cn:0, hit8cc:0 }; } refreshMultiB2UI(); }
-        function closeB2Modal() { document.getElementById('ak-b2-modal').classList.replace('hidden', 'flex'); activeB2Uids = []; }
+        function closeB2Modal() { 
+            const modal = document.getElementById('ak-b2-modal');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+            activeB2Uids = []; 
+        }
 
         function switchExercise(ex) { currentExercise = ex; document.querySelectorAll('#exercise-selector button').forEach(b => { b.classList.remove('active-pill', 'text-white'); b.classList.add('text-slate-400'); }); if([1,2,3,4].includes(ex)) document.getElementById('group-ak-label').classList.add('active-pill', 'text-white'); else { let btn = document.getElementById(`ex-btn-${ex}`); if(btn) btn.classList.add('active-pill', 'text-white'); } renderEngine(); }
         
