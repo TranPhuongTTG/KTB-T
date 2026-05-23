@@ -169,7 +169,7 @@
             renderEngine();
         };
 
-        function resetExerciseData() { if(confirm("CẢNH BÁO: Hành động này sẽ xoá sạch danh sách quân nhân của BÀI BẮN HIỆN TẠI. Các bài khác vẫn giữ nguyên. Đồng ý?")) { const rK = 'round_' + currentExercise; const bK = 'bay_' + currentExercise; mainData.forEach(d => { d[rK] = null; d[bK] = null; if(currentExercise===6) d.ammo_left_6 = 0; }); uploadDataToCloud(); renderEngine(); } }
+        function resetExerciseData() { if(confirm("CẢNH BÁO: Hành động này sẽ xoá sạch danh sách quân nhân của BÀI BẮN HIỆN TẠI. Đồng ý?")) { const rK = 'round_' + currentExercise; const bK = 'bay_' + currentExercise; mainData.forEach(d => { d[rK] = null; d[bK] = null; if(currentExercise===6) d.ammo_left_6 = 0; }); uploadDataToCloud(); renderEngine(); } }
         function updateStatus(t, ty) { const dot = document.getElementById('status-dot'); const txt = document.getElementById('status-text'); if(!txt || !dot) return; txt.innerText = t; dot.className = (ty==='success') ? "w-3 h-3 rounded-full bg-emerald-500 animate-pulse" : (ty==='loading' ? "w-3 h-3 rounded-full bg-blue-500 animate-spin" : "w-3 h-3 rounded-full bg-rose-500 animate-ping"); }
         function createNewBinOnCloud() { fetch(SYNC_SERVER, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' }, body: JSON.stringify({ room: currentRoom, data: mainData }) }).then(res => res.json()).then(res => { if(res.metadata && res.metadata.id) { currentRoom = res.metadata.id; document.getElementById('sync-room-id').value = res.metadata.id; updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(res.metadata.id); } }); }
         function downloadDataFromCloud() { let t = document.getElementById('sync-room-id').value.trim(); if (t.length < 20) return; fetch(`${SYNC_SERVER}/${t}/latest`, { method: 'GET', headers: { 'X-Master-Key': MASTER_KEY }, cache: 'no-store' }).then(res => res.json()).then(res => { if (res.record && res.record.data) { mainData = res.record.data; renderEngine(); updateStatus("Đồng bộ OK", "success"); } }); }
@@ -180,7 +180,7 @@
             const n = document.getElementById('s-name').value.trim(); const u = document.getElementById('s-unit').value.trim(); const b = document.getElementById('s-bay').value; const r = parseInt(document.getElementById('s-round').value) || 1; const editUid = document.getElementById('edit-uid').value;
             if(!n || !u) return alert("Vui lòng điền đủ Tên và Đơn vị!");
             const rKey = 'round_' + currentExercise; const bKey = 'bay_' + currentExercise;
-            if (mainData.some(item => item[rKey] == r && item[bKey] == b && item.uid != editUid)) return alert(`⚠️ BÁO TRÙNG: Bệ số ${b} của Loạt ${r} đã có người!`);
+            if (mainData.some(item => item[rKey] == r && item[bKey] == b && item.uid != editUid)) return alert(`⚠️ CẢNH BÁO: Bệ số ${b} của Loạt ${r} đã có người!`);
             if(editUid) { const idx = mainData.findIndex(d => d.uid == editUid); if(idx !== -1) { mainData[idx].name = n; mainData[idx].unit = u; mainData[idx][bKey] = b; mainData[idx][rKey] = r; } cancelEdit(); }
             else { mainData.push({ uid: Date.now(), name:n, unit:u, b4_1:0, b4_2:0, b4_3:0, b7_1:0, b7_2:0, b7_3:0, b8_1:0, b8_2:0, b8_3:0, ak_b2: { hit6:0, hit5:0, hit10:0, hit7b:0, hit8cn:0, hit8cc:0 }, k54_4d_1:0, k54_4d_2:0, k54_4d_3:0, k54_4d_4:0, k54_ken1:-1, k54_ken2:-1, k54_8e2:0, k54_8e1_3:0, k54_8e2_3:0, k54_mode: 0, [rKey]: r, [bKey]: b }); }
             renderEngine(); uploadDataToCloud();
