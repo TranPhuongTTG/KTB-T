@@ -31,9 +31,13 @@
         #qrcode-container img { border-radius: 8px; border: 2px solid #ffffff; display: inline-block !important; }
         .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .target-container { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .target-container:hover { transform: scale(1.05); }
+        .target-down { opacity: 0.1; transform: translateY(20px) scale(0.9); pointer-events: none; }
     </style>
 </head>
-<body class="p-4 sm:p-6 min-h-screen flex flex-col custom-scrollbar">
+<body class="p-4 sm:p-6 min-h-screen flex flex-col custom-scrollbar pb-24">
 
     <!-- STATUS & QR -->
     <div class="mb-4 bg-slate-950 p-4 rounded-xl border border-slate-800/80 flex flex-col lg:flex-row justify-between items-center gap-4 relative z-50 shadow-2xl">
@@ -72,11 +76,9 @@
         
         <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 items-center gap-1" id="exercise-selector">
             <div class="dropdown">
-                <button id="group-ak-label" class="px-4 py-2 text-[11px] font-bold rounded-lg transition-all text-white active-pill flex items-center gap-2 uppercase">
-                    STV, AK <i class="fa-solid fa-chevron-down text-[8px] ml-1"></i>
-                </button>
+                <button id="group-ak-label" class="px-4 py-2 text-[11px] font-bold rounded-lg transition-all text-white active-pill flex items-center gap-2 uppercase">STV, AK <i class="fa-solid fa-chevron-down text-[8px] ml-1"></i></button>
                 <div class="dropdown-menu">
-                    <div class="flex flex-col bg-slate-900 border border-slate-700 rounded-xl shadow-2xl min-w-[200px] p-1 overflow-hidden">
+                    <div class="flex flex-col bg-slate-900 border border-slate-700 rounded-xl shadow-2xl min-w-[180px] p-1 overflow-hidden">
                         <button onclick="switchExercise(1)" id="ex-btn-1" class="px-4 py-3 text-[10px] font-bold text-left hover:bg-slate-800 rounded-lg text-white border-b border-slate-800/50 uppercase">BÀI 1 (BIA SỐ 4)</button>
                         <button onclick="switchExercise(2)" id="ex-btn-2" class="px-4 py-3 text-[10px] font-bold text-left hover:bg-slate-800 rounded-lg text-slate-400 border-b border-slate-800/50 uppercase">BÀI 2 (BIA SỐ 7)</button>
                         <button onclick="switchExercise(3)" id="ex-btn-3" class="px-4 py-3 text-[10px] font-bold text-left hover:bg-slate-800 rounded-lg text-slate-400 border-b border-slate-800/50 uppercase">BÀI 3 (BIA SỐ 8)</button>
@@ -84,21 +86,15 @@
                     </div>
                 </div>
             </div>
+            <button onclick="switchExercise(6)" id="ex-btn-6" class="px-4 py-2 text-[11px] font-bold rounded-lg transition-all text-slate-400 uppercase whitespace-nowrap">BÀI 2 (ẨN HIỆN)</button>
             <button onclick="switchExercise(5)" id="ex-btn-5" class="px-4 py-2 text-[11px] font-bold rounded-lg transition-all text-slate-400 uppercase whitespace-nowrap">BÀI 5 (K54/2b)</button>
         </div>
 
         <div class="flex gap-2 w-full xl:w-auto justify-end">
-            <button onclick="exportShooterTemplate()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-[10px] font-bold rounded-xl transition flex items-center gap-2 shadow-lg">
-                <i class="fa-solid fa-file-export"></i> XUẤT DS TRỐNG
-            </button>
-            <button onclick="document.getElementById('import-excel').click()" class="px-3 py-2 bg-indigo-700 hover:bg-indigo-600 text-white text-[10px] font-bold rounded-xl transition flex items-center gap-2 shadow-lg">
-                <i class="fa-solid fa-file-import"></i> NHẬP DANH SÁCH
-            </button>
+            <button onclick="exportShooterTemplate()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-[10px] font-bold rounded-xl transition flex items-center gap-2 shadow-lg"><i class="fa-solid fa-file-export"></i> XUẤT DS TRỐNG</button>
+            <button onclick="document.getElementById('import-excel').click()" class="px-3 py-2 bg-indigo-700 hover:bg-indigo-600 text-white text-[10px] font-bold rounded-xl transition flex items-center gap-2 shadow-lg"><i class="fa-solid fa-file-import"></i> NHẬP DANH SÁCH</button>
             <input type="file" id="import-excel" class="hidden" accept=".xlsx, .xls" onchange="importShooters(event)">
-            
-            <button onclick="exportToExcel()" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] font-bold rounded-xl transition flex items-center gap-2 shadow-lg">
-                <i class="fa-solid fa-file-excel"></i> XUẤT EXCEL
-            </button>
+            <button onclick="exportToExcel()" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] font-bold rounded-xl transition flex items-center gap-2 shadow-lg"><i class="fa-solid fa-file-excel"></i> XUẤT EXCEL</button>
        </div>
     </header>
 
@@ -124,15 +120,13 @@
                     <div>
                         <label class="text-[11px] font-bold text-slate-400 uppercase">Vị trí bệ bắn</label>
                         <select id="s-bay" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 mt-1 text-sm text-yellow-400 font-bold focus:outline-none">
-                            <option value="1">BỆ SỐ 1</option><option value="2">BỆ SỐ 2</option><option value="3">BỆ SỐ 3</option>
-                            <option value="4">BỆ SỐ 4</option><option value="5">BỆ SỐ 5</option><option value="6">BỆ SỐ 6</option>
+                            <option value="1">BỆ 1</option><option value="2">BỆ 2</option><option value="3">BỆ 3</option>
+                            <option value="4">BỆ 4</option><option value="5">BỆ 5</option><option value="6">BỆ 6</option>
                         </select>
                     </div>
                 </div>
-                <div class="flex flex-col gap-2">
-                    <button id="btn-submit" onclick="registerSoldier()" class="w-full bg-gradient-to-r from-red-700 to-red-800 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:shadow-lg transition">Vào bệ bắn</button>
-                    <button id="btn-cancel-edit" onclick="cancelEdit()" class="w-full bg-slate-800 text-slate-400 py-2 rounded-xl font-bold text-[10px] uppercase hidden">Hủy sửa</button>
-                </div>
+                <button id="btn-submit" onclick="registerSoldier()" class="w-full bg-gradient-to-r from-red-700 to-red-800 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:shadow-lg transition">Vào bệ bắn</button>
+                <button id="btn-cancel-edit" onclick="cancelEdit()" class="w-full bg-slate-800 text-slate-400 py-2 rounded-xl font-bold text-[10px] uppercase hidden">Hủy sửa</button>
             </div>
         </div>
 
@@ -160,7 +154,6 @@
                     <div style="position: relative; height:220px; width:220px"><canvas id="achievementChart"></canvas></div>
                     <div class="mt-6 w-full space-y-2 bg-slate-950/50 p-4 rounded-xl border border-slate-800">
                         <p class="text-[11px] flex justify-between font-bold text-slate-400">TỔNG QUÂN SỐ: <span id="summary-total" class="text-white">0</span></p>
-                        <hr class="border-slate-800">
                         <p class="text-[11px] flex justify-between text-emerald-400">GIỎI: <span id="summary-g" class="font-bold">0 (0%)</span></p>
                         <p class="text-[11px] flex justify-between text-blue-400">KHÁ: <span id="summary-k" class="font-bold">0 (0%)</span></p>
                         <p class="text-[11px] flex justify-between text-amber-500">ĐẠT: <span id="summary-d" class="font-bold">0 (0%)</span></p>
@@ -172,21 +165,11 @@
 
                 <div id="unit-stats-container" class="lg:col-span-2 animate-fade-in">
                     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl h-full flex flex-col">
-                        <div class="bg-slate-950 p-4 border-b border-slate-800">
-                            <h2 id="unit-stats-title" class="text-sm font-bold text-yellow-500 uppercase tracking-widest flex items-center gap-2">THỐNG KÊ CHI TIẾT THEO ĐƠN VỊ</h2>
-                        </div>
+                        <div class="bg-slate-950 p-4 border-b border-slate-800"><h2 class="text-sm font-bold text-yellow-500 uppercase tracking-widest flex items-center gap-2">THỐNG KÊ CHI TIẾT THEO ĐƠN VỊ</h2></div>
                         <div class="overflow-x-auto flex-grow max-h-[300px] custom-scrollbar">
                             <table class="w-full text-[10px] text-center border-collapse">
                                 <thead class="bg-slate-800/50 text-slate-400 font-bold sticky top-0 z-10 shadow-sm">
-                                    <tr>
-                                        <th class="p-3 border-r border-slate-700 text-left pl-6">Đơn vị</th>
-                                        <th class="p-3 border-r border-slate-700">QS</th>
-                                        <th class="p-3 border-r border-slate-700 text-emerald-400">Giỏi (%)</th>
-                                        <th class="p-3 border-r border-slate-700 text-blue-400">Khá (%)</th>
-                                        <th class="p-3 border-r border-slate-700 text-amber-500">Đạt (%)</th>
-                                        <th class="p-3 border-r border-slate-700 text-red-500">K. ĐẠT (%)</th>
-                                        <th class="p-3">Tỉ lệ đạt</th>
-                                    </tr>
+                                    <tr><th class="p-3 border-r border-slate-700 text-left pl-6">Đơn vị</th><th class="p-3 border-r border-slate-700">QS</th><th class="p-3 border-r border-slate-700 text-emerald-400">Giỏi (%)</th><th class="p-3 border-r border-slate-700 text-blue-400">Khá (%)</th><th class="p-3 border-r border-slate-700 text-amber-500">Đạt (%)</th><th class="p-3 border-r border-slate-700 text-red-500">K. ĐẠT (%)</th><th class="p-3">Tỉ lệ đạt</th></tr>
                                 </thead>
                                 <tbody id="unit-stats-target" class="divide-y divide-slate-800"></tbody>
                             </table>
@@ -197,26 +180,48 @@
         </div>
     </div>
 
-    <!-- FOOTER -->
-    <footer class="w-full text-center py-4 bg-red-600 border-t border-red-700 text-yellow-400 text-xs mt-auto rounded-t-xl font-bold shadow-lg">
-         <p><i class="fa-solid fa-shield-halved mr-1 text-yellow-400"></i> Phần mềm được tạo bởi Đồng chí Thượng uý Trần Thanh Phương , Đồng chí Thiếu tá Trương Công Sĩ , Trợ lý Tác Chiến, Đồng chí Thiếu tá Lê Anh Tuấn, Trợ lý Đào tạo, Trường Quân sự Quân đoàn 34</p>
-    </footer>
+    <!-- TỔNG ĐẠN THỪA (CHỈ HIỆN KHI Ở BÀI 2 ẨN HIỆN) -->
+    <div id="ammo-summary-box" class="fixed bottom-6 right-6 z-[100] bg-slate-900 border-2 border-yellow-500/50 p-4 rounded-2xl shadow-2xl flex items-center gap-4 backdrop-blur-md animate-fade-in hidden">
+        <div class="bg-yellow-500/10 p-3 rounded-xl border border-yellow-500/20"><i class="fa-solid fa-boxes-stacked text-xl text-yellow-500"></i></div>
+        <div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tổng số đạn thừa</p>
+            <p id="global-ammo-total" class="text-3xl font-black text-white leading-none mt-1">0 <span class="text-xs text-slate-500 font-bold uppercase ml-1">Viên</span></p>
+        </div>
+    </div>
 
     <!-- MODAL NHẬP ĐIỂM -->
     <div id="score-pad-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[110] hidden items-center justify-center p-4">
         <div class="bg-slate-900 border-2 border-slate-700 w-full max-w-[340px] rounded-3xl shadow-2xl overflow-hidden">
-            <div class="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center">
-                <h3 class="text-yellow-500 font-bold text-sm uppercase tracking-widest">Mời nhập điểm</h3>
-                <button onclick="closeScorePad()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
+            <div class="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center"><h3 class="text-yellow-500 font-bold text-sm uppercase tracking-widest">Mời nhập số</h3><button onclick="closeScorePad()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button></div>
             <div class="p-6 text-center">
                 <span id="score-pad-display" class="text-6xl font-black text-yellow-400 block mb-8">0</span>
                 <div class="grid grid-cols-5 gap-2 mb-8" id="pad-grid"></div>
-                <div class="flex gap-2">
-                    <button onclick="resetPad()" class="flex-1 bg-slate-800 text-slate-300 py-3.5 rounded-xl font-bold text-xs uppercase hover:bg-slate-700">Xóa</button>
-                    <button id="ok-btn-pad" onclick="confirmPad()" class="flex-[2] bg-red-700 text-white py-3.5 rounded-xl font-bold text-xs uppercase shadow-lg shadow-red-950/50">Đồng ý</button>
+                <div class="flex gap-2"><button onclick="resetPad()" class="flex-1 bg-slate-800 text-slate-300 py-3.5 rounded-xl font-bold text-xs uppercase hover:bg-slate-700">Xóa</button><button id="ok-btn-pad" onclick="confirmPad()" class="flex-[2] bg-red-700 text-white py-3.5 rounded-xl font-bold text-xs uppercase shadow-lg">Đồng ý</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL BÀI 2 (INTERACTIVE TARGETS) -->
+    <div id="ak-b2-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[120] hidden items-center justify-center p-4">
+        <div class="bg-slate-900 border-2 border-slate-700 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-800 p-4 flex justify-between items-center"><div class="text-left"><h3 class="text-yellow-500 font-bold text-sm uppercase">Ghi nhận bia Bài 2 (ẨN HIỆN)</h3><p class="text-[10px] text-slate-400">Bấm vào bia để hạ mục tiêu</p></div><button onclick="closeB2Modal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+            <div class="p-8 flex-grow overflow-y-auto">
+                <div class="flex flex-col gap-12 items-center">
+                    <div class="flex gap-16">
+                        <div onclick="toggleB2Target('hit8cn')" id="bia-hit8cn" class="target-container text-center flex flex-col items-center"><svg width="60" height="40" viewBox="0 0 100 60"><rect x="10" y="20" width="80" height="30" fill="#166534" stroke="#facc15" stroke-width="2"/><circle cx="50" cy="35" r="5" fill="#facc15"/></svg><span class="text-[9px] mt-2 font-bold uppercase text-slate-400">8c Ngang</span></div>
+                        <div onclick="toggleB2Target('hit8cc')" id="bia-hit8cc" class="target-container text-center flex flex-col items-center"><svg width="60" height="40" viewBox="0 0 100 60"><path d="M20 50 L80 20 L90 35 L30 65 Z" fill="#166534" stroke="#facc15" stroke-width="2"/></svg><span class="text-[9px] mt-2 font-bold uppercase text-slate-400">8c Chếch</span></div>
+                    </div>
+                    <div class="flex gap-16">
+                        <div onclick="toggleB2Target('hit10')" id="bia-hit10" class="target-container text-center flex flex-col items-center"><svg width="50" height="50" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#1e293b" stroke="#facc15" stroke-width="3"/><rect x="40" y="10" width="20" height="80" fill="#166534"/></svg><span class="text-[9px] mt-2 font-bold uppercase text-slate-400">Bia 10</span></div>
+                        <div onclick="toggleB2Target('hit7b')" id="bia-hit7b" class="target-container text-center flex flex-col items-center"><svg width="50" height="60" viewBox="0 0 100 120"><path d="M10 100 L50 10 L90 100 Z" fill="#166534" stroke="#facc15" stroke-width="3"/></svg><span class="text-[9px] mt-2 font-bold uppercase text-slate-400">Bia 7b</span></div>
+                    </div>
+                    <div class="flex gap-16">
+                        <div onclick="toggleB2Target('hit6')" id="bia-hit6" class="target-container text-center flex flex-col items-center"><svg width="50" height="60" viewBox="0 0 100 120"><path d="M20 20 H80 V100 H20 Z" fill="#166534" stroke="#facc15" stroke-width="2"/><rect x="35" y="10" width="30" height="20" fill="#166534"/></svg><span class="text-[9px] mt-2 font-bold uppercase text-slate-400">Bia 6</span></div>
+                        <div onclick="toggleB2Target('hit5')" id="bia-hit5" class="target-container text-center flex flex-col items-center"><svg width="40" height="40" viewBox="0 0 100 100"><rect x="30" y="30" width="40" height="40" fill="#166534" stroke="#facc15" stroke-width="2"/></svg><span class="text-[9px] mt-2 font-bold uppercase text-slate-400">Bia 5</span></div>
+                    </div>
                 </div>
             </div>
+            <div class="bg-slate-950 p-6 flex gap-3"><button onclick="resetB2Targets()" class="flex-1 bg-slate-800 text-slate-400 py-3 rounded-xl font-bold text-xs uppercase">Dựng lại</button><button onclick="saveB2Targets()" class="flex-[2] bg-red-700 text-white py-3 rounded-xl font-bold text-xs uppercase shadow-lg shadow-red-950/50">Lưu kết quả</button></div>
         </div>
     </div>
 
@@ -225,14 +230,14 @@
         let deviceRole = (window.innerWidth < 1024) ? 'viewer' : 'admin';
         let currentRoom = "room_" + new Date().toISOString().slice(0,10).replace(/-/g,'');
         let activePadTarget = null; let padSum = 0;
+        let activeB2Uid = null; let tempB2Hits = {};
         const MASTER_KEY = "$2a$10$Q9wC3DLyzOq0JM64EXJmGuwtG8flBOVIgLik4fsZNYhJOi.vAXCNS";
         const SYNC_SERVER = "https://api.jsonbin.io/v3/b";
 
         window.addEventListener('keydown', function(e) { if ((e.which || e.keyCode) == 116 || (e.ctrlKey && (e.which || e.keyCode) == 82)) e.preventDefault(); });
 
         function generateConnectionQR(roomId) {
-            const container = document.getElementById('qrcode-container');
-            container.innerHTML = ""; container.classList.remove('hidden');
+            const container = document.getElementById('qrcode-container'); container.innerHTML = ""; container.classList.remove('hidden');
             let fullURL = window.location.href.split('?')[0] + "?room=" + roomId + "&role=viewer";
             new QRCode(container, { text: fullURL, width: 72, height: 72, colorDark: "#0f172a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
         }
@@ -241,8 +246,7 @@
             const savedData = localStorage.getItem('ShootingResults');
             if(savedData) mainData = JSON.parse(savedData);
             const urlParams = new URLSearchParams(window.location.search);
-            const rURL = urlParams.get('room'); const roleURL = urlParams.get('role');
-            if(rURL) { deviceRole = roleURL || 'viewer'; document.getElementById('sync-room-id').value = rURL; downloadDataFromCloud(); }
+            if(urlParams.get('room')) { deviceRole = urlParams.get('role') || 'viewer'; document.getElementById('sync-room-id').value = urlParams.get('room'); downloadDataFromCloud(); }
             if(deviceRole === 'admin') {
                 document.getElementById('role-admin-badge').className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-blue-600 shadow-md";
                 document.getElementById('left-control-panel').style.display = 'block';
@@ -256,68 +260,25 @@
             renderEngine();
         };
 
-        function exportShooterTemplate() {
-            let rows = [["Họ và Tên", "Đơn vị", "Loạt bắn", "Bệ bắn"]];
-            if(mainData.length > 0) mainData.forEach(d => rows.push([d.name, d.unit, d.round||1, d.bay]));
-            else rows.push(["Nguyễn Văn A", "Đại đội 1", "1", "1"]);
-            let ws = XLSX.utils.aoa_to_sheet(rows); let wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "DanhSach"); XLSX.writeFile(wb, "Mau_Danh_Sach.xlsx");
-        }
-
-        function importShooters(e) {
-            const file = e.target.files[0]; if(!file) return;
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                const workbook = XLSX.read(evt.target.result, {type: 'binary'});
-                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                if(json.length > 0) {
-                    json.forEach(row => {
-                        const name = row["Họ và Tên"] || row["Tên"];
-                        const unit = row["Đơn vị"];
-                        const round = parseInt(row["Loạt bắn"]) || 1;
-                        const bay = row["Bệ bắn"] || 1;
-                        if(name && unit) {
-                            mainData.push({ 
-                                uid: Date.now() + Math.random(), name, unit, bay, round,
-                                b4_1:0, b4_2:0, b4_3:0, b7_1:0, b7_2:0, b7_3:0, b8_1:0, b8_2:0, b8_3:0, 
-                                k54_4d_1:0, k54_4d_2:0, k54_4d_3:0, k54_4d_4:0, k54_ken1:-1, k54_ken2:-1, k54_8e2:0, k54_8e1_3:0, k54_8e2_3:0 
-                            });
-                        }
-                    });
-                    renderEngine(); uploadDataToCloud();
-                }
-            };
-            reader.readAsBinaryString(file);
-        }
-
         function updateStatus(t, ty) {
             const dot = document.getElementById('status-dot'); const txt = document.getElementById('status-text');
             if(!txt || !dot) return; txt.innerText = t;
             dot.className = (ty==='success') ? "w-3 h-3 rounded-full bg-emerald-500 animate-pulse" : (ty==='loading' ? "w-3 h-3 rounded-full bg-blue-500 animate-spin" : "w-3 h-3 rounded-full bg-rose-500 animate-ping");
         }
-
         function createNewBinOnCloud() {
-            updateStatus("Khởi tạo...", "loading");
             fetch(SYNC_SERVER, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' }, body: JSON.stringify({ room: currentRoom, data: mainData }) })
-            .then(res => res.json()).then(res => {
-                if(res.metadata && res.metadata.id) { currentRoom = res.metadata.id; document.getElementById('sync-room-id').value = res.metadata.id; updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(res.metadata.id); }
-            });
+            .then(res => res.json()).then(res => { if(res.metadata && res.metadata.id) { currentRoom = res.metadata.id; document.getElementById('sync-room-id').value = res.metadata.id; updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(res.metadata.id); } });
         }
-
         function downloadDataFromCloud() {
-            let target = document.getElementById('sync-room-id').value.trim(); if (target.length < 20) return;
-            fetch(`${SYNC_SERVER}/${target}/latest`, { method: 'GET', headers: { 'X-Master-Key': MASTER_KEY }, cache: 'no-store' })
-            .then(res => res.json()).then(res => {
-                if (res.record && res.record.data) { mainData = res.record.data; renderEngine(); updateStatus("Đồng bộ OK", "success"); }
-            });
+            let t = document.getElementById('sync-room-id').value.trim(); if (t.length < 20) return;
+            fetch(`${SYNC_SERVER}/${t}/latest`, { method: 'GET', headers: { 'X-Master-Key': MASTER_KEY }, cache: 'no-store' })
+            .then(res => res.json()).then(res => { if (res.record && res.record.data) { mainData = res.record.data; renderEngine(); updateStatus("Đồng bộ OK", "success"); } });
         }
-
         function uploadDataToCloud() {
             localStorage.setItem('ShootingResults', JSON.stringify(mainData));
             if (deviceRole !== 'admin' || currentRoom.length < 20) return;
             fetch(`${SYNC_SERVER}/${currentRoom}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY }, body: JSON.stringify({ room: currentRoom, data: mainData }) });
         }
-
         function forceSyncData() { downloadDataFromCloud(); }
 
         function registerSoldier() {
@@ -327,16 +288,19 @@
             const r = parseInt(document.getElementById('s-round').value) || 1;
             const editUid = document.getElementById('edit-uid').value;
             if(!n || !u) return alert("Vui lòng điền đủ Tên và Đơn vị!");
-
-            const isDuplicate = mainData.some(item => item.round == r && item.bay == b && item.uid != editUid);
-            if (isDuplicate) return alert(`⚠️ CẢNH BÁO: Bệ số ${b} của Loạt ${r} đã có quân nhân khác!`);
+            if (mainData.some(item => item.round == r && item.bay == b && item.uid != editUid)) return alert(`⚠️ CẢNH BÁO: Bệ số ${b} của Loạt ${r} đã có người!`);
 
             if(editUid) {
                 const idx = mainData.findIndex(d => d.uid == editUid);
                 if(idx !== -1) { mainData[idx].name = n; mainData[idx].unit = u; mainData[idx].bay = b; mainData[idx].round = r; }
                 cancelEdit();
             } else {
-                mainData.push({ uid: Date.now(), name:n, unit:u, bay:b, round:r, b4_1:0, b4_2:0, b4_3:0, b7_1:0, b7_2:0, b7_3:0, b8_1:0, b8_2:0, b8_3:0, k54_4d_1:0, k54_4d_2:0, k54_4d_3:0, k54_4d_4:0, k54_ken1:-1, k54_ken2:-1, k54_8e2:0, k54_8e1_3:0, k54_8e2_3:0 });
+                mainData.push({ 
+                    uid: Date.now(), name:n, unit:u, bay:b, round:r, ammo_left: 0,
+                    b4_1:0, b4_2:0, b4_3:0, b7_1:0, b7_2:0, b7_3:0, b8_1:0, b8_2:0, b8_3:0, 
+                    ak_b2: { hit6:0, hit5:0, hit10:0, hit7b:0, hit8cn:0, hit8cc:0 },
+                    k54_4d_1:0, k54_4d_2:0, k54_4d_3:0, k54_4d_4:0, k54_ken1:-1, k54_ken2:-1, k54_8e2:0, k54_8e1_3:0, k54_8e2_3:0 
+                });
             }
             renderEngine(); uploadDataToCloud();
         }
@@ -360,7 +324,8 @@
             if (ex === 1) return (item.b4_1||0) + (item.b4_2||0) + (item.b4_3||0);
             if (ex === 2) return (item.b7_1||0) + (item.b7_2||0) + (item.b7_3||0);
             if (ex === 3) return (item.b8_1||0) + (item.b8_2||0) + (item.b8_3||0);
-            if (ex === 4) return ((item.b4_1||0) + (item.b4_2||0) + (item.b4_3||0)) + ((item.b7_1||0) + (item.b7_2||0) + (item.b7_3||0)) + ((item.b8_1||0) + (item.b8_2||0) + (item.b8_3||0));
+            if (ex === 6) return Object.values(item.ak_b2 || {}).filter(v => v === 1).length;
+            if (ex === 4) return (item.b4_1||0) + (item.b4_2||0) + (item.b4_3||0) + (item.b7_1||0) + (item.b7_2||0) + (item.b7_3||0) + (item.b8_1||0) + (item.b8_2||0) + (item.b8_3||0);
             if (ex === 5) {
                 let base = (item.k54_4d_1||0) + (item.k54_4d_2||0) + (item.k54_4d_3||0) + (item.k54_4d_4||0) + (item.k54_8e2||0) + (item.k54_8e1_3||0) + (item.k54_8e2_3||0);
                 let penalty = (item.k54_ken1 === 0 ? 10 : 0) + (item.k54_ken2 === 0 ? 10 : 0);
@@ -369,38 +334,21 @@
             return 0;
         }
 
-        function getRankString(score, ex) {
-            if(score <= 0) return '<span class="text-slate-600">-</span>';
+        function getRankString(score, ex, item) {
+            if(score <= 0 && ex !== 6) return '<span class="text-slate-600">-</span>';
+            if(ex === 6) {
+                if(score >= 5) return '<span class="text-emerald-400 font-bold">GIỎI</span>';
+                const has8c = (item.ak_b2?.hit8cn === 1 || item.ak_b2?.hit8cc === 1);
+                if(score === 4 && has8c) return '<span class="text-blue-400 font-bold">KHÁ</span>';
+                if(score >= 3) return '<span class="text-amber-500 font-bold">ĐẠT</span>';
+                return score > 0 ? '<span class="text-red-500 font-bold">K.ĐẠT</span>' : '<span class="text-slate-600">-</span>';
+            }
             let g, k, d; if(ex === 5) { g=240; k=198; d=150; } else if(ex === 4) { g=72; k=65; d=50; } else { g=25; k=21; d=15; }
             if(score >= g) return '<span class="text-emerald-400 font-bold uppercase">Giỏi</span>';
             if(score >= k) return '<span class="text-blue-400 font-bold uppercase">Khá</span>';
             if(score >= d) return '<span class="text-amber-500 font-bold uppercase">Đạt</span>';
             return '<span class="text-red-500 font-bold uppercase">K. Đạt</span>';
         }
-
-        function switchExercise(exNum) {
-            currentExercise = exNum;
-            document.querySelectorAll('#exercise-selector button').forEach(b => { b.classList.remove('active-pill', 'text-white'); b.classList.add('text-slate-400'); });
-            const gl = document.getElementById('group-ak-label'); const k5 = document.getElementById('ex-btn-5');
-            if(exNum <= 4) { gl.classList.add('active-pill', 'text-white'); document.querySelectorAll('.dropdown-menu button').forEach(b => b.classList.remove('text-white')); document.getElementById(`ex-btn-${exNum}`).classList.add('text-white'); }
-            else { k5.classList.add('active-pill', 'text-white'); }
-            renderEngine();
-        }
-
-        function openScorePad(uid, field) {
-            if(deviceRole !== 'admin') return;
-            activePadTarget = { uid, field }; padSum = 0; document.getElementById('score-pad-display').innerText = '0';
-            const grid = document.getElementById('pad-grid'); grid.innerHTML = '';
-            for(let i = (currentExercise === 5 ? 5 : 1); i <= 10; i++) grid.innerHTML += `<button onclick="handlePadClick(${i})" class="score-btn py-3 rounded-lg text-lg font-bold text-white">${i}</button>`;
-            if(currentExercise <= 4) document.getElementById('ok-btn-pad').classList.add('hidden'); else document.getElementById('ok-btn-pad').classList.remove('hidden');
-            document.getElementById('score-pad-modal').classList.replace('hidden', 'flex');
-        }
-
-        function handlePadClick(val) { if(currentExercise <= 4) { padSum = val; confirmPad(); } else { padSum += val; document.getElementById('score-pad-display').innerText = padSum; } }
-        function closeScorePad() { document.getElementById('score-pad-modal').classList.replace('flex', 'hidden'); }
-        function resetPad() { padSum = 0; document.getElementById('score-pad-display').innerText = '0'; }
-        function confirmPad() { if(activePadTarget) { modifyScore(activePadTarget.uid, activePadTarget.field, padSum); renderEngine(); closeScorePad(); } }
-        function modifyScore(uid, field, value) { const idx = mainData.findIndex(item => item.uid === uid); if(idx !== -1) { mainData[idx][field] = parseInt(value); uploadDataToCloud(); } }
 
         function renderEngine() {
             const head = document.getElementById('header-target'); const target = document.getElementById('render-target');
@@ -409,101 +357,167 @@
             const filtered = sortedData.filter(d => d.name.toLowerCase().includes(query) || d.unit.toLowerCase().includes(query));
             document.getElementById('record-count').innerText = filtered.length;
 
-            if (currentExercise === 5) {
+            // Xử lý ẩn/hiện hộp tổng đạn thừa
+            const ammoBox = document.getElementById('ammo-summary-box');
+            if(currentExercise === 6) ammoBox.classList.remove('hidden'); else ammoBox.classList.add('hidden');
+
+            if (currentExercise === 6) {
+                head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase text-center"><th class="p-3 border-r border-slate-800/60">STT</th><th class="p-3 border-r border-slate-800/60">Loạt/Bệ</th><th class="p-3 text-left border-r border-slate-800/60">Họ và Tên</th><th class="p-3 text-left border-r border-slate-800/60">Đơn vị</th><th class="p-2 border-r border-slate-800/60">Bia số 6</th><th class="p-2 border-r border-slate-800/60">Bia số 5</th><th class="p-2 border-r border-slate-800/60">Bia số 10</th><th class="p-2 border-r border-slate-800/60">Bia số 7b</th><th class="p-2 border-r border-slate-800/60">Bia 8c Ngang</th><th class="p-2 border-r border-slate-800/60">Bia 8c Chếch</th><th class="p-3 border-r border-slate-800/60">Tổng</th><th class="p-3 border-r border-slate-800/60">Loại</th><th class="p-3 border-l border-slate-800/60">Đạn thừa</th><th class="p-3">#</th></tr>`;
+            } else if (currentExercise === 5) {
                 head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase text-center"><th class="p-3 border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loạt/Bệ</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Họ và Tên</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Đơn vị</th><th class="p-2 border-r border-slate-800/60" colspan="4">Bia 4d</th><th class="p-2 border-r border-slate-800/60" colspan="2">Bia Ken</th><th class="p-2 border-r border-slate-800/60">8e/2</th><th class="p-2 border-r border-slate-800/60">8e1/3</th><th class="p-2 border-r border-slate-800/60">8e2/3</th><th class="p-3 border-r border-slate-800/60" rowspan="2">QS</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loại</th><th class="p-3 text-center" rowspan="2">#</th></tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center"><th class="p-2 border-r border-slate-800/40">M1</th><th class="p-2 border-r border-slate-800/40">M2</th><th class="p-2 border-r border-slate-800/40">M3</th><th class="p-2 border-r border-slate-800/40">M4</th><th class="p-2 border-r border-slate-800/40">B1</th><th class="p-2 border-r border-slate-800/40">B2</th><th>5-10đ</th><th>5-10đ</th><th>5-10đ</th></tr>`;
             } else {
-                let biaH = (currentExercise === 1) ? '<th colspan="3" class="text-center border-r border-slate-800/60">BIA SỐ 4</th>' : (currentExercise === 2 ? '<th colspan="3" class="text-center border-r border-slate-800/60">BIA SỐ 7</th>' : (currentExercise === 3 ? '<th colspan="3" class="text-center border-r border-slate-800/60">BIA SỐ 8</th>' : '<th colspan="3" class="text-center">Bia 4</th><th colspan="3" class="text-center">Bia 7</th><th colspan="3" class="text-center border-r border-slate-800/60">Bia 8</th>'));
-                head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase"><th class="p-3 text-center border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loạt/Bệ</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Họ Tên</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Đơn vị</th>${biaH}<th class="p-3 text-center border-r border-slate-800/60" rowspan="2">QS</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loại</th><th class="p-3 text-center" rowspan="2">#</th></tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center">${(currentExercise<=3)?'<th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th>':'<th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th>'}</tr>`;
+                let biaH = (currentExercise === 1) ? 'BIA SỐ 4' : (currentExercise === 2 ? 'BIA SỐ 7' : (currentExercise === 3 ? 'BIA SỐ 8' : 'TỔNG HỢP'));
+                head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase"><th class="p-3 text-center border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loạt/Bệ</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Họ Tên</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Đơn vị</th><th colspan="3" class="text-center border-r border-slate-800/60">${biaH}</th><th class="p-3 text-center border-r border-slate-800/60" rowspan="2">QS</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loại</th><th class="p-3 text-center" rowspan="2">#</th></tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center"><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th></tr>`;
             }
 
             target.innerHTML = '';
             let lastRound = -1;
+            let ammoTotal = 0;
+
             filtered.forEach((item, index) => {
                 if (item.round !== lastRound) {
                     lastRound = item.round;
-                    let colSp = (currentExercise === 5 || currentExercise === 4) ? 20 : 12;
-                    target.innerHTML += `<tr class="bg-slate-950/90 text-yellow-500 font-bold"><td colspan="${colSp}" class="p-2 text-center uppercase tracking-widest text-[10px] border-y border-slate-800">--- LOẠT BẮN SỐ ${lastRound} ---</td></tr>`;
+                    target.innerHTML += `<tr class="bg-slate-950/90 text-yellow-500 font-bold"><td colspan="25" class="p-2 text-center uppercase tracking-widest text-[10px] border-y border-slate-800">--- LOẠT BẮN SỐ ${lastRound} ---</td></tr>`;
                 }
+                
+                if(currentExercise === 6) ammoTotal += (item.ammo_left || 0);
+                
                 let t = calculateTotal(item, currentExercise); 
                 const iS = (deviceRole === 'admin') ? "w-11 bg-slate-950 border border-slate-800 text-center text-yellow-400 font-bold rounded py-1 cursor-pointer" : "w-11 bg-transparent text-center text-slate-200 py-1";
-                const rO = (deviceRole === 'admin') ? "readonly" : "disabled";
-                let actionH = (deviceRole==='admin') ? `<td class="p-2 text-center flex justify-center gap-2"><button onclick="editSoldier(${item.uid})" class="text-blue-400 hover:text-white"><i class="fa-solid fa-user-pen"></i></button><button onclick="purgeSoldier(${item.uid})" class="text-slate-500 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button></td>` : `<td class="p-2 text-center text-slate-600">-</td>`;
+                const actionH = (deviceRole==='admin') ? `<td class="p-2 text-center flex justify-center gap-2"><button onclick="editSoldier(${item.uid})" class="text-blue-400 hover:text-white"><i class="fa-solid fa-user-pen"></i></button><button onclick="purgeSoldier(${item.uid})" class="text-slate-500 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button></td>` : `<td class="p-2 text-center text-slate-600">-</td>`;
 
-                if (currentExercise === 5) {
-                    target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item.round}-B${item.bay}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${item.k54_4d_1}" onclick="openScorePad(${item.uid},'k54_4d_1')" class="${iS}" ${rO}></td><td class="p-1"><input value="${item.k54_4d_2}" onclick="openScorePad(${item.uid},'k54_4d_2')" class="${iS}" ${rO}></td><td class="p-1"><input value="${item.k54_4d_3}" onclick="openScorePad(${item.uid},'k54_4d_3')" class="${iS}" ${rO}></td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_4d_4}" onclick="openScorePad(${item.uid},'k54_4d_4')" class="${iS}" ${rO}></td><td class="p-1 border-r border-slate-800/40 text-[10px]"><input type="radio" onchange="modifyScore(${item.uid},'k54_ken1',1);renderEngine();" ${item.k54_ken1===1?'checked':''} ${rO}> T <input type="radio" onchange="modifyScore(${item.uid},'k54_ken1',0);renderEngine();" ${item.k54_ken1===0?'checked':''} ${rO}> H</td><td class="p-1 border-r border-slate-800/40 text-[10px]"><input type="radio" onchange="modifyScore(${item.uid},'k54_ken2',1);renderEngine();" ${item.k54_ken2===1?'checked':''} ${rO}> T <input type="radio" onchange="modifyScore(${item.uid},'k54_ken2',0);renderEngine();" ${item.k54_ken2===0?'checked':''} ${rO}> H</td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_8e2}" onclick="openScorePad(${item.uid},'k54_8e2')" class="${iS}" ${rO}></td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_8e1_3}" onclick="openScorePad(${item.uid},'k54_8e1_3')" class="${iS}" ${rO}></td><td class="p-1 border-r border-slate-800/60"><input value="${item.k54_8e2_3}" onclick="openScorePad(${item.uid},'k54_8e2_3')" class="${iS}" ${rO}></td><td class="p-3 font-bold text-white">${t}</td><td class="p-3 font-bold border-r border-slate-800/40 uppercase">${getRankString(t, 5)}</td>${actionH}</tr>`;
+                if (currentExercise === 6) {
+                    const b = item.ak_b2 || {};
+                    const btnC = "w-8 h-8 rounded border flex items-center justify-center font-bold text-[10px]";
+                    target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item.round}-B${item.bay}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td>
+                        <td class="p-1"><button onclick="openB2Modal(${item.uid})" class="${btnC} ${b.hit6?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">6</button></td>
+                        <td class="p-1"><button onclick="openB2Modal(${item.uid})" class="${btnC} ${b.hit5?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">5</button></td>
+                        <td class="p-1"><button onclick="openB2Modal(${item.uid})" class="${btnC} ${b.hit10?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">10</button></td>
+                        <td class="p-1"><button onclick="openB2Modal(${item.uid})" class="${btnC} ${b.hit7b?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">7b</button></td>
+                        <td class="p-1"><button onclick="openB2Modal(${item.uid})" class="${btnC} ${b.hit8cn?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">8cN</button></td>
+                        <td class="p-1"><button onclick="openB2Modal(${item.uid})" class="${btnC} ${b.hit8cc?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">8cC</button></td>
+                        <td class="p-3 font-bold text-white border-r border-slate-800/40">${t}</td><td class="p-3 font-bold border-r border-slate-800/40">${getRankString(t, 6, item)}</td><td class="p-1 border-l border-slate-800/60"><input value="${item.ammo_left || 0}" onclick="openScorePad(${item.uid},'ammo_left')" class="${iS} text-emerald-400 border-emerald-900/30" readonly></td>${actionH}</tr>`;
+                } else if (currentExercise === 5) {
+                    target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item.round}-B${item.bay}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${item.k54_4d_1}" onclick="openScorePad(${item.uid},'k54_4d_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.k54_4d_2}" onclick="openScorePad(${item.uid},'k54_4d_2')" class="${iS}" readonly></td><td class="p-1"><input value="${item.k54_4d_3}" onclick="openScorePad(${item.uid},'k54_4d_3')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_4d_4}" onclick="openScorePad(${item.uid},'k54_4d_4')" class="${iS}" readonly></td><td class="p-1 text-[9px]"><input type="radio" onchange="modifyScore(${item.uid},'k54_ken1',1)" ${item.k54_ken1===1?'checked':''}> T <input type="radio" onchange="modifyScore(${item.uid},'k54_ken1',0)" ${item.k54_ken1===0?'checked':''}> H</td><td class="p-1 text-[9px]"><input type="radio" onchange="modifyScore(${item.uid},'k54_ken2',1)" ${item.k54_ken2===1?'checked':''}> T <input type="radio" onchange="modifyScore(${item.uid},'k54_ken2',0)" ${item.k54_ken2===0?'checked':''}> H</td><td class="p-1"><input value="${item.k54_8e2}" onclick="openScorePad(${item.uid},'k54_8e2')" class="${iS}" readonly></td><td class="p-1"><input value="${item.k54_8e1_3}" onclick="openScorePad(${item.uid},'k54_8e1_3')" class="${iS}" readonly></td><td class="p-1"><input value="${item.k54_8e2_3}" onclick="openScorePad(${item.uid},'k54_8e2_3')" class="${iS}" readonly></td><td class="p-3 font-bold text-white">${t}</td><td class="p-3 font-bold border-r border-slate-800/40 uppercase">${getRankString(t, 5)}</td>${actionH}</tr>`;
                 } else {
-                    let sH = '';
-                    if(currentExercise === 1 || currentExercise === 4) sH += `<td class="p-1"><input value="${item.b4_1}" onclick="openScorePad(${item.uid},'b4_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b4_2}" onclick="openScorePad(${item.uid},'b4_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b4_3}" onclick="openScorePad(${item.uid},'b4_3')" class="${iS}" readonly></td>`;
-                    if(currentExercise === 2 || currentExercise === 4) sH += `<td class="p-1"><input value="${item.b7_1}" onclick="openScorePad(${item.uid},'b7_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b7_2}" onclick="openScorePad(${item.uid},'b7_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b7_3}" onclick="openScorePad(${item.uid},'b7_3')" class="${iS}" readonly></td>`;
-                    if(currentExercise === 3 || currentExercise === 4) sH += `<td class="p-1"><input value="${item.b8_1}" onclick="openScorePad(${item.uid},'b8_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b8_2}" onclick="openScorePad(${item.uid},'b8_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b8_3}" onclick="openScorePad(${item.uid},'b8_3')" class="${iS}" readonly></td>`;
-                    target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item.round}-B${item.bay}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td>${sH}<td class="p-3 font-bold text-white">${t}</td><td class="p-3 font-bold border-r border-slate-800/40 uppercase">${getRankString(t, currentExercise)}</td>${actionH}</tr>`;
+                    let field=(currentExercise===1?'b4':(currentExercise===2?'b7':(currentExercise===3?'b8':'b4')));
+                    let v1=item[field+'_1'], v2=item[field+'_2'], v3=item[field+'_3'];
+                    target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item.round}-B${item.bay}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${v1}" onclick="openScorePad(${item.uid},'${field}_1')" class="${iS}" readonly></td><td class="p-1"><input value="${v2}" onclick="openScorePad(${item.uid},'${field}_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${v3}" onclick="openScorePad(${item.uid},'${field}_3')" class="${iS}" readonly></td><td class="p-3 font-bold text-white">${t}</td><td class="p-3 font-bold border-r border-slate-800/40 uppercase">${getRankString(t, currentExercise)}</td>${actionH}</tr>`;
                 }
             });
+            document.getElementById('global-ammo-total').innerHTML = `${ammoTotal} <span class="text-xs text-slate-500 font-bold uppercase ml-1">Viên</span>`;
             updatePieChartLogic(); updateUnitStatistics();
         }
 
+        function openB2Modal(uid) {
+            if(deviceRole !== 'admin') return; activeB2Uid = uid; const s = mainData.find(d => d.uid === uid);
+            tempB2Hits = s.ak_b2 ? {...s.ak_b2} : { hit6:0, hit5:0, hit10:0, hit7b:0, hit8cn:0, hit8cc:0 };
+            refreshB2UI(); document.getElementById('ak-b2-modal').classList.replace('hidden', 'flex');
+        }
+        function toggleB2Target(targetKey) { tempB2Hits[targetKey] = tempB2Hits[targetKey] === 1 ? 0 : 1; refreshB2UI(); }
+        function refreshB2UI() { for(let key in tempB2Hits) { const el = document.getElementById(`bia-${key}`); if(tempB2Hits[key] === 1) el.classList.add('target-down'); else el.classList.remove('target-down'); } }
+        function saveB2Targets() { const idx = mainData.findIndex(d => d.uid === activeB2Uid); if(idx !== -1) { mainData[idx].ak_b2 = tempB2Hits; uploadDataToCloud(); renderEngine(); closeB2Modal(); } }
+        function resetB2Targets() { tempB2Hits = { hit6:0, hit5:0, hit10:0, hit7b:0, hit8cn:0, hit8cc:0 }; refreshB2UI(); }
+        function closeB2Modal() { document.getElementById('ak-b2-modal').classList.replace('flex', 'hidden'); activeB2Uid = null; }
+
+        function switchExercise(ex) { 
+            currentExercise = ex; 
+            document.querySelectorAll('#exercise-selector button').forEach(b => { b.classList.remove('active-pill', 'text-white'); b.classList.add('text-slate-400'); });
+            if([1,2,3,4].includes(ex)) document.getElementById('group-ak-label').classList.add('active-pill', 'text-white');
+            else document.getElementById(`ex-btn-${ex}`).classList.add('active-pill', 'text-white');
+            renderEngine(); 
+        }
+        
+        function openScorePad(uid, f) { 
+            if(deviceRole !== 'admin') return; activePadTarget={uid,f}; 
+            const grid = document.getElementById('pad-grid'); grid.innerHTML = ''; 
+            for(let i=0; i<=10; i++) grid.innerHTML += `<button onclick="handlePadClick(${i})" class="score-btn py-3 text-white rounded-lg font-bold">${i}</button>`; 
+            document.getElementById('score-pad-modal').classList.replace('hidden','flex'); 
+        }
+        function handlePadClick(v) { 
+            if(currentExercise === 5 && !activePadTarget.f.includes('ammo')) { padSum += v; document.getElementById('score-pad-display').innerText = padSum; } 
+            else { modifyScore(activePadTarget.uid, activePadTarget.f, v); closeScorePad(); } 
+        }
+        function confirmPad() { modifyScore(activePadTarget.uid, activePadTarget.f, padSum); closeScorePad(); }
+        function resetPad() { padSum = 0; document.getElementById('score-pad-display').innerText = '0'; }
+        function closeScorePad() { document.getElementById('score-pad-modal').classList.replace('flex', 'hidden'); resetPad(); }
+        function modifyScore(uid, f, v) { const idx = mainData.findIndex(d => d.uid === uid); if(idx !== -1) { mainData[idx][f] = parseInt(v); uploadDataToCloud(); renderEngine(); } }
+        function purgeSoldier(uid) { if(confirm("Xóa quân nhân này?")) { mainData = mainData.filter(d => d.uid !== uid); uploadDataToCloud(); renderEngine(); } }
+
+        function updateUnitStatistics() {
+            const t = document.getElementById('unit-stats-target'); if(!t) return; t.innerHTML = ''; const d = getUnitStatsData();
+            for(let u in d.stats) {
+                let it = d.stats[u]; if(it.ts === 0) continue;
+                let rP = (((it.g+it.k+it.d)/it.ts)*100).toFixed(1);
+                t.innerHTML += `<tr><td class="p-3 font-bold text-yellow-500 text-left pl-6">${u}</td><td class="p-3 text-white">${it.ts}</td><td class="p-3 text-emerald-400">${it.g} (${(it.g/it.ts*100).toFixed(1)}%)</td><td class="p-3 text-blue-400">${it.k} (${(it.k/it.ts*100).toFixed(1)}%)</td><td class="p-3 text-amber-500">${it.d} (${(it.d/it.ts*100).toFixed(1)}%)</td><td class="p-3 text-red-500">${it.h} (${(it.h/it.ts*100).toFixed(1)}%)</td><td class="p-3 font-black text-emerald-400">${rP}%</td></tr>`;
+            }
+        }
         function getUnitStatsData() {
-            let stats = {}; let ex = currentExercise;
-            let sumQS=0, sumG=0, sumK=0, sumD=0, sumH=0;
+            let stats = {}; let sumQS=0, sumG=0, sumK=0, sumD=0, sumH=0;
             mainData.forEach(i => {
-                let u = i.unit.toUpperCase().trim() || "CHƯA RÕ"; let c = calculateTotal(i, ex);
+                let u = i.unit.toUpperCase().trim() || "CHƯA RÕ"; let c = calculateTotal(i, currentExercise);
                 if(!stats[u]) stats[u] = { ts: 0, g: 0, k: 0, d: 0, h: 0 };
-                if(c > 0 || (ex === 5 && i.k54_ken1 !== -1)) {
-                    stats[u].ts++; sumQS++; let gr, kr, dr;
-                    if(ex === 5) { gr=240; kr=198; dr=150; } else if(ex === 4) { gr=72; kr=65; dr=50; } else { gr=25; kr=21; dr=15; }
-                    if(c >= gr) { stats[u].g++; sumG++; } else if(c >= kr) { stats[u].k++; sumK++; } else if(c >= dr) { stats[u].d++; sumD++; } else { stats[u].h++; sumH++; }
+                if(c > 0 || (currentExercise === 6 && i.ak_b2) || (currentExercise === 5 && i.k54_ken1 !== -1)) {
+                    stats[u].ts++; sumQS++; const rank = getRankString(c, currentExercise, i);
+                    if(rank.includes('Giỏi') || rank.includes('GIỎI')) { stats[u].g++; sumG++; } else if(rank.includes('Khá') || rank.includes('KHÁ')) { stats[u].k++; sumK++; } else if(rank.includes('Đạt') || rank.includes('ĐẠT')) { stats[u].d++; sumD++; } else { stats[u].h++; sumH++; }
                 }
             });
             return { stats, sumQS, sumG, sumK, sumD, sumH };
         }
-
-        function updateUnitStatistics() {
-            const target = document.getElementById('unit-stats-target'); if(!target) return;
-            target.innerHTML = ''; const d = getUnitStatsData();
-            document.getElementById('summary-total').innerText = d.sumQS;
-            const pG = d.sumQS ? (d.sumG/d.sumQS*100).toFixed(1) : 0;
-            const pK = d.sumQS ? (d.sumK/d.sumQS*100).toFixed(1) : 0;
-            const pD = d.sumQS ? (d.sumD/d.sumQS*100).toFixed(1) : 0;
-            const pH = d.sumQS ? (d.sumH/d.sumQS*100).toFixed(1) : 0;
-            const pTotal = d.sumQS ? (((d.sumG+d.sumK+d.sumD)/d.sumQS)*100).toFixed(1) : 0;
-            document.getElementById('summary-g').innerText = `${d.sumG} (${pG}%)`;
-            document.getElementById('summary-k').innerText = `${d.sumK} (${pK}%)`;
-            document.getElementById('summary-d').innerText = `${d.sumD} (${pD}%)`;
-            document.getElementById('summary-h').innerText = `${d.sumH} (${pH}%)`;
-            document.getElementById('summary-rate').innerText = `${pTotal}%`;
-            for(let u in d.stats) {
-                let it = d.stats[u]; if(it.ts === 0) continue;
-                let rP = (((it.g+it.k+it.d)/it.ts)*100).toFixed(1);
-                target.innerHTML += `<tr><td class="p-3 font-bold text-yellow-500 border-r border-slate-800 text-left pl-6">${u}</td><td class="p-3 border-r border-slate-800 text-white">${it.ts}</td><td class="p-3 border-r border-slate-800 text-emerald-400">${it.g} (${(it.g/it.ts*100).toFixed(1)}%)</td><td class="p-3 border-r border-slate-800 text-blue-400">${it.k} (${(it.k/it.ts*100).toFixed(1)}%)</td><td class="p-3 border-r border-slate-800 text-amber-500">${it.d} (${(it.d/it.ts*100).toFixed(1)}%)</td><td class="p-3 border-r border-slate-800 text-red-500">${it.h} (${(it.h/it.ts*100).toFixed(1)}%)</td><td class="p-3 font-black text-emerald-400">${rP}%</td></tr>`;
-            }
-        }
-
         function updatePieChartLogic() {
             let g=0, k=0, d=0, h=0;
             mainData.forEach(i => {
-                let s = calculateTotal(i, currentExercise);
-                if(s > 0 || (currentExercise === 5 && i.k54_ken1 !== -1)) {
-                    let gr, kr, dr; if(currentExercise === 5) { gr=240; kr=198; dr=150; } else if(currentExercise === 4) { gr=72; kr=65; dr=50; } else { gr=25; kr=21; dr=15; }
-                    if(s >= gr) g++; else if(s >= kr) k++; else if(s >= dr) d++; else h++;
+                let c = calculateTotal(i, currentExercise);
+                if(c > 0 || (currentExercise === 6 && i.ak_b2) || (currentExercise === 5 && i.k54_ken1 !== -1)) {
+                    const r = getRankString(c, currentExercise, i);
+                    if(r.includes('Giỏi') || r.includes('GIỎI')) g++; else if(r.includes('Khá') || r.includes('KHÁ')) k++; else if(r.includes('Đạt') || r.includes('ĐẠT')) d++; else h++;
                 }
             });
             const ctx = document.getElementById('achievementChart').getContext('2d'); if(pieChartInstance) pieChartInstance.destroy();
             pieChartInstance = new Chart(ctx, { type: 'pie', data: { labels: ['Giỏi', 'Khá', 'Đạt', 'K. Đạt'], datasets: [{ data: [g, k, d, h], backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'] }] }, options: { responsive: true, maintainAspectRatio: false } });
         }
-
-        function purgeSoldier(uid) { if(deviceRole === 'admin' && confirm("Xóa quân nhân này?")) { mainData = mainData.filter(d => d.uid !== uid); renderEngine(); uploadDataToCloud(); } }
-        setInterval(() => { if (deviceRole === 'viewer') downloadDataFromCloud(); }, 3000);
-
         function exportToExcel() {
-            if(mainData.length === 0) return alert("Không có dữ liệu!");
-            let rows = [["STT", "Loạt", "Bệ", "Họ Tên", "Đơn vị", "Tổng", "Loại"]];
-            mainData.sort((a,b) => (a.round-b.round)||(a.bay-b.bay)).forEach((d, i) => {
-                let t = calculateTotal(d, currentExercise);
-                rows.push([i+1, d.round, d.bay, d.name, d.unit, t, getRankString(t, currentExercise).replace(/<\/?[^>]+(>|$)/g, "")]);
+            let rows = [["STT", "Loạt", "Bệ", "Họ Tên", "Đơn vị", "Kết quả", "Xếp loại", "Đạn thừa"]];
+            mainData.sort((a,b)=>(a.round-b.round)||(a.bay-b.bay)).forEach((d,i)=>{
+                let c = calculateTotal(d, currentExercise);
+                rows.push([i+1, d.round, d.bay, d.name, d.unit, c, getRankString(c, currentExercise, d).replace(/<[^>]*>?/gm, ''), d.ammo_left||0]);
             });
             let ws = XLSX.utils.aoa_to_sheet(rows); let wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "KetQua"); XLSX.writeFile(wb, "KetQua_Export.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "KetQua"); XLSX.writeFile(wb, "Ket_Qua_Ban_Sung.xlsx");
         }
+        function exportShooterTemplate() {
+            let rows = [["Họ và Tên", "Đơn vị", "Loạt bắn", "Bệ bắn"]];
+            mainData.forEach(d => rows.push([d.name, d.unit, d.round||1, d.bay]));
+            let ws = XLSX.utils.aoa_to_sheet(rows); let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "DanhSach"); XLSX.writeFile(wb, "Mau_Danh_Sach.xlsx");
+        }
+        function importShooters(e) {
+            const file = e.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const workbook = XLSX.read(evt.target.result, {type: 'binary'});
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                if(json.length > 0) {
+                    json.forEach(row => {
+                        const name = row["Họ và Tên"] || row["Tên"];
+                        const unit = row["Đơn vị"];
+                        const round = parseInt(row["Loạt bắn"]) || 1;
+                        const bay = row["Bệ bắn"] || 1;
+                        if(name && unit) {
+                            mainData.push({ 
+                                uid: Date.now() + Math.random(), name, unit, bay, round, ammo_left: 0,
+                                b4_1:0, b4_2:0, b4_3:0, b7_1:0, b7_2:0, b7_3:0, b8_1:0, b8_2:0, b8_3:0, 
+                                ak_b2: { hit6:0, hit5:0, hit10:0, hit7b:0, hit8cn:0, hit8cc:0 },
+                                k54_4d_1:0, k54_4d_2:0, k54_4d_3:0, k54_4d_4:0, k54_ken1:-1, k54_ken2:-1, k54_8e2:0, k54_8e1_3:0, k54_8e2_3:0 
+                            });
+                        }
+                    });
+                    renderEngine(); uploadDataToCloud();
+                }
+            };
+            reader.readAsBinaryString(file);
+        }
+        setInterval(() => { if (deviceRole === 'viewer') downloadDataFromCloud(); }, 3000);
     </script>
 </body>
 </html>
