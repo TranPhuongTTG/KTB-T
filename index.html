@@ -1,3 +1,5 @@
+--- START OF FILE Paste May 23, 2026 - 10:29PM ---
+
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -262,7 +264,7 @@
 
             target.innerHTML = ''; let lastRound = -1; let ammoTotal = 0;
             filtered.forEach((item, index) => {
-                let rNum = item[rKey]; if (rNum !== lastRound) { lastRound = rNum; let roundBtn = (currentExercise === 6 && deviceRole === 'admin') ? `<button onclick="openB2LoatModal(${lastRound})" class="ml-4 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[9px] rounded-lg shadow-lg">HIỆN MỤC TIÊU</button>` : ''; let cSpan = (currentExercise === 4) ? 16 : 14; target.innerHTML += `<tr class="bg-slate-950/90 text-yellow-500 font-bold text-center"><td colspan="${cSpan}" class="p-2 uppercase tracking-widest text-[10px] border-y border-slate-800">--- LOẠT BẮN SỐ ${lastRound} --- ${roundBtn}</td></tr>`; }
+                let rNum = item[rKey]; if (rNum !== lastRound) { lastRound = rNum; let roundBtn = (currentExercise === 6 && deviceRole === 'admin') ? `<button onclick="openB2LoatModal(${lastRound})" class="ml-4 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[9px] rounded-lg shadow-lg">HIỆN MỤT TIÊU</button>` : ''; let cSpan = (currentExercise === 4) ? 16 : 14; target.innerHTML += `<tr class="bg-slate-950/90 text-yellow-500 font-bold text-center"><td colspan="${cSpan}" class="p-2 uppercase tracking-widest text-[10px] border-y border-slate-800">--- LOẠT BẮN SỐ ${lastRound} --- ${roundBtn}</td></tr>`; }
                 if(currentExercise === 6) ammoTotal += (item['ammo_left_6'] || 0);
                 let t = calculateTotal(item, currentExercise); let rankStr = getRankString(t, currentExercise, item);
                 const iS = (deviceRole === 'admin') ? "w-11 bg-slate-950 border border-slate-800 text-center text-yellow-400 font-bold rounded py-1 cursor-pointer" : "w-11 bg-transparent text-center text-slate-200 py-1";
@@ -359,11 +361,18 @@
         function exportToExcel() { 
             let wb = XLSX.utils.book_new(); let rows = []; 
             if ([5,7].includes(currentExercise)) { 
-                rows.push(["BẢNG TỔNG HỢP KẾT QUẢ BẮN SÚNG NGẮN K54 (BÀI 2 & 2B)"]); rows.push(["STT", "Loạt", "Bệ", "Họ Tên", "Đơn vị", "Đối tượng", "Tổng điểm", "Thành tích", "Đạn thừa"]); 
-                mainData.forEach((d,i)=>{ if(d.round_5 || d.round_7) { let exT = d.round_7 ? 7 : 5; let c = calculateTotal(d, exT); rows.push([i+1, d['round_'+exT], d['bay_'+exT], d.name, d.unit, (exT === 7 ? "Trên 45 (2b)" : "Dưới 45 (2)"), c, getRankString(c, exT, d), d['ammo_left_'+exT]||0]); } }); 
+                rows.push(["BẢNG TỔNG HỢP KẾT QUẢ BẮN SÚNG NGẮN K54 (BÀI 2 & 2B)"]); 
+                // XỬ LÝ HEADER: Chỉ bài 6 mới có đạn thừa
+                let h = ["STT", "Loạt", "Bệ", "Họ Tên", "Đơn vị", "Đối tượng", "Tổng điểm", "Thành tích"];
+                if (currentExercise === 6) h.push("Đạn thừa");
+                rows.push(h); 
+                mainData.forEach((d,i)=>{ if(d.round_5 || d.round_7) { let exT = d.round_7 ? 7 : 5; let c = calculateTotal(d, exT); let r = [i+1, d['round_'+exT], d['bay_'+exT], d.name, d.unit, (exT === 7 ? "Trên 45 (2b)" : "Dưới 45 (2)"), c, getRankString(c, exT, d)]; if(currentExercise === 6) r.push(d['ammo_left_'+exT]||0); rows.push(r); } }); 
             } else { 
-                rows.push(["STT", "Loạt", "Bệ", "Họ Tên", "Đơn vị", "Tổng điểm", "Thành tích", "Đạn thừa"]); 
-                const rK = 'round_'+currentExercise; const bK = 'bay_'+currentExercise; mainData.filter(d => d[rK]).sort((a,b)=>(a[rK]-b[rK])||(a[bK]-b[bK])).forEach((d,i)=>{ let c = calculateTotal(d, currentExercise); rows.push([i+1, d[rK], d[bK], d.name, d.unit, c, getRankString(c, currentExercise, d), d['ammo_left_'+currentExercise]||0]); }); 
+                // XỬ LÝ HEADER: Chỉ bài 6 mới có đạn thừa
+                let h = ["STT", "Loạt", "Bệ", "Họ Tên", "Đơn vị", "Tổng điểm", "Thành tích"];
+                if (currentExercise === 6) h.push("Đạn thừa");
+                rows.push(h);
+                const rK = 'round_'+currentExercise; const bK = 'bay_'+currentExercise; mainData.filter(d => d[rK]).sort((a,b)=>(a[rK]-b[rK])||(a[bK]-b[bK])).forEach((d,i)=>{ let c = calculateTotal(d, currentExercise); let r = [i+1, d[rK], d[bK], d.name, d.unit, c, getRankString(c, currentExercise, d)]; if(currentExercise === 6) r.push(d['ammo_left_'+currentExercise]||0); rows.push(r); }); 
             } 
             rows.push([]); rows.push(["THỐNG KÊ CHI TIẾT THEO ĐƠN VỊ"]); rows.push(["Đơn vị", "QS đã bắn", "Giỏi", "Khá", "Đạt", "K. Đạt", "Tỉ lệ đạt (%)"]);
             let dData = getUnitStatsData(); for(let u in dData.stats) { let it = dData.stats[u]; let pG = ((it.g/it.ts)*100).toFixed(1); let pK = ((it.k/it.ts)*100).toFixed(1); let pD = ((it.d/it.ts)*100).toFixed(1); let pH = ((it.h/it.ts)*100).toFixed(1); rows.push([u, it.ts, `${it.g} (${pG}%)`, `${it.k} (${pK}%)`, `${it.d} (${pD}%)`, `${it.h} (${pH}%)`, (((it.g+it.k+it.d)/it.ts)*100).toFixed(1) + "%"]); }
