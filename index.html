@@ -329,7 +329,7 @@
             if(!n || !u) return alert("Vui lòng điền đủ Tên và Đơn vị!");
 
             const isDuplicate = mainData.some(item => item.round == r && item.bay == b && item.uid != editUid);
-            if (isDuplicate) return alert(`⚠️ BÁO TRÙNG: Bệ số ${b} của Loạt ${r} đã có quân nhân khác!`);
+            if (isDuplicate) return alert(`⚠️ CẢNH BÁO: Bệ số ${b} của Loạt ${r} đã có quân nhân khác!`);
 
             if(editUid) {
                 const idx = mainData.findIndex(d => d.uid == editUid);
