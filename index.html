@@ -73,7 +73,7 @@
         <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 items-center gap-1" id="exercise-selector">
             <div class="dropdown">
                 <button id="group-ak-label" class="px-4 py-2 text-[11px] font-bold rounded-lg transition-all text-white active-pill flex items-center gap-2 uppercase">
-                    STV, AK BÀI 1 <i class="fa-solid fa-chevron-down text-[8px] ml-1"></i>
+                    STV, AK <i class="fa-solid fa-chevron-down text-[8px] ml-1"></i>
                 </button>
                 <div class="dropdown-menu">
                     <div class="flex flex-col bg-slate-900 border border-slate-700 rounded-xl shadow-2xl min-w-[200px] p-1 overflow-hidden">
@@ -320,27 +320,16 @@
 
         function forceSyncData() { downloadDataFromCloud(); }
 
-        // --- HÀM XỬ LÝ CHÍNH: KIỂM TRA TRÙNG LOẠT VÀ BỆ ---
         function registerSoldier() {
             const n = document.getElementById('s-name').value.trim();
             const u = document.getElementById('s-unit').value.trim();
             const b = document.getElementById('s-bay').value;
             const r = parseInt(document.getElementById('s-round').value) || 1;
             const editUid = document.getElementById('edit-uid').value;
-
             if(!n || !u) return alert("Vui lòng điền đủ Tên và Đơn vị!");
 
-            // KIỂM TRA TRÙNG BỆ TRONG CÙNG MỘT LOẠT
-            const isDuplicate = mainData.some(item => 
-                item.round == r && 
-                item.bay == b && 
-                item.uid != editUid // Bỏ qua chính nó nếu đang sửa
-            );
-
-            if (isDuplicate) {
-                alert(`⚠️ Cảnh Báo: Bệ số ${b} của Loạt ${r} đã có quân nhân khác. Vui lòng kiểm tra lại!`);
-                return;
-            }
+            const isDuplicate = mainData.some(item => item.round == r && item.bay == b && item.uid != editUid);
+            if (isDuplicate) return alert(`⚠️ BÁO TRÙNG: Bệ số ${b} của Loạt ${r} đã có quân nhân khác!`);
 
             if(editUid) {
                 const idx = mainData.findIndex(d => d.uid == editUid);
@@ -392,8 +381,9 @@
         function switchExercise(exNum) {
             currentExercise = exNum;
             document.querySelectorAll('#exercise-selector button').forEach(b => { b.classList.remove('active-pill', 'text-white'); b.classList.add('text-slate-400'); });
-            if(exNum <= 4) document.getElementById('group-ak-label').classList.add('active-pill', 'text-white');
-            else document.getElementById('ex-btn-5').classList.add('active-pill', 'text-white');
+            const gl = document.getElementById('group-ak-label'); const k5 = document.getElementById('ex-btn-5');
+            if(exNum <= 4) { gl.classList.add('active-pill', 'text-white'); document.querySelectorAll('.dropdown-menu button').forEach(b => b.classList.remove('text-white')); document.getElementById(`ex-btn-${exNum}`).classList.add('text-white'); }
+            else { k5.classList.add('active-pill', 'text-white'); }
             renderEngine();
         }
 
@@ -415,20 +405,24 @@
         function renderEngine() {
             const head = document.getElementById('header-target'); const target = document.getElementById('render-target');
             const query = document.getElementById('search-input').value.toLowerCase().trim();
-            // Sắp xếp tự động theo Loạt -> Bệ để không bị tách loạt
             let sortedData = [...mainData].sort((a,b) => (parseInt(a.round) - parseInt(b.round)) || (a.bay - b.bay));
             const filtered = sortedData.filter(d => d.name.toLowerCase().includes(query) || d.unit.toLowerCase().includes(query));
             document.getElementById('record-count').innerText = filtered.length;
 
-            if (currentExercise === 5) head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase text-center"><th class="p-3 border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loạt/Bệ</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Họ và Tên</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Đơn vị</th><th class="p-2 border-r border-slate-800/60" colspan="4">Bia 4d</th><th class="p-2 border-r border-slate-800/60" colspan="2">Bia Ken</th><th class="p-2 border-r border-slate-800/60">8e/2</th><th class="p-2 border-r border-slate-800/60">8e1/3</th><th class="p-2 border-r border-slate-800/60">8e2/3</th><th class="p-3 border-r border-slate-800/60" rowspan="2">QS</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loại</th><th class="p-3 text-center" rowspan="2">#</th></tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center"><th class="p-2 border-r border-slate-800/40">M1</th><th class="p-2 border-r border-slate-800/40">M2</th><th class="p-2 border-r border-slate-800/40">M3</th><th class="p-2 border-r border-slate-800/40">M4</th><th class="p-2 border-r border-slate-800/40">B1</th><th class="p-2 border-r border-slate-800/40">B2</th><th>5-10đ</th><th>5-10đ</th><th>5-10đ</th></tr>`;
-            else head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase"><th class="p-3 text-center border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loạt/Bệ</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Họ Tên</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Đơn vị</th><th colspan="3" class="text-center border-r border-slate-800/60">ĐIỂM BẮN</th><th class="p-3 text-center border-r border-slate-800/60" rowspan="2">QS</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loại</th><th class="p-3 text-center" rowspan="2">#</th></tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center"><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th></tr>`;
+            if (currentExercise === 5) {
+                head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase text-center"><th class="p-3 border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loạt/Bệ</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Họ và Tên</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Đơn vị</th><th class="p-2 border-r border-slate-800/60" colspan="4">Bia 4d</th><th class="p-2 border-r border-slate-800/60" colspan="2">Bia Ken</th><th class="p-2 border-r border-slate-800/60">8e/2</th><th class="p-2 border-r border-slate-800/60">8e1/3</th><th class="p-2 border-r border-slate-800/60">8e2/3</th><th class="p-3 border-r border-slate-800/60" rowspan="2">QS</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loại</th><th class="p-3 text-center" rowspan="2">#</th></tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center"><th class="p-2 border-r border-slate-800/40">M1</th><th class="p-2 border-r border-slate-800/40">M2</th><th class="p-2 border-r border-slate-800/40">M3</th><th class="p-2 border-r border-slate-800/40">M4</th><th class="p-2 border-r border-slate-800/40">B1</th><th class="p-2 border-r border-slate-800/40">B2</th><th>5-10đ</th><th>5-10đ</th><th>5-10đ</th></tr>`;
+            } else {
+                let biaH = (currentExercise === 1) ? '<th colspan="3" class="text-center border-r border-slate-800/60">BIA SỐ 4</th>' : (currentExercise === 2 ? '<th colspan="3" class="text-center border-r border-slate-800/60">BIA SỐ 7</th>' : (currentExercise === 3 ? '<th colspan="3" class="text-center border-r border-slate-800/60">BIA SỐ 8</th>' : '<th colspan="3" class="text-center">Bia 4</th><th colspan="3" class="text-center">Bia 7</th><th colspan="3" class="text-center border-r border-slate-800/60">Bia 8</th>'));
+                head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase"><th class="p-3 text-center border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loạt/Bệ</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Họ Tên</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Đơn vị</th>${biaH}<th class="p-3 text-center border-r border-slate-800/60" rowspan="2">QS</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loại</th><th class="p-3 text-center" rowspan="2">#</th></tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center">${(currentExercise<=3)?'<th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th>':'<th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th>'}</tr>`;
+            }
 
             target.innerHTML = '';
             let lastRound = -1;
             filtered.forEach((item, index) => {
                 if (item.round !== lastRound) {
                     lastRound = item.round;
-                    target.innerHTML += `<tr class="bg-slate-950/90 text-yellow-500 font-bold"><td colspan="20" class="p-2 text-center uppercase tracking-widest text-[10px] border-y border-slate-800">--- LOẠT BẮN SỐ ${lastRound} ---</td></tr>`;
+                    let colSp = (currentExercise === 5 || currentExercise === 4) ? 20 : 12;
+                    target.innerHTML += `<tr class="bg-slate-950/90 text-yellow-500 font-bold"><td colspan="${colSp}" class="p-2 text-center uppercase tracking-widest text-[10px] border-y border-slate-800">--- LOẠT BẮN SỐ ${lastRound} ---</td></tr>`;
                 }
                 let t = calculateTotal(item, currentExercise); 
                 const iS = (deviceRole === 'admin') ? "w-11 bg-slate-950 border border-slate-800 text-center text-yellow-400 font-bold rounded py-1 cursor-pointer" : "w-11 bg-transparent text-center text-slate-200 py-1";
@@ -438,9 +432,11 @@
                 if (currentExercise === 5) {
                     target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item.round}-B${item.bay}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${item.k54_4d_1}" onclick="openScorePad(${item.uid},'k54_4d_1')" class="${iS}" ${rO}></td><td class="p-1"><input value="${item.k54_4d_2}" onclick="openScorePad(${item.uid},'k54_4d_2')" class="${iS}" ${rO}></td><td class="p-1"><input value="${item.k54_4d_3}" onclick="openScorePad(${item.uid},'k54_4d_3')" class="${iS}" ${rO}></td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_4d_4}" onclick="openScorePad(${item.uid},'k54_4d_4')" class="${iS}" ${rO}></td><td class="p-1 border-r border-slate-800/40 text-[10px]"><input type="radio" onchange="modifyScore(${item.uid},'k54_ken1',1);renderEngine();" ${item.k54_ken1===1?'checked':''} ${rO}> T <input type="radio" onchange="modifyScore(${item.uid},'k54_ken1',0);renderEngine();" ${item.k54_ken1===0?'checked':''} ${rO}> H</td><td class="p-1 border-r border-slate-800/40 text-[10px]"><input type="radio" onchange="modifyScore(${item.uid},'k54_ken2',1);renderEngine();" ${item.k54_ken2===1?'checked':''} ${rO}> T <input type="radio" onchange="modifyScore(${item.uid},'k54_ken2',0);renderEngine();" ${item.k54_ken2===0?'checked':''} ${rO}> H</td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_8e2}" onclick="openScorePad(${item.uid},'k54_8e2')" class="${iS}" ${rO}></td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_8e1_3}" onclick="openScorePad(${item.uid},'k54_8e1_3')" class="${iS}" ${rO}></td><td class="p-1 border-r border-slate-800/60"><input value="${item.k54_8e2_3}" onclick="openScorePad(${item.uid},'k54_8e2_3')" class="${iS}" ${rO}></td><td class="p-3 font-bold text-white">${t}</td><td class="p-3 font-bold border-r border-slate-800/40 uppercase">${getRankString(t, 5)}</td>${actionH}</tr>`;
                 } else {
-                    let v1=(currentExercise===1?item.b4_1:(currentExercise===2?item.b7_1:item.b8_1)), v2=(currentExercise===1?item.b4_2:(currentExercise===2?item.b7_2:item.b8_2)), v3=(currentExercise===1?item.b4_3:(currentExercise===2?item.b7_3:item.b8_3));
-                    let f1=(currentExercise===1?'b4_1':(currentExercise===2?'b7_1':'b8_1')), f2=(currentExercise===1?'b4_2':(currentExercise===2?'b7_2':'b8_2')), f3=(currentExercise===1?'b4_3':(currentExercise===2?'b7_3':'b8_3'));
-                    target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item.round}-B${item.bay}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${v1}" onclick="openScorePad(${item.uid},'${f1}')" class="${iS}" readonly></td><td class="p-1"><input value="${v2}" onclick="openScorePad(${item.uid},'${f2}')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${v3}" onclick="openScorePad(${item.uid},'${f3}')" class="${iS}" readonly></td><td class="p-3 font-bold text-white">${t}</td><td class="p-3 font-bold border-r border-slate-800/40 uppercase">${getRankString(t, currentExercise)}</td>${actionH}</tr>`;
+                    let sH = '';
+                    if(currentExercise === 1 || currentExercise === 4) sH += `<td class="p-1"><input value="${item.b4_1}" onclick="openScorePad(${item.uid},'b4_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b4_2}" onclick="openScorePad(${item.uid},'b4_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b4_3}" onclick="openScorePad(${item.uid},'b4_3')" class="${iS}" readonly></td>`;
+                    if(currentExercise === 2 || currentExercise === 4) sH += `<td class="p-1"><input value="${item.b7_1}" onclick="openScorePad(${item.uid},'b7_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b7_2}" onclick="openScorePad(${item.uid},'b7_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b7_3}" onclick="openScorePad(${item.uid},'b7_3')" class="${iS}" readonly></td>`;
+                    if(currentExercise === 3 || currentExercise === 4) sH += `<td class="p-1"><input value="${item.b8_1}" onclick="openScorePad(${item.uid},'b8_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b8_2}" onclick="openScorePad(${item.uid},'b8_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b8_3}" onclick="openScorePad(${item.uid},'b8_3')" class="${iS}" readonly></td>`;
+                    target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item.round}-B${item.bay}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td>${sH}<td class="p-3 font-bold text-white">${t}</td><td class="p-3 font-bold border-r border-slate-800/40 uppercase">${getRankString(t, currentExercise)}</td>${actionH}</tr>`;
                 }
             });
             updatePieChartLogic(); updateUnitStatistics();
