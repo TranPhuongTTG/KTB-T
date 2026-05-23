@@ -1,3 +1,5 @@
+--- START OF FILE Paste May 23, 2026 - 7:34PM ---
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -154,29 +156,112 @@
     <script>
         let currentExercise = 1; let mainData = []; let pieChartInstance = null;
         let deviceRole = (window.innerWidth < 1024) ? 'viewer' : 'admin';
-        let currentRoom = "room_" + new Date().toISOString().slice(0,10).replace(/-/g,'');
+        let currentRoom = ""; 
         let activePadTarget = null; let padSum = 0;
         let activeB2Uids = []; let tempMultiB2Hits = {};
         const MASTER_KEY = "$2a$10$Q9wC3DLyzOq0JM64EXJmGuwtG8flBOVIgLik4fsZNYhJOi.vAXCNS";
         const SYNC_SERVER = "https://api.jsonbin.io/v3/b";
 
         window.addEventListener('keydown', function(e) { if ((e.which || e.keyCode) == 116 || (e.ctrlKey && (e.which || e.keyCode) == 82)) e.preventDefault(); });
-        function generateConnectionQR(roomId) { const container = document.getElementById('qrcode-container'); container.innerHTML = ""; container.classList.remove('hidden'); let fullURL = window.location.href.split('?')[0] + "?room=" + roomId + "&role=viewer"; new QRCode(container, { text: fullURL, width: 72, height: 72, colorDark: "#0f172a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H }); }
+
+        function updateStatus(text, type) {
+            const dot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            statusText.innerText = text;
+            dot.className = `w-3 h-3 rounded-full animate-pulse ${type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`;
+        }
+
+        function generateConnectionQR(roomId) { 
+            const container = document.getElementById('qrcode-container'); 
+            container.innerHTML = ""; 
+            container.classList.remove('hidden'); 
+            // Fix: Sử dụng origin và pathname để đảm bảo URL tuyệt đối
+            let fullURL = window.location.origin + window.location.pathname + "?room=" + roomId + "&role=viewer"; 
+            new QRCode(container, { text: fullURL, width: 72, height: 72, colorDark: "#0f172a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H }); 
+        }
         
         window.onload = function() {
             const savedData = localStorage.getItem('ShootingResults'); if(savedData) mainData = JSON.parse(savedData);
             const urlParams = new URLSearchParams(window.location.search);
-            if(urlParams.get('room')) { deviceRole = urlParams.get('role') || 'viewer'; document.getElementById('sync-room-id').value = urlParams.get('room'); downloadDataFromCloud(); }
-            if(deviceRole === 'admin') { document.getElementById('role-admin-badge').className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-blue-600 shadow-md"; document.getElementById('left-control-panel').style.display = 'block'; document.getElementById('right-table-panel').className = "col-span-12 lg:col-span-9 space-y-4"; createNewBinOnCloud(); }
-            else { document.getElementById('role-viewer-badge').className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-amber-600 shadow-md"; document.getElementById('left-control-panel').style.display = 'none'; document.getElementById('right-table-panel').className = "col-span-12 space-y-4"; }
+            
+            // Xử lý Role từ URL ưu tiên hàng đầu
+            if(urlParams.get('room')) {
+                currentRoom = urlParams.get('room');
+                document.getElementById('sync-room-id').value = currentRoom;
+                if(urlParams.get('role')) deviceRole = urlParams.get('role');
+                downloadDataFromCloud();
+            }
+
+            if(deviceRole === 'admin') { 
+                document.getElementById('role-admin-badge').className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-blue-600 shadow-md"; 
+                document.getElementById('left-control-panel').style.display = 'block'; 
+                document.getElementById('right-table-panel').className = "col-span-12 lg:col-span-9 space-y-4"; 
+                // Nếu chưa có room (lần đầu mở), mới tạo mới. Nếu có rồi (F5), dùng lại.
+                if(!currentRoom) createNewBinOnCloud(); 
+                else { updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(currentRoom); }
+            }
+            else { 
+                document.getElementById('role-viewer-badge').className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-amber-600 shadow-md"; 
+                document.getElementById('left-control-panel').style.display = 'none'; 
+                document.getElementById('right-table-panel').className = "col-span-12 space-y-4"; 
+                updateStatus("Chế độ Máy Xem", "success");
+            }
             renderEngine();
         };
 
         function resetExerciseData() { if(confirm("CẢNH BÁO: Hành động này sẽ xoá sạch danh sách quân nhân của BÀI BẮN HIỆN TẠI. Đồng ý?")) { const rK = 'round_' + currentExercise; const bK = 'bay_' + currentExercise; mainData.forEach(d => { d[rK] = null; d[bK] = null; }); uploadDataToCloud(); renderEngine(); } }
-        function forceSyncData() { downloadDataFromCloud(); }
-        function createNewBinOnCloud() { fetch(SYNC_SERVER, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' }, body: JSON.stringify({ room: currentRoom, data: mainData }) }).then(res => res.json()).then(res => { if(res.metadata && res.metadata.id) { currentRoom = res.metadata.id; document.getElementById('sync-room-id').value = res.metadata.id; updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(res.metadata.id); } }); }
-        function downloadDataFromCloud() { let t = document.getElementById('sync-room-id').value.trim(); if (t.length < 20) return; fetch(`${SYNC_SERVER}/${t}/latest`, { method: 'GET', headers: { 'X-Master-Key': MASTER_KEY }, cache: 'no-store' }).then(res => res.json()).then(res => { if (res.record && res.record.data) { mainData = res.record.data; renderEngine(); updateStatus("Đồng bộ OK", "success"); } }); }
-        function uploadDataToCloud() { localStorage.setItem('ShootingResults', JSON.stringify(mainData)); if (deviceRole !== 'admin' || currentRoom.length < 20) return; fetch(`${SYNC_SERVER}/${currentRoom}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY }, body: JSON.stringify({ room: currentRoom, data: mainData }) }); }
+        
+        function forceSyncData() { 
+            currentRoom = document.getElementById('sync-room-id').value.trim();
+            downloadDataFromCloud(); 
+        }
+
+        function createNewBinOnCloud() { 
+            fetch(SYNC_SERVER, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' }, 
+                body: JSON.stringify({ room: "auto_" + Date.now(), data: mainData }) 
+            })
+            .then(res => res.json())
+            .then(res => { 
+                if(res.metadata && res.metadata.id) { 
+                    currentRoom = res.metadata.id; 
+                    document.getElementById('sync-room-id').value = currentRoom; 
+                    updateStatus("Trực tuyến (Admin)", "success"); 
+                    generateConnectionQR(currentRoom); 
+                    // Thêm ID vào URL mà không reload để khi F5 không bị tạo room mới
+                    window.history.replaceState(null, "", "?room=" + currentRoom);
+                } 
+            }); 
+        }
+
+        function downloadDataFromCloud() { 
+            let t = document.getElementById('sync-room-id').value.trim(); 
+            if (t.length < 20) return; 
+            fetch(`${SYNC_SERVER}/${t}/latest`, { 
+                method: 'GET', 
+                headers: { 'X-Master-Key': MASTER_KEY }, 
+                cache: 'no-store' 
+            })
+            .then(res => res.json())
+            .then(res => { 
+                if (res.record && res.record.data) { 
+                    mainData = res.record.data; 
+                    renderEngine(); 
+                    updateStatus("Đồng bộ OK", "success"); 
+                } 
+            }).catch(e => updateStatus("Lỗi kết nối", "error")); 
+        }
+
+        function uploadDataToCloud() { 
+            localStorage.setItem('ShootingResults', JSON.stringify(mainData)); 
+            if (deviceRole !== 'admin' || !currentRoom || currentRoom.length < 20) return; 
+            fetch(`${SYNC_SERVER}/${currentRoom}`, { 
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY }, 
+                body: JSON.stringify({ room: currentRoom, data: mainData }) 
+            }); 
+        }
 
         function registerSoldier() {
             const n = document.getElementById('s-name').value.trim(); const u = document.getElementById('s-unit').value.trim(); const b = document.getElementById('s-bay').value; const r = parseInt(document.getElementById('s-round').value) || 1; const editUid = document.getElementById('edit-uid').value;
@@ -219,7 +304,7 @@
             const ammoBox = document.getElementById('ammo-summary-box'); if(currentExercise === 6) ammoBox.classList.remove('hidden'); else ammoBox.classList.add('hidden');
 
             if (currentExercise === 6) head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase text-center"><th class="p-3 border-r border-slate-800/60">STT</th><th class="p-3 border-r border-slate-800/60">Loạt/Bệ</th><th class="p-3 text-left border-r border-slate-800/60">Họ và Tên</th><th class="p-3 text-left border-r border-slate-800/60">Đơn vị</th><th class="p-2 border-r border-slate-800/60">B6</th><th class="p-2 border-r border-slate-800/60">B5</th><th class="p-2 border-r border-slate-800/60">B10</th><th class="p-2 border-r border-slate-800/60">B7b</th><th class="p-2 border-r border-slate-800/60">8cN</th><th class="p-2 border-r border-slate-800/60">8cC</th><th class="p-3 border-r border-slate-800/60">Tổng điểm</th><th class="p-3 border-r border-slate-800/60">Thành tích</th><th class="p-3 border-l border-slate-800/60">Đạn thừa</th><th class="p-3">#</th></tr>`;
-            else if (currentExercise === 5 || currentExercise === 7) { let col8e = currentExercise === 5 ? '<th class="p-2 border-r border-slate-800/60">8e/2</th><th class="p-2 border-r border-slate-800/60">8e1/3</th><th class="p-2 border-r border-slate-800/60">8e2/3</th>' : '<th class="p-2 border-r border-slate-800/60">8e/2</th>'; head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase text-center"><th class="p-3 border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loạt/Bệ</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Họ và Tên</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Đơn vị</th><th class="p-2 border-r border-slate-800/60" colspan="4">Bia 4d</th><th class="p-2 border-r border-slate-800/60" colspan="2">Bia Ken</th>${col8e}<th class="p-3 border-r border-slate-800/60" rowspan="2">Tổng điểm</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Thành tích</th><th class="p-3 text-center" rowspan="2">#</th></tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center"><th class="p-2 border-r border-slate-800/40">M1</th><th class="p-2 border-r border-slate-800/40">M2</th><th class="p-2 border-r border-slate-800/40">M3</th><th class="p-2 border-r border-slate-800/40">M4</th><th class="p-2 border-r border-slate-800/40">B1</th><th class="p-2 border-r border-slate-800/40">B2</th>${currentExercise===5?'<th>5-10đ</th><th>5-10đ</th><th>5-10đ</th>':'<th>5-10đ</th>'}</tr>`; }
+            else if (currentExercise === 5 || currentExercise === 7) { let col8e = currentExercise === 5 ? `<th class="p-2 border-r border-slate-800/60">8e/2</th><th class="p-2 border-r border-slate-800/60">8e1/3</th><th class="p-2 border-r border-slate-800/60">8e2/3</th>` : `<th class="p-2 border-r border-slate-800/60">8e/2</th>`; head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase text-center"><th class="p-3 border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loạt/Bệ</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Họ và Tên</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Đơn vị</th><th class="p-2 border-r border-slate-800/60" colspan="4">Bia 4d</th><th class="p-2 border-r border-slate-800/60" colspan="2">Bia Ken</th>${col8e}<th class="p-3 border-r border-slate-800/60" rowspan="2">Tổng điểm</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Thành tích</th><th class="p-3 text-center" rowspan="2">#</th></tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center"><th class="p-2 border-r border-slate-800/40">M1</th><th class="p-2 border-r border-slate-800/40">M2</th><th class="p-2 border-r border-slate-800/40">M3</th><th class="p-2 border-r border-slate-800/40">M4</th><th class="p-2 border-r border-slate-800/40">B1</th><th class="p-2 border-r border-slate-800/40">B2</th>${currentExercise===5?'<th>5-10đ</th><th>5-10đ</th><th>5-10đ</th>':'<th>5-10đ</th>'}</tr>`; }
             else if (currentExercise === 4) head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase text-center"><th class="p-3 border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loạt/Bệ</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Họ và Tên</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Đơn vị</th><th colspan="3" class="text-center border-r border-slate-800/60">Bia 4</th><th colspan="3" class="text-center border-r border-slate-800/60">Bia 7</th><th colspan="3" class="text-center border-r border-slate-800/60">Bia 8</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Tổng điểm</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Thành tích</th><th class="p-3 text-center" rowspan="2">#</th></tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center"><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th></tr>`;
             else head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase text-center"><th class="p-3 border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loạt/Bệ</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Họ Tên</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Đơn vị</th><th colspan="3" class="text-center border-r border-slate-800/60">ĐIỂM BẮN</th><th class="p-3 text-center border-r border-slate-800/60" rowspan="2">Tổng điểm</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Thành tích</th><th class="p-3 text-center" rowspan="2">#</th></tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center"><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th></tr>`;
 
@@ -248,6 +333,9 @@
             document.getElementById('global-ammo-total').innerText = ammoTotal; updatePieChartLogic(); updateUnitStatistics();
         }
 
+        function cancelEdit() { document.getElementById('edit-uid').value = ""; document.getElementById('s-name').value = ""; document.getElementById('s-unit').value = ""; document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-user-plus mr-2"></i>Xếp bệ bắn mới`; document.getElementById('btn-submit').innerText = "Vào bệ bắn"; document.getElementById('btn-cancel-edit').classList.add('hidden'); }
+        function editSoldier(uid) { const item = mainData.find(d => d.uid == uid); if(!item) return; document.getElementById('edit-uid').value = uid; document.getElementById('s-name').value = item.name; document.getElementById('s-unit').value = item.unit; document.getElementById('s-round').value = item['round_' + currentExercise] || 1; document.getElementById('s-bay').value = item['bay_' + currentExercise] || 1; document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-user-pen mr-2"></i>Sửa thông tin`; document.getElementById('btn-submit').innerText = "Cập nhật"; document.getElementById('btn-cancel-edit').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
         function checkCrossMode(uid, f, v) { const item = mainData.find(d => d.uid === uid); if(currentExercise === 5 && item.k54_mode === 7) return alert("⚠️ Đã thi Bài 2b!"); if(currentExercise === 7 && item.k54_mode === 5) return alert("⚠️ Đã thi Bài 2!"); modifyScore(uid, f, v); }
         function openScorePad(uid, f) { if(deviceRole !== 'admin') return; const item = mainData.find(d => d.uid === uid); if(currentExercise === 5 && item.k54_mode === 7) return alert("⚠️ Đã thi Bài 2b!"); if(currentExercise === 7 && item.k54_mode === 5) return alert("⚠️ Đã thi Bài 2!"); activePadTarget={uid,f}; padSum = 0; document.getElementById('score-pad-display').innerText = '0'; const grid = document.getElementById('pad-grid'); grid.innerHTML = ''; let start = (currentExercise === 5 || currentExercise === 7) ? 5 : 0; for(let i=start; i<=10; i++) { grid.innerHTML += `<button onclick="handlePadClick(${i})" class="score-btn py-3 text-white rounded-lg font-bold">${i}</button>`; } document.getElementById('modal-pad-title').innerText = (currentExercise === 5 || currentExercise === 7) ? "Nhập điểm K54 (Cộng dồn)" : "Mời nhập số"; document.getElementById('score-pad-modal').classList.replace('hidden','flex'); }
         function handlePadClick(v) { if((currentExercise === 5 || currentExercise === 7)) { padSum += v; document.getElementById('score-pad-display').innerText = padSum; } else { modifyScore(activePadTarget.uid, activePadTarget.f, v); closeScorePad(); } }
@@ -263,7 +351,7 @@
         function refreshMultiB2UI() { for(let uid in tempMultiB2Hits) { for(let key in tempMultiB2Hits[uid]) { const el = document.getElementById(`multi-bia-${uid}-${key}`); if(tempMultiB2Hits[uid][key] === 1) el.classList.add('target-down'); else el.classList.remove('target-down'); } } }
         function saveB2Targets() { for(let uid in tempMultiB2Hits) { const idx = mainData.findIndex(d => d.uid == uid); if(idx !== -1) mainData[idx].ak_b2 = tempMultiB2Hits[uid]; } uploadDataToCloud(); renderEngine(); closeB2Modal(); }
         function resetB2Targets() { for(let uid in tempMultiB2Hits) { tempMultiB2Hits[uid] = { hit6:0, hit5:0, hit10:0, hit7b:0, hit8cn:0, hit8cc:0 }; } refreshMultiB2UI(); }
-        function closeB2Modal() { document.getElementById('ak-b2-modal').classList.replace('flex', 'hidden'); activeB2Uids = []; }
+        function closeB2Modal() { document.getElementById('ak-b2-modal').classList.replace('hidden', 'flex'); activeB2Uids = []; }
 
         function switchExercise(ex) { currentExercise = ex; document.querySelectorAll('#exercise-selector button').forEach(b => { b.classList.remove('active-pill', 'text-white'); b.classList.add('text-slate-400'); }); if([1,2,3,4].includes(ex)) document.getElementById('group-ak-label').classList.add('active-pill', 'text-white'); else { let btn = document.getElementById(`ex-btn-${ex}`); if(btn) btn.classList.add('active-pill', 'text-white'); } renderEngine(); }
         
