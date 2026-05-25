@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -135,7 +134,7 @@
         </div>
     </div>
 
-    <!-- TỔNG ĐẠN THỪA (GÓC DƯỚI PHẢI) -->
+    <!-- TỔNG ĐẠN THỪA -->
     <div id="ammo-summary-box" class="fixed bottom-6 right-6 z-[100] bg-slate-900 border-2 border-yellow-500/50 p-4 rounded-2xl shadow-2xl flex items-center gap-4 backdrop-blur-md animate-fade-in hidden">
         <div class="bg-yellow-500/10 p-3 rounded-xl border border-yellow-500/20"><i class="fa-solid fa-boxes-stacked text-xl text-yellow-500"></i></div>
         <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">TỔNG ĐẠN THỪA</p><p id="global-ammo-total" class="text-3xl font-black text-white leading-none mt-1">0 <span class="text-xs text-slate-500 font-bold uppercase ml-1">Viên</span></p></div>
@@ -158,8 +157,9 @@
         let currentRoom = ""; 
         let activePadTarget = null; let padSum = 0;
         let activeB2Uids = []; let tempMultiB2Hits = {};
-        const MASTER_KEY = "$2a$10$Q9wC3DLyzOq0JM64EXJmGuwtG8flBOVIgLik4fsZNYhJOi.vAXCNS";
-        const SYNC_SERVER = "https://api.jsonbin.io/v3/b";
+        
+        // --- THAY ĐỔI SANG NPOINT.IO ---
+        const SYNC_SERVER = "https://api.npoint.io/bins";
 
         window.addEventListener('keydown', function(e) { if ((e.which || e.keyCode) == 116 || (e.ctrlKey && (e.which || e.keyCode) == 82)) e.preventDefault(); });
 
@@ -200,18 +200,63 @@
                 document.getElementById('left-control-panel').style.display = 'none'; 
                 document.getElementById('right-table-panel').className = "col-span-12 space-y-4"; 
                 document.getElementById('admin-action-buttons').style.display = 'none';
-                // ĐÃ XÓA DÒNG ẨN sync-control-area ĐỂ NGƯỜI XEM CÓ THỂ NHẬP ID
                 updateStatus("Chế độ Máy Xem", "success");
             }
             renderEngine();
         };
 
-        function resetExerciseData() { if(confirm("CẢNH BÁO: Hành động này sẽ xoá sạch danh sách quân nhân của BÀI BẮN HIỆN TẠI. Đồng ý?")) { const rK = 'round_' + currentExercise; const bK = 'bay_' + currentExercise; mainData.forEach(d => { d[rK] = null; d[bK] = null; }); uploadDataToCloud(); renderEngine(); } }
-        function forceSyncData() { currentRoom = document.getElementById('sync-room-id').value.trim(); downloadDataFromCloud(); }
-        function createNewBinOnCloud() { fetch(SYNC_SERVER, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' }, body: JSON.stringify({ room: "auto_" + Date.now(), data: mainData }) }).then(res => res.json()).then(res => { if(res.metadata && res.metadata.id) { currentRoom = res.metadata.id; document.getElementById('sync-room-id').value = currentRoom; updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(currentRoom); window.history.replaceState(null, "", "?room=" + currentRoom); } }); }
-        function downloadDataFromCloud() { let t = document.getElementById('sync-room-id').value.trim(); if (t.length < 20) return; fetch(`${SYNC_SERVER}/${t}/latest`, { method: 'GET', headers: { 'X-Master-Key': MASTER_KEY }, cache: 'no-store' }).then(res => res.json()).then(res => { if (res.record && res.record.data) { mainData = res.record.data; renderEngine(); updateStatus("Đồng bộ OK", "success"); } }).catch(e => updateStatus("Lỗi kết nối", "error")); }
-        function uploadDataToCloud() { localStorage.setItem('ShootingResults', JSON.stringify(mainData)); if (deviceRole !== 'admin' || !currentRoom || currentRoom.length < 20) return; fetch(`${SYNC_SERVER}/${currentRoom}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY }, body: JSON.stringify({ room: currentRoom, data: mainData }) }); }
+        // --- CÁC HÀM XỬ LÝ NPOINT ---
+        function createNewBinOnCloud() { 
+            fetch(SYNC_SERVER, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ data: mainData }) 
+            })
+            .then(res => res.json())
+            .then(res => { 
+                if(res.binId) { 
+                    currentRoom = res.binId; 
+                    document.getElementById('sync-room-id').value = currentRoom; 
+                    updateStatus("Trực tuyến (Admin)", "success"); 
+                    generateConnectionQR(currentRoom); 
+                    window.history.replaceState(null, "", "?room=" + currentRoom); 
+                } 
+            }); 
+        }
 
+        function downloadDataFromCloud() { 
+            let t = document.getElementById('sync-room-id').value.trim(); 
+            if (t.length < 5) return; 
+            fetch(`${SYNC_SERVER}/${t}`, { method: 'GET', cache: 'no-store' })
+            .then(res => res.json())
+            .then(res => { 
+                if (res && res.data) { 
+                    // Chỉ render lại nếu dữ liệu có thay đổi để tránh giật lag
+                    if(JSON.stringify(mainData) !== JSON.stringify(res.data)) {
+                        mainData = res.data; 
+                        renderEngine(); 
+                    }
+                    updateStatus("Đồng bộ OK", "success"); 
+                } 
+            })
+            .catch(e => updateStatus("Lỗi kết nối", "error")); 
+        }
+
+        function uploadDataToCloud() { 
+            localStorage.setItem('ShootingResults', JSON.stringify(mainData)); 
+            if (deviceRole !== 'admin' || !currentRoom) return; 
+            fetch(`${SYNC_SERVER}/${currentRoom}`, { 
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ data: mainData }) 
+            }); 
+        }
+
+        function forceSyncData() { currentRoom = document.getElementById('sync-room-id').value.trim(); downloadDataFromCloud(); if(deviceRole === 'admin') generateConnectionQR(currentRoom); }
+
+        // --- GIỮ NGUYÊN TOÀN BỘ LOGIC CÒN LẠI CỦA BẠN ---
+        function resetExerciseData() { if(confirm("CẢNH BÁO: Hành động này sẽ xoá sạch danh sách quân nhân của BÀI BẮN HIỆN TẠI. Đồng ý?")) { const rK = 'round_' + currentExercise; const bK = 'bay_' + currentExercise; mainData.forEach(d => { d[rK] = null; d[bK] = null; }); uploadDataToCloud(); renderEngine(); } }
+        
         function registerSoldier() {
             const n = document.getElementById('s-name').value.trim(); const u = document.getElementById('s-unit').value.trim(); const b = document.getElementById('s-bay').value; const r = parseInt(document.getElementById('s-round').value) || 1; const editUid = document.getElementById('edit-uid').value;
             if(!n || !u) return alert("Vui lòng điền đủ Tên và Đơn vị!");
@@ -298,9 +343,7 @@
         function purgeSoldier(uid) { if(confirm("Xóa quân nhân khỏi bài này?")) { const idx = mainData.findIndex(d => d.uid === uid); if(idx !== -1) { mainData[idx]['round_' + currentExercise] = null; mainData[idx]['bay_' + currentExercise] = null; uploadDataToCloud(); renderEngine(); } } }
 
         function openB2LoatModal(roundNo) { if(deviceRole !== 'admin') return; const rK = 'round_6'; const soldiers = mainData.filter(d => d[rK] == roundNo).sort((a,b) => a.bay_6 - b.bay_6); if(soldiers.length === 0) return; activeB2Uids = soldiers.map(s => s.uid); tempMultiB2Hits = {}; const container = document.getElementById('b2-multi-container'); container.innerHTML = ''; soldiers.forEach(s => { tempMultiB2Hits[s.uid] = s.ak_b2 ? {...s.ak_b2} : { hit6:0, hit5:0, hit10:0, hit7b:0, hit8cn:0, hit8cc:0 }; container.innerHTML += `<div class="bg-slate-800/40 border border-slate-700 p-6 rounded-3xl shadow-xl min-w-[320px]"><div class="mb-6 text-center border-b border-slate-700 pb-4"><div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mx-auto mb-2">B${s.bay_6}</div><h4 class="text-white font-bold text-sm uppercase">${s.name}</h4><p class="text-[10px] text-slate-400">${s.unit}</p></div><div class="flex flex-col gap-10 items-center"><div class="flex gap-10">${renderTargetSVG(s.uid, 'hit8cn', '8c Ngang', 60, 40, '<rect x="10" y="20" width="80" height="30" fill="#166534" stroke="#facc15" stroke-width="2"/><circle cx="50" cy="35" r="5" fill="#facc15"/>')}${renderTargetSVG(s.uid, 'hit8cc', '8c Chếch', 60, 40, '<path d="M20 50 L80 20 L90 35 L30 65 Z" fill="#166534" stroke="#facc15" stroke-width="2"/>')}</div><div class="flex gap-10">${renderTargetSVG(s.uid, 'hit10', 'Bia 10', 50, 50, '<circle cx="50" cy="50" r="45" fill="#1e293b" stroke="#facc15" stroke-width="3"/><rect x="40" y="10" width="20" height="80" fill="#166534"/>')}${renderTargetSVG(s.uid, 'hit7b', 'Bia 7b', 50, 60, '<path d="M10 100 L50 10 L90 100 Z" fill="#166534" stroke="#facc15" stroke-width="3"/>')}</div><div class="flex gap-10">${renderTargetSVG(s.uid, 'hit6', 'Bia 6', 50, 60, '<path d="M20 20 H80 V100 H20 Z" fill="#166534" stroke="#facc15" stroke-width="2"/><rect x="35" y="10" width="30" height="20" fill="#166534"/>')}<div onclick="toggleMultiB2Target(${s.uid}, 'hit5')" id="multi-bia-${s.uid}-hit5" class="target-container flex flex-col items-center"><svg width="40" height="40" viewBox="0 0 100 100"><rect x="30" y="30" width="40" height="40" fill="#166534" stroke="#facc15" stroke-width="2"/></svg><span class="text-[8px] mt-2 font-bold uppercase text-slate-500">Bia 5</span></div></div></div></div>`; }); 
-            const modal = document.getElementById('ak-b2-modal');
-            modal.classList.add('flex'); modal.classList.remove('hidden');
-            refreshMultiB2UI(); 
+            const modal = document.getElementById('ak-b2-modal'); modal.classList.add('flex'); modal.classList.remove('hidden'); refreshMultiB2UI(); 
         }
         function renderTargetSVG(uid, key, label, w, h, paths) { return `<div onclick="toggleMultiB2Target(${uid}, '${key}')" id="multi-bia-${uid}-${key}" class="target-container text-center flex flex-col items-center"><svg width="${w}" height="${h}" viewBox="0 0 100 ${(h/w)*100}">${paths}</svg><span class="text-[8px] mt-2 font-bold uppercase text-slate-500">${label}</span></div>`; }
         function toggleMultiB2Target(uid, key) { tempMultiB2Hits[uid][key] = tempMultiB2Hits[uid][key] === 1 ? 0 : 1; refreshMultiB2UI(); }
@@ -308,16 +351,10 @@
         
         function saveB2Targets() { 
             for(let uid in tempMultiB2Hits) { const idx = mainData.findIndex(d => d.uid == uid); if(idx !== -1) mainData[idx].ak_b2 = tempMultiB2Hits[uid]; } 
-            uploadDataToCloud(); 
-            renderEngine(); 
-            closeB2Modal(); 
+            uploadDataToCloud(); renderEngine(); closeB2Modal(); 
         }
         function resetB2Targets() { for(let uid in tempMultiB2Hits) { tempMultiB2Hits[uid] = { hit6:0, hit5:0, hit10:0, hit7b:0, hit8cn:0, hit8cc:0 }; } refreshMultiB2UI(); }
-        function closeB2Modal() { 
-            const modal = document.getElementById('ak-b2-modal');
-            modal.classList.add('hidden'); modal.classList.remove('flex');
-            activeB2Uids = []; 
-        }
+        function closeB2Modal() { const modal = document.getElementById('ak-b2-modal'); modal.classList.add('hidden'); modal.classList.remove('flex'); activeB2Uids = []; }
 
         function switchExercise(ex) { currentExercise = ex; document.querySelectorAll('#exercise-selector button').forEach(b => { b.classList.remove('active-pill', 'text-white'); b.classList.add('text-slate-400'); }); if([1,2,3,4].includes(ex)) document.getElementById('group-ak-label').classList.add('active-pill', 'text-white'); else { let btn = document.getElementById(`ex-btn-${ex}`); if(btn) btn.classList.add('active-pill', 'text-white'); } renderEngine(); }
         
@@ -325,9 +362,7 @@
             let stats = {}; let sumQS=0, sumG=0, sumK=0, sumD=0, sumH=0; 
             const rK = 'round_'+currentExercise; 
             mainData.filter(d => d[rK]).forEach(i => { 
-                let c = calculateTotal(i, currentExercise); 
-                let rank = getRankString(c, currentExercise, i); 
-                if(rank === '-') return; 
+                let c = calculateTotal(i, currentExercise); let rank = getRankString(c, currentExercise, i); if(rank === '-') return; 
                 let u = i.unit.toUpperCase().trim() || "CHƯA RÕ"; 
                 if(!stats[u]) stats[u] = { ts: 0, g: 0, k: 0, d: 0, h: 0 }; 
                 stats[u].ts++; sumQS++; 
@@ -360,18 +395,14 @@
             let wb = XLSX.utils.book_new(); let rows = []; 
             if ([5,7].includes(currentExercise)) { 
                 rows.push(["BẢNG TỔNG HỢP KẾT QUẢ BẮN SÚNG NGẮN K54 (BÀI 2 & 2B)"]); 
-                let h = ["STT", "Loạt", "Bệ", "Họ Tên", "Đơn vị", "Đối tượng", "Tổng điểm", "Thành tích"];
-                if (currentExercise === 6) h.push("Đạn thừa");
-                rows.push(h); 
+                let h = ["STT", "Loạt", "Bệ", "Họ Tên", "Đơn vị", "Đối tượng", "Tổng điểm", "Thành tích"]; if (currentExercise === 6) h.push("Đạn thừa"); rows.push(h); 
                 mainData.forEach((d,i)=>{ if(d.round_5 || d.round_7) { let exT = d.round_7 ? 7 : 5; let c = calculateTotal(d, exT); let r = [i+1, d['round_'+exT], d['bay_'+exT], d.name, d.unit, (exT === 7 ? "Trên 45 (2b)" : "Dưới 45 (2)"), c, getRankString(c, exT, d)]; if(currentExercise === 6) r.push(d['ammo_left_'+exT]||0); rows.push(r); } }); 
             } else { 
-                let h = ["STT", "Loạt", "Bệ", "Họ Tên", "Đơn vị", "Tổng điểm", "Thành tích"];
-                if (currentExercise === 6) h.push("Đạn thừa");
-                rows.push(h);
+                let h = ["STT", "Loạt", "Bệ", "Họ Tên", "Đơn vị", "Tổng điểm", "Thành tích"]; if (currentExercise === 6) h.push("Đạn thừa"); rows.push(h);
                 const rK = 'round_'+currentExercise; const bK = 'bay_'+currentExercise; mainData.filter(d => d[rK]).sort((a,b)=>(a[rK]-b[rK])||(a[bK]-b[bK])).forEach((d,i)=>{ let c = calculateTotal(d, currentExercise); let r = [i+1, d[rK], d[bK], d.name, d.unit, c, getRankString(c, currentExercise, d)]; if(currentExercise === 6) r.push(d['ammo_left_'+currentExercise]||0); rows.push(r); }); 
             } 
             rows.push([]); rows.push(["THỐNG KÊ CHI TIẾT THEO ĐƠN VỊ"]); rows.push(["Đơn vị", "QS đã bắn", "Giỏi", "Khá", "Đạt", "K. Đạt", "Tỉ lệ đạt (%)"]);
-            let dData = getUnitStatsData(); for(let u in dData.stats) { let it = dData.stats[u]; let pG = ((it.g/it.ts)*100).toFixed(1); let pK = ((it.k/it.ts)*100).toFixed(1); let pD = ((it.d/it.ts)*100).toFixed(1); let pH = ((it.h/it.ts)*100).toFixed(1); rows.push([u, it.ts, `${it.g} (${pG}%)`, `${it.k} (${pK}%)`, `${it.d} (${pD}%)`, `${it.h} (${pH}%)`, (((it.g+it.k+it.d)/it.ts)*100).toFixed(1) + "%"]); }
+            let dData = getUnitStatsData(); for(let u in dData.stats) { let it = dData.stats[u]; rows.push([u, it.ts, `${it.g} (${((it.g/it.ts)*100).toFixed(1)}%)`, `${it.k} (${((it.k/it.ts)*100).toFixed(1)}%)`, `${it.d} (${((it.d/it.ts)*100).toFixed(1)}%)`, `${it.h} (${((it.h/it.ts)*100).toFixed(1)}%)`, (((it.g+it.k+it.d)/it.ts)*100).toFixed(1) + "%"]); }
             let ws = XLSX.utils.aoa_to_sheet(rows); XLSX.utils.book_append_sheet(wb, ws, "KetQua"); XLSX.writeFile(wb, "Ket_Qua_Ban_Sung.xlsx"); 
         }
 
@@ -399,31 +430,14 @@
                     if(confirm(`Nạp dữ liệu từ file Excel (${json.length} quân nhân)? Hệ thống sẽ thay thế danh sách hiện tại.`)) { 
                         mainData = []; 
                         json.forEach(row => { 
-                            const name = row["Họ và Tên"] || row["Tên"]; 
-                            const unit = row["Đơn vị"]; 
+                            const name = row["Họ và Tên"] || row["Tên"]; const unit = row["Đơn vị"]; 
                             if(name && unit) { 
                                 mainData.push({ 
                                     uid: Date.now() + Math.random(), name, unit, 
-                                    round_1: row["Bài 1-Loạt"], bay_1: row["Bài 1-Bệ"], 
-                                    round_2: row["Bài 2-Loạt"], bay_2: row["Bài 2-Bệ"], 
-                                    round_3: row["Bài 3-Loạt"], bay_3: row["Bài 3-Bệ"], 
-                                    round_4: row["Bài 4-Loạt"], bay_4: row["Bài 4-Bệ"], 
-                                    round_6: row["Bài 2 AH-Loạt"], bay_6: row["Bài 2 AH-Bệ"], 
-                                    round_5: row["Bài 2 K54-Loạt"], bay_5: row["Bài 2 K54-Bệ"], 
-                                    round_7: row["Bài 2b K54-Loạt"], bay_7: row["Bài 2b K54-Bệ"], 
-                                    b4_1: row["B4_V1"]||0, b4_2: row["B4_V2"]||0, b4_3: row["B4_V3"]||0, 
-                                    b7_1: row["B7_V1"]||0, b7_2: row["B7_V2"]||0, b7_3: row["B7_V3"]||0, 
-                                    b8_1: row["B8_V1"]||0, b8_2: row["B8_V2"]||0, b8_3: row["B8_V3"]||0, 
-                                    ammo_left_6: row["Ammo6"]||0,
-                                    ak_b2: { 
-                                        hit6: row["B6"]||0, hit5: row["B5"]||0, hit10: row["B10"]||0, 
-                                        hit7b: row["B7b"]||0, hit8cn: row["B8cN"]||0, hit8cc: row["B8cC"]||0 
-                                    }, 
-                                    k54_4d_1: row["K54_4d1"]||0, k54_4d_2: row["K54_4d2"]||0, k54_4d_3: row["K54_4d3"]||0, k54_4d_4: row["K54_4d4"]||0, 
-                                    k54_ken1: row["Ken1"] !== undefined ? row["Ken1"] : -1, 
-                                    k54_ken2: row["Ken2"] !== undefined ? row["Ken2"] : -1, 
-                                    k54_8e2: row["K54_8e2"]||0, k54_8e1_3: row["K54_8e1_3"]||0, k54_8e2_3: row["K54_8e2_3"]||0, 
-                                    k54_mode: row["K54_Mode"]||0 
+                                    round_1: row["Bài 1-Loạt"], bay_1: row["Bài 1-Bệ"], round_2: row["Bài 2-Loạt"], bay_2: row["Bài 2-Bệ"], round_3: row["Bài 3-Loạt"], bay_3: row["Bài 3-Bệ"], round_4: row["Bài 4-Loạt"], bay_4: row["Bài 4-Bệ"], round_6: row["Bài 2 AH-Loạt"], bay_6: row["Bài 2 AH-Bệ"], round_5: row["Bài 2 K54-Loạt"], bay_5: row["Bài 2 K54-Bệ"], round_7: row["Bài 2b K54-Loạt"], bay_7: row["Bài 2b K54-Bệ"], 
+                                    b4_1: row["B4_V1"]||0, b4_2: row["B4_V2"]||0, b4_3: row["B4_V3"]||0, b7_1: row["B7_V1"]||0, b7_2: row["B7_V2"]||0, b7_3: row["B7_V3"]||0, b8_1: row["B8_V1"]||0, b8_2: row["B8_V2"]||0, b8_3: row["B8_V3"]||0, ammo_left_6: row["Ammo6"]||0,
+                                    ak_b2: { hit6: row["B6"]||0, hit5: row["B5"]||0, hit10: row["B10"]||0, hit7b: row["B7b"]||0, hit8cn: row["B8cN"]||0, hit8cc: row["B8cC"]||0 }, 
+                                    k54_4d_1: row["K54_4d1"]||0, k54_4d_2: row["K54_4d2"]||0, k54_4d_3: row["K54_4d3"]||0, k54_4d_4: row["K54_4d4"]||0, k54_ken1: row["Ken1"] !== undefined ? row["Ken1"] : -1, k54_ken2: row["Ken2"] !== undefined ? row["Ken2"] : -1, k54_8e2: row["K54_8e2"]||0, k54_8e1_3: row["K54_8e1_3"]||0, k54_8e2_3: row["K54_8e2_3"]||0, k54_mode: row["K54_Mode"]||0 
                                 }); 
                             } 
                         }); 
