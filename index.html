@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    <!-- THÊM THƯ VIỆN FIREBASE ĐỂ THAY THẾ JSONBIN -->
+    <!-- THƯ VIỆN KẾT NỐI REAL-TIME (DÙNG FIREBASE) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
@@ -57,7 +57,7 @@
             </div>
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end" id="sync-control-area">
                 <label class="text-[11px] font-bold text-slate-400 uppercase">ID Kết nối:</label>
-                <input type="text" id="sync-room-id" oninput="forceSyncData()" class="w-full sm:w-64 bg-slate-900 border border-slate-700 text-yellow-400 font-mono font-bold px-3 py-1.5 text-xs rounded-lg focus:outline-none" placeholder="Nhập mã ID vào đây...">
+                <input type="text" id="sync-room-id" class="w-full sm:w-64 bg-slate-900 border border-slate-700 text-yellow-400 font-mono font-bold px-3 py-1.5 text-xs rounded-lg focus:outline-none" placeholder="Nhập mã ID 6 số...">
                 <button onclick="forceSyncData()" class="px-3 py-1.5 bg-blue-600 text-white text-[11px] font-bold rounded-lg transition-all"><i class="fa-solid fa-sync-alt"></i></button>
             </div>
         </div>
@@ -138,7 +138,7 @@
         </div>
     </div>
 
-    <!-- TỔNG ĐẠN THỪA (GÓC DƯỚI PHẢI) -->
+    <!-- TỔNG ĐẠN THỪA -->
     <div id="ammo-summary-box" class="fixed bottom-6 right-6 z-[100] bg-slate-900 border-2 border-yellow-500/50 p-4 rounded-2xl shadow-2xl flex items-center gap-4 backdrop-blur-md animate-fade-in hidden">
         <div class="bg-yellow-500/10 p-3 rounded-xl border border-yellow-500/20"><i class="fa-solid fa-boxes-stacked text-xl text-yellow-500"></i></div>
         <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">TỔNG ĐẠN THỪA</p><p id="global-ammo-total" class="text-3xl font-black text-white leading-none mt-1">0 <span class="text-xs text-slate-500 font-bold uppercase ml-1">Viên</span></p></div>
@@ -156,9 +156,9 @@
     <div id="ak-b2-modal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[120] hidden items-center justify-center p-4"><div class="bg-slate-900 border-2 border-slate-700 w-full max-w-[95vw] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"><div class="bg-slate-800 p-4 flex justify-between items-center"><div class="text-left"><h3 id="b2-modal-title" class="text-yellow-500 font-bold text-sm uppercase">Ghi nhận bia Bài 2 (ẨN HIỆN)</h3></div><button onclick="closeB2Modal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button></div><div class="p-4 flex-grow overflow-x-auto overflow-y-auto custom-scrollbar"><div class="flex flex-row gap-8 justify-center min-w-max pb-8" id="b2-multi-container"></div></div><div class="bg-slate-950 p-6 flex justify-center gap-4"><button onclick="resetB2Targets()" class="px-8 bg-slate-800 text-slate-400 py-4 rounded-xl font-bold text-xs uppercase">Dựng lại tất cả</button><button onclick="saveB2Targets()" class="px-12 bg-red-700 text-white py-4 rounded-xl font-bold text-sm uppercase shadow-xl">Lưu kết quả loạt bắn</button></div></div></div>
 
     <script>
-        // CẤU HÌNH FIREBASE THAY THẾ JSONBIN
+        // CẤU HÌNH FIREBASE - ĐÃ ĐƯỢC MỞ QUYỀN TRUY CẬP CÔNG KHAI
         const firebaseConfig = {
-            databaseURL: "https://thong-ke-ban-sung-default-rtdb.asia-southeast1.firebasedatabase.app/"
+            databaseURL: "https://stv-ak-k54-default-rtdb.firebaseio.com"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -169,6 +169,7 @@
         let activePadTarget = null; let padSum = 0;
         let activeB2Uids = []; let tempMultiB2Hits = {};
 
+        // Chặn phím F5 để tránh mất dữ liệu chưa kịp đồng bộ
         window.addEventListener('keydown', function(e) { if ((e.which || e.keyCode) == 116 || (e.ctrlKey && (e.which || e.keyCode) == 82)) e.preventDefault(); });
 
         function updateStatus(text, type) {
@@ -185,23 +186,46 @@
             let fullURL = window.location.origin + window.location.pathname + "?room=" + roomId + "&role=viewer"; 
             new QRCode(container, { text: fullURL, width: 72, height: 72, colorDark: "#0f172a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H }); 
         }
+
+        // HÀM LẮNG NGHE DỮ LIỆU REAL-TIME (TỰ ĐỘNG CẬP NHẬT)
+        function startSyncListener(roomId) {
+            if (!roomId) return;
+            currentRoom = roomId;
+            const roomRef = db.ref('rooms/' + roomId);
+            roomRef.off(); // Tắt các listener cũ
+            roomRef.on('value', (snapshot) => {
+                const val = snapshot.val();
+                if (val && val.data) {
+                    mainData = val.data;
+                    renderEngine();
+                    updateStatus("Trực tuyến - ID: " + roomId, "success");
+                }
+            }, (error) => {
+                updateStatus("Lỗi kết nối Server", "error");
+            });
+        }
         
         window.onload = function() {
             const savedData = localStorage.getItem('ShootingResults'); if(savedData) mainData = JSON.parse(savedData);
             const urlParams = new URLSearchParams(window.location.search);
+            
             if(urlParams.get('room')) {
                 currentRoom = urlParams.get('room');
                 document.getElementById('sync-room-id').value = currentRoom;
                 if(urlParams.get('role')) deviceRole = urlParams.get('role');
-                downloadDataFromCloud();
+                startSyncListener(currentRoom);
             }
+
             if(deviceRole === 'admin') { 
                 document.getElementById('role-admin-badge').className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-blue-600 shadow-md"; 
                 document.getElementById('left-control-panel').style.display = 'block'; 
                 document.getElementById('right-table-panel').className = "col-span-12 lg:col-span-9 space-y-4"; 
                 document.getElementById('admin-action-buttons').style.display = 'flex';
                 if(!currentRoom) createNewBinOnCloud(); 
-                else { updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(currentRoom); }
+                else { 
+                    generateConnectionQR(currentRoom); 
+                    startSyncListener(currentRoom);
+                }
             }
             else { 
                 document.getElementById('role-viewer-badge').className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-amber-600 shadow-md"; 
@@ -209,17 +233,19 @@
                 document.getElementById('right-table-panel').className = "col-span-12 space-y-4"; 
                 document.getElementById('admin-action-buttons').style.display = 'none';
                 updateStatus("Chế độ Máy Xem", "success");
+                if(currentRoom) startSyncListener(currentRoom);
             }
             renderEngine();
         };
 
         function resetExerciseData() { if(confirm("CẢNH BÁO: Hành động này sẽ xoá sạch danh sách quân nhân của BÀI BẮN HIỆN TẠI. Đồng ý?")) { const rK = 'round_' + currentExercise; const bK = 'bay_' + currentExercise; mainData.forEach(d => { d[rK] = null; d[bK] = null; }); uploadDataToCloud(); renderEngine(); } }
         
-        // CẬP NHẬT CÁC HÀM CLOUD DÙNG FIREBASE
-        function forceSyncData() { downloadDataFromCloud(); }
+        function forceSyncData() { 
+            let roomId = document.getElementById('sync-room-id').value.trim();
+            if (roomId) startSyncListener(roomId); 
+        }
         
         function createNewBinOnCloud() { 
-            // Tạo ID ngẫu nhiên ngắn gọn (6 số)
             const roomId = Math.floor(100000 + Math.random() * 900000).toString();
             currentRoom = roomId;
             document.getElementById('sync-room-id').value = currentRoom;
@@ -228,36 +254,22 @@
                 data: mainData,
                 lastUpdate: Date.now()
             }).then(() => {
-                updateStatus("Trực tuyến (Admin)", "success"); 
                 generateConnectionQR(currentRoom); 
                 window.history.replaceState(null, "", "?room=" + currentRoom);
+                startSyncListener(currentRoom);
             });
-        }
-
-        function downloadDataFromCloud() { 
-            let t = document.getElementById('sync-room-id').value.trim(); 
-            if (t.length < 3) return; 
-            currentRoom = t;
-            
-            db.ref('rooms/' + t).once('value').then((snapshot) => {
-                const val = snapshot.val();
-                if (val && val.data) {
-                    mainData = val.data;
-                    renderEngine();
-                    updateStatus("Đồng bộ OK", "success");
-                }
-            }).catch(e => updateStatus("Lỗi kết nối", "error"));
         }
 
         function uploadDataToCloud() { 
             localStorage.setItem('ShootingResults', JSON.stringify(mainData)); 
             if (deviceRole !== 'admin' || !currentRoom) return; 
-            
             db.ref('rooms/' + currentRoom).update({
                 data: mainData,
                 lastUpdate: Date.now()
             });
         }
+
+        // --- CÁC HÀM NGHIỆP VỤ ---
 
         function registerSoldier() {
             const n = document.getElementById('s-name').value.trim(); const u = document.getElementById('s-unit').value.trim(); const b = document.getElementById('s-bay').value; const r = parseInt(document.getElementById('s-round').value) || 1; const editUid = document.getElementById('edit-uid').value;
@@ -480,7 +492,6 @@
             }; 
             reader.readAsBinaryString(file); 
         }
-        setInterval(() => { if (deviceRole === 'viewer') downloadDataFromCloud(); }, 3000);
     </script>
 </body>
 </html>
