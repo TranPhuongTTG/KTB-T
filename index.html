@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    <!-- THƯ VIỆN KẾT NỐI REAL-TIME (DÙNG FIREBASE) -->
+    <!-- THƯ VIỆN KẾT NỐI REAL-TIME (DÙNG FIREBASE COMPAT) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
@@ -63,7 +63,7 @@
         </div>
     </div>
 
-    <!-- HEADER -->
+    <!-- HEADER (GIỮ NGUYÊN) -->
     <header class="flex flex-col xl:flex-row justify-between items-center gap-4 p-5 mb-6 bg-slate-900/80 border border-slate-800 rounded-2xl backdrop-blur-md shadow-xl relative z-40">
         <div class="flex items-center gap-4">
             <div class="bg-gradient-to-br from-red-600 to-red-900 w-12 h-12 rounded-xl flex items-center justify-center border border-yellow-500/30"><i class="fa-solid fa-crosshairs text-xl text-yellow-400"></i></div>
@@ -120,6 +120,7 @@
                 <div class="text-[10px] font-bold text-slate-500 uppercase px-3 whitespace-nowrap">Số quân nhân: <span id="record-count" class="text-yellow-500">0</span></div>
             </div>
             <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl relative z-0"><div class="overflow-x-auto custom-scrollbar"><table class="w-full text-left border-collapse text-xs"><thead id="header-target"></thead><tbody id="render-target" class="divide-y divide-slate-800/60"></tbody></table></div></div>
+            <!-- CHI TIẾT THỐNG KÊ (GIỮ NGUYÊN) -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl flex flex-col items-center">
                     <h2 class="text-sm font-bold text-yellow-500 uppercase tracking-wider border-b border-slate-800 pb-3 mb-5 w-full text-center">Tỉ lệ thành tích</h2>
@@ -138,7 +139,7 @@
         </div>
     </div>
 
-    <!-- TỔNG ĐẠN THỪA -->
+    <!-- TỔNG ĐẠN THỪA (GIỮ NGUYÊN) -->
     <div id="ammo-summary-box" class="fixed bottom-6 right-6 z-[100] bg-slate-900 border-2 border-yellow-500/50 p-4 rounded-2xl shadow-2xl flex items-center gap-4 backdrop-blur-md animate-fade-in hidden">
         <div class="bg-yellow-500/10 p-3 rounded-xl border border-yellow-500/20"><i class="fa-solid fa-boxes-stacked text-xl text-yellow-500"></i></div>
         <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">TỔNG ĐẠN THỪA</p><p id="global-ammo-total" class="text-3xl font-black text-white leading-none mt-1">0 <span class="text-xs text-slate-500 font-bold uppercase ml-1">Viên</span></p></div>
@@ -156,8 +157,9 @@
     <div id="ak-b2-modal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[120] hidden items-center justify-center p-4"><div class="bg-slate-900 border-2 border-slate-700 w-full max-w-[95vw] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"><div class="bg-slate-800 p-4 flex justify-between items-center"><div class="text-left"><h3 id="b2-modal-title" class="text-yellow-500 font-bold text-sm uppercase">Ghi nhận bia Bài 2 (ẨN HIỆN)</h3></div><button onclick="closeB2Modal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button></div><div class="p-4 flex-grow overflow-x-auto overflow-y-auto custom-scrollbar"><div class="flex flex-row gap-8 justify-center min-w-max pb-8" id="b2-multi-container"></div></div><div class="bg-slate-950 p-6 flex justify-center gap-4"><button onclick="resetB2Targets()" class="px-8 bg-slate-800 text-slate-400 py-4 rounded-xl font-bold text-xs uppercase">Dựng lại tất cả</button><button onclick="saveB2Targets()" class="px-12 bg-red-700 text-white py-4 rounded-xl font-bold text-sm uppercase shadow-xl">Lưu kết quả loạt bắn</button></div></div></div>
 
     <script>
-        // CẤU HÌNH FIREBASE - ĐÃ ĐƯỢC MỞ QUYỀN TRUY CẬP CÔNG KHAI
+        // CẤU HÌNH FIREBASE REAL-TIME (Tài khoản công cộng)
         const firebaseConfig = {
+            apiKey: "AIzaSyAs-NoKeyNeeded-PublicRelay",
             databaseURL: "https://stv-ak-k54-default-rtdb.firebaseio.com"
         };
         firebase.initializeApp(firebaseConfig);
@@ -169,7 +171,7 @@
         let activePadTarget = null; let padSum = 0;
         let activeB2Uids = []; let tempMultiB2Hits = {};
 
-        // Chặn phím F5 để tránh mất dữ liệu chưa kịp đồng bộ
+        // Chặn F5
         window.addEventListener('keydown', function(e) { if ((e.which || e.keyCode) == 116 || (e.ctrlKey && (e.which || e.keyCode) == 82)) e.preventDefault(); });
 
         function updateStatus(text, type) {
@@ -186,25 +188,31 @@
             let fullURL = window.location.origin + window.location.pathname + "?room=" + roomId + "&role=viewer"; 
             new QRCode(container, { text: fullURL, width: 72, height: 72, colorDark: "#0f172a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H }); 
         }
-
-        // HÀM LẮNG NGHE DỮ LIỆU REAL-TIME (TỰ ĐỘNG CẬP NHẬT)
+        
+        // HÀM ĐỒNG BỘ REAL-TIME (BẮT BUỘC)
         function startSyncListener(roomId) {
-            if (!roomId) return;
+            if (!roomId || roomId.length < 3) return;
             currentRoom = roomId;
-            const roomRef = db.ref('rooms/' + roomId);
-            roomRef.off(); // Tắt các listener cũ
-            roomRef.on('value', (snapshot) => {
+            updateStatus("Đang kết nối ID: " + roomId, "success");
+
+            // Tắt listener cũ
+            db.ref('rooms/' + roomId).off();
+
+            // Lắng nghe thay đổi (Khi máy Nhập bấm lưu, máy Xem sẽ nhảy số luôn)
+            db.ref('rooms/' + roomId).on('value', (snapshot) => {
                 const val = snapshot.val();
                 if (val && val.data) {
                     mainData = val.data;
                     renderEngine();
-                    updateStatus("Trực tuyến - ID: " + roomId, "success");
+                    updateStatus("Đã kết nối (Real-time OK)", "success");
+                } else {
+                    updateStatus("ID hợp lệ nhưng chưa có dữ liệu", "success");
                 }
-            }, (error) => {
+            }, (err) => {
                 updateStatus("Lỗi kết nối Server", "error");
             });
         }
-        
+
         window.onload = function() {
             const savedData = localStorage.getItem('ShootingResults'); if(savedData) mainData = JSON.parse(savedData);
             const urlParams = new URLSearchParams(window.location.search);
@@ -232,8 +240,7 @@
                 document.getElementById('left-control-panel').style.display = 'none'; 
                 document.getElementById('right-table-panel').className = "col-span-12 space-y-4"; 
                 document.getElementById('admin-action-buttons').style.display = 'none';
-                updateStatus("Chế độ Máy Xem", "success");
-                if(currentRoom) startSyncListener(currentRoom);
+                updateStatus("Sẵn sàng (Nhập ID để xem)", "success");
             }
             renderEngine();
         };
@@ -243,10 +250,11 @@
         function forceSyncData() { 
             let roomId = document.getElementById('sync-room-id').value.trim();
             if (roomId) startSyncListener(roomId); 
+            else alert("Vui lòng nhập ID!");
         }
         
         function createNewBinOnCloud() { 
-            const roomId = Math.floor(100000 + Math.random() * 900000).toString();
+            const roomId = "ID_" + Math.floor(100000 + Math.random() * 900000);
             currentRoom = roomId;
             document.getElementById('sync-room-id').value = currentRoom;
             
@@ -263,10 +271,11 @@
         function uploadDataToCloud() { 
             localStorage.setItem('ShootingResults', JSON.stringify(mainData)); 
             if (deviceRole !== 'admin' || !currentRoom) return; 
+            
             db.ref('rooms/' + currentRoom).update({
                 data: mainData,
                 lastUpdate: Date.now()
-            });
+            }).catch(e => console.error("Lỗi đồng bộ:", e));
         }
 
         // --- CÁC HÀM NGHIỆP VỤ ---
