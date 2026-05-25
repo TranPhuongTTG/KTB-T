@@ -175,7 +175,7 @@
             if(!container) return;
             container.innerHTML = ""; 
             container.classList.remove('hidden'); 
-            // Tạo URL Internet dựa trên URL hiện tại của trình duyệt
+            // Cải tiến lấy URL Internet động
             let currentUrl = window.location.href.split('?')[0];
             let fullURL = currentUrl + "?room=" + roomId + "&role=viewer"; 
             new QRCode(container, { text: fullURL, width: 72, height: 72, colorDark: "#0f172a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H }); 
@@ -185,7 +185,6 @@
             const savedData = localStorage.getItem('ShootingResults'); if(savedData) mainData = JSON.parse(savedData);
             const urlParams = new URLSearchParams(window.location.search);
             
-            // Xử lý khi quét mã QR hoặc mở link có mã phòng
             if(urlParams.get('room')) {
                 currentRoom = urlParams.get('room');
                 document.getElementById('sync-room-id').value = currentRoom;
@@ -198,7 +197,6 @@
                 document.getElementById('left-control-panel').style.display = 'block'; 
                 document.getElementById('right-table-panel').className = "col-span-12 lg:col-span-9 space-y-4"; 
                 document.getElementById('admin-action-buttons').style.display = 'flex';
-                // Nếu chưa có phòng từ URL thì mới tạo mới
                 if(!currentRoom) createNewBinOnCloud(); 
                 else { updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(currentRoom); }
             }
@@ -212,67 +210,79 @@
             renderEngine();
         };
 
-        function resetExerciseData() { if(confirm("CẢNH BÁO: Hành động này sẽ xoá sạch danh sách quân nhân của BÀI BẮN HIỆN TẠI. Đồng ý?")) { const rK = 'round_' + currentExercise; const bK = 'bay_' + currentExercise; mainData.forEach(d => { d[rK] = null; d[bK] = null; }); uploadDataToCloud(); renderEngine(); } }
-        
         function forceSyncData() { 
             let val = document.getElementById('sync-room-id').value.trim();
             if(val.length > 5) {
                 currentRoom = val; 
                 downloadDataFromCloud();
-                updateStatus("Đang đồng bộ...", "success");
             }
         }
 
-        function createNewBinOnCloud() { 
-            updateStatus("Đang khởi tạo mã kết nối...", "error");
-            fetch(SYNC_SERVER, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' }, 
-                body: JSON.stringify({ room: "room_" + Date.now(), data: mainData }) 
-            })
-            .then(res => res.json())
-            .then(res => { 
+        // KHẮC PHỤC LỖI TẠO BIN API
+        async function createNewBinOnCloud() { 
+            updateStatus("Đang tạo mã kết nối...", "error");
+            try {
+                const response = await fetch(SYNC_SERVER, { 
+                    method: 'POST', 
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'X-Master-Key': MASTER_KEY,
+                        'X-Bin-Private': 'false' 
+                    }, 
+                    body: JSON.stringify({ data: mainData }) 
+                });
+                const res = await response.json();
                 if(res.metadata && res.metadata.id) { 
                     currentRoom = res.metadata.id; 
                     document.getElementById('sync-room-id').value = currentRoom; 
                     updateStatus("Trực tuyến (Admin)", "success"); 
                     generateConnectionQR(currentRoom); 
-                    // Lưu lại mã vào URL trình duyệt
-                    let newUrl = window.location.href.split('?')[0] + "?room=" + currentRoom;
-                    window.history.replaceState(null, "", newUrl);
-                } 
-            }).catch(e => {
-                updateStatus("Lỗi Internet: Không tạo được mã.", "error");
-            });
+                    window.history.replaceState(null, "", "?room=" + currentRoom);
+                } else {
+                    throw new Error("API Limit");
+                }
+            } catch(e) {
+                updateStatus("Lỗi API Internet. Thử lại sau.", "error");
+            }
         }
 
-        function downloadDataFromCloud() { 
-            let targetId = currentRoom || document.getElementById('sync-room-id').value.trim();
-            if (!targetId || targetId.length < 5) return; 
-            fetch(`${SYNC_SERVER}/${targetId}/latest`, { 
-                method: 'GET', 
-                headers: { 'X-Master-Key': MASTER_KEY }, 
-                cache: 'no-store' 
-            })
-            .then(res => res.json())
-            .then(res => { 
+        // KHẮC PHỤC LỖI TẢI DỮ LIỆU API
+        async function downloadDataFromCloud() { 
+            let tId = currentRoom || document.getElementById('sync-room-id').value.trim();
+            if (!tId || tId.length < 5) return; 
+            try {
+                const response = await fetch(`${SYNC_SERVER}/${tId}/latest`, { 
+                    method: 'GET', 
+                    headers: { 'X-Master-Key': MASTER_KEY }
+                });
+                const res = await response.json();
                 if (res.record && res.record.data) { 
                     mainData = res.record.data; 
                     renderEngine(); 
                     updateStatus("Đồng bộ OK (Internet)", "success"); 
                 } 
-            }).catch(e => updateStatus("Mất kết nối Internet", "error")); 
+            } catch(e) {
+                updateStatus("Lỗi kết nối API", "error");
+            }
         }
 
-        function uploadDataToCloud() { 
+        // KHẮC PHỤC LỖI CẬP NHẬT API
+        async function uploadDataToCloud() { 
             localStorage.setItem('ShootingResults', JSON.stringify(mainData)); 
             if (deviceRole !== 'admin' || !currentRoom || currentRoom.length < 5) return; 
-            fetch(`${SYNC_SERVER}/${currentRoom}`, { 
-                method: 'PUT', 
-                headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY }, 
-                body: JSON.stringify({ room: currentRoom, data: mainData }) 
-            }); 
+            try {
+                await fetch(`${SYNC_SERVER}/${currentRoom}`, { 
+                    method: 'PUT', 
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'X-Master-Key': MASTER_KEY 
+                    }, 
+                    body: JSON.stringify({ data: mainData }) 
+                }); 
+            } catch(e) {}
         }
+
+        function resetExerciseData() { if(confirm("CẢNH BÁO: Hành động này sẽ xoá sạch danh sách quân nhân của BÀI BẮN HIỆN TẠI. Đồng ý?")) { const rK = 'round_' + currentExercise; const bK = 'bay_' + currentExercise; mainData.forEach(d => { d[rK] = null; d[bK] = null; }); uploadDataToCloud(); renderEngine(); } }
 
         function registerSoldier() {
             const n = document.getElementById('s-name').value.trim(); const u = document.getElementById('s-unit').value.trim(); const b = document.getElementById('s-bay').value; const r = parseInt(document.getElementById('s-round').value) || 1; const editUid = document.getElementById('edit-uid').value;
