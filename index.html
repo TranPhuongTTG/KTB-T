@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
-    <!-- THƯ VIỆN FIREBASE -->
+    <!-- THAY THẾ ĐƯỜNG TRUYỀN BẰNG THƯ VIỆN FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
@@ -57,13 +57,13 @@
             </div>
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end" id="sync-control-area">
                 <label class="text-[11px] font-bold text-slate-400 uppercase">ID Kết nối:</label>
-                <input type="text" id="sync-room-id" class="w-full sm:w-64 bg-slate-900 border border-slate-700 text-yellow-400 font-mono font-bold px-3 py-1.5 text-xs rounded-lg focus:outline-none" placeholder="Nhập 6 chữ số ID">
-                <button onclick="forceSyncData()" class="px-3 py-1.5 bg-blue-600 text-white text-[11px] font-bold rounded-lg transition-all shadow-lg hover:bg-blue-500"><i class="fa-solid fa-sync-alt mr-1"></i> KẾT NỐI</button>
+                <input type="text" id="sync-room-id" oninput="forceSyncData()" class="w-full sm:w-64 bg-slate-900 border border-slate-700 text-yellow-400 font-mono font-bold px-3 py-1.5 text-xs rounded-lg focus:outline-none" placeholder="Nhập 6 chữ số ID...">
+                <button onclick="forceSyncData()" class="px-3 py-1.5 bg-blue-600 text-white text-[11px] font-bold rounded-lg transition-all"><i class="fa-solid fa-sync-alt"></i></button>
             </div>
         </div>
     </div>
 
-    <!-- HEADER (GIỮ NGUYÊN) -->
+    <!-- HEADER -->
     <header class="flex flex-col xl:flex-row justify-between items-center gap-4 p-5 mb-6 bg-slate-900/80 border border-slate-800 rounded-2xl backdrop-blur-md shadow-xl relative z-40">
         <div class="flex items-center gap-4">
             <div class="bg-gradient-to-br from-red-600 to-red-900 w-12 h-12 rounded-xl flex items-center justify-center border border-yellow-500/30"><i class="fa-solid fa-crosshairs text-xl text-yellow-400"></i></div>
@@ -94,9 +94,8 @@
        </div>
     </header>
 
-    <!-- CONTENT (GIỮ NGUYÊN) -->
+    <!-- CONTENT -->
     <div class="grid grid-cols-12 gap-6 items-start flex-grow mb-12">
-        <!-- Bảng điều khiển trái (Admin) -->
         <div id="left-control-panel" class="col-span-12 lg:col-span-3 space-y-4 hidden">
             <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
                 <h2 id="form-title" class="text-sm font-bold text-yellow-500 uppercase tracking-wider border-b border-slate-800 pb-3"><i class="fa-solid fa-user-plus mr-2"></i>Xếp bệ bắn mới</h2>
@@ -112,7 +111,6 @@
             </div>
         </div>
 
-        <!-- Bảng hiển thị kết quả -->
         <div id="right-table-panel" class="col-span-12 space-y-4">
             <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl shadow-lg flex items-center gap-3 relative z-10">
                 <div class="relative flex-grow">
@@ -122,8 +120,6 @@
                 <div class="text-[10px] font-bold text-slate-500 uppercase px-3 whitespace-nowrap">Số quân nhân: <span id="record-count" class="text-yellow-500">0</span></div>
             </div>
             <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl relative z-0"><div class="overflow-x-auto custom-scrollbar"><table class="w-full text-left border-collapse text-xs"><thead id="header-target"></thead><tbody id="render-target" class="divide-y divide-slate-800/60"></tbody></table></div></div>
-            
-            <!-- Thống kê (GIỮ NGUYÊN) -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl flex flex-col items-center">
                     <h2 class="text-sm font-bold text-yellow-500 uppercase tracking-wider border-b border-slate-800 pb-3 mb-5 w-full text-center">Tỉ lệ thành tích</h2>
@@ -153,10 +149,10 @@
          <p><i class="fa-solid fa-shield-halved mr-1 text-yellow-400"></i> Phần mềm được tạo bởi Đồng chí Thượng uý Trần Thanh Phương , Đồng chí Thiếu tá Trương Công Sĩ , Trợ lý Tác Chiến, Đồng chí Thiếu tá Lê Anh Tuấn, Trợ lý Đào tạo, Trường Quân sự Quân đoàn 3</p>
     </footer>
 
-    <!-- MODAL NHẬP ĐIỂM (GIỮ NGUYÊN) -->
+    <!-- MODAL NHẬP ĐIỂM -->
     <div id="score-pad-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm p-4 z-[110] hidden items-center justify-center"><div class="bg-slate-900 border-2 border-slate-700 w-full max-w-[340px] rounded-3xl shadow-2xl overflow-hidden"><div class="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center"><h3 id="modal-pad-title" class="text-yellow-500 font-bold text-sm uppercase tracking-widest">Mời nhập số</h3><button onclick="closeScorePad()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button></div><div class="p-6 text-center"><span id="score-pad-display" class="text-6xl font-black text-yellow-400 block mb-8">0</span><div class="grid grid-cols-5 gap-2 mb-8" id="pad-grid"></div><div class="flex gap-2"><button onclick="resetPad()" class="flex-1 bg-slate-800 text-slate-300 py-3.5 rounded-xl font-bold text-xs uppercase hover:bg-slate-700">Xóa</button><button id="ok-btn-pad" onclick="confirmPad()" class="flex-[2] bg-red-700 text-white py-3.5 rounded-xl font-bold text-xs uppercase shadow-lg">XONG</button></div></div></div></div>
 
-    <!-- MODAL BÀI 2 AH (GIỮ NGUYÊN) -->
+    <!-- MODAL BÀI 2 AH -->
     <div id="ak-b2-modal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[120] hidden items-center justify-center p-4"><div class="bg-slate-900 border-2 border-slate-700 w-full max-w-[95vw] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"><div class="bg-slate-800 p-4 flex justify-between items-center"><div class="text-left"><h3 id="b2-modal-title" class="text-yellow-500 font-bold text-sm uppercase">Ghi nhận bia Bài 2 (ẨN HIỆN)</h3></div><button onclick="closeB2Modal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button></div><div class="p-4 flex-grow overflow-x-auto overflow-y-auto custom-scrollbar"><div class="flex flex-row gap-8 justify-center min-w-max pb-8" id="b2-multi-container"></div></div><div class="bg-slate-950 p-6 flex justify-center gap-4"><button onclick="resetB2Targets()" class="px-8 bg-slate-800 text-slate-400 py-4 rounded-xl font-bold text-xs uppercase">Dựng lại tất cả</button><button onclick="saveB2Targets()" class="px-12 bg-red-700 text-white py-4 rounded-xl font-bold text-sm uppercase shadow-xl">Lưu kết quả loạt bắn</button></div></div></div>
 
     <script>
@@ -166,19 +162,10 @@
         let activePadTarget = null; let padSum = 0;
         let activeB2Uids = []; let tempMultiB2Hits = {};
 
-        // --- CẤU HÌNH FIREBASE - NÂNG CẤP ĐƯỜNG TRUYỀN ---
+        // --- CẤU HÌNH ĐƯỜNG TRUYỀN MỚI (FIREBASE) ---
         const firebaseConfig = { databaseURL: "https://stv-shooting-default-rtdb.asia-southeast1.firebasedatabase.app/" };
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
-        // Kiểm tra kết nối Internet thực tế tới máy chủ Firebase
-        db.ref('.info/connected').on('value', (snap) => {
-            if (snap.val() === true) {
-                updateStatus(deviceRole === 'admin' ? "Trực tuyến (Admin)" : "Đã kết nối máy chủ", "success");
-            } else {
-                updateStatus("Mất kết nối máy chủ!", "error");
-            }
-        });
 
         window.addEventListener('keydown', function(e) { if ((e.which || e.keyCode) == 116 || (e.ctrlKey && (e.which || e.keyCode) == 82)) e.preventDefault(); });
 
@@ -200,100 +187,79 @@
         window.onload = function() {
             const savedData = localStorage.getItem('ShootingResults'); if(savedData) mainData = JSON.parse(savedData);
             const urlParams = new URLSearchParams(window.location.search);
-            
             if(urlParams.get('room')) {
                 currentRoom = urlParams.get('room');
                 document.getElementById('sync-room-id').value = currentRoom;
                 if(urlParams.get('role')) deviceRole = urlParams.get('role');
                 downloadDataFromCloud();
             }
-
             if(deviceRole === 'admin') { 
                 document.getElementById('role-admin-badge').className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-blue-600 shadow-md"; 
                 document.getElementById('left-control-panel').style.display = 'block'; 
                 document.getElementById('right-table-panel').className = "col-span-12 lg:col-span-9 space-y-4"; 
                 document.getElementById('admin-action-buttons').style.display = 'flex';
                 if(!currentRoom) createNewBinOnCloud(); 
-                else generateConnectionQR(currentRoom);
+                else { updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(currentRoom); }
             }
             else { 
                 document.getElementById('role-viewer-badge').className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-amber-600 shadow-md"; 
                 document.getElementById('left-control-panel').style.display = 'none'; 
                 document.getElementById('right-table-panel').className = "col-span-12 space-y-4"; 
                 document.getElementById('admin-action-buttons').style.display = 'none';
+                if(!currentRoom) updateStatus("Nhập ID để xem", "success");
             }
             renderEngine();
         };
 
-        // --- HÀM TẢI DỮ LIỆU MỚI (FIX TRIỆT ĐỂ MÁY XEM) ---
-        function downloadDataFromCloud() { 
-            let t = document.getElementById('sync-room-id').value.trim();
-            if (!t || t.length < 5) return;
-            
-            currentRoom = t;
-            updateStatus("Đang tải dữ liệu...", "success");
-
-            // Xóa sạch các bộ nghe cũ
-            db.ref('rooms/' + currentRoom).off();
-
-            // 1. Tải một lần ngay lập tức để hiện dữ liệu
-            db.ref('rooms/' + currentRoom).once('value').then((snapshot) => {
-                if (snapshot.exists()) {
-                    const val = snapshot.val();
-                    if (val && val.data) {
-                        mainData = val.data;
-                        renderEngine();
-                        updateStatus("Đồng bộ OK", "success");
-                    }
-                } else {
-                    updateStatus("ID không tồn tại!", "error");
-                }
-            }).catch(e => updateStatus("Lỗi tải dữ liệu!", "error"));
-
-            // 2. Thiết lập bộ nghe tự động khi máy Nhập đổi điểm
-            db.ref('rooms/' + currentRoom).on('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    const val = snapshot.val();
-                    if (val && val.data) {
-                        mainData = val.data;
-                        renderEngine();
-                    }
-                }
-            });
-        }
-
-        function createNewBinOnCloud() { 
+        // --- CÁC HÀM XỬ LÝ ĐƯỜNG TRUYỀN MỚI ---
+        function createNewBinOnCloud() {
             let roomId = Math.floor(100000 + Math.random() * 900000).toString();
             currentRoom = roomId;
             document.getElementById('sync-room-id').value = currentRoom;
             db.ref('rooms/' + roomId).set({ data: mainData, lastUpdate: Date.now() }).then(() => {
+                updateStatus("Trực tuyến (Admin)", "success");
                 generateConnectionQR(currentRoom);
                 window.history.replaceState(null, "", "?room=" + currentRoom);
-                downloadDataFromCloud(); // Admin cũng tự nghe
             });
         }
 
         function forceSyncData() { 
-            downloadDataFromCloud(); 
+            currentRoom = document.getElementById('sync-room-id').value.trim();
+            if(currentRoom.length >= 5) downloadDataFromCloud();
         }
 
-        function uploadDataToCloud() { 
-            localStorage.setItem('ShootingResults', JSON.stringify(mainData)); 
-            if (deviceRole !== 'admin' || !currentRoom) return; 
+        function downloadDataFromCloud() {
+            if(!currentRoom) return;
+            updateStatus("Đang đồng bộ...", "success");
+            db.ref('rooms/' + currentRoom).on('value', (snap) => {
+                if(snap.exists()){
+                    mainData = snap.val().data;
+                    renderEngine();
+                    updateStatus("Đồng bộ OK (Realtime)", "success");
+                } else {
+                    updateStatus("Không tìm thấy ID", "error");
+                }
+            });
+        }
+
+        function uploadDataToCloud() {
+            localStorage.setItem('ShootingResults', JSON.stringify(mainData));
+            if (deviceRole !== 'admin' || !currentRoom) return;
             db.ref('rooms/' + currentRoom).update({ data: mainData, lastUpdate: Date.now() });
         }
 
-        // --- GIỮ NGUYÊN TOÀN BỘ LOGIC TÍNH ĐIỂM BÊN DƯỚI ---
-        function resetExerciseData() { if(confirm("Xoá sạch danh sách bài này?")) { const rK = 'round_' + currentExercise; mainData.forEach(d => { d[rK] = null; }); uploadDataToCloud(); renderEngine(); } }
+        // --- GIỮ NGUYÊN TOÀN BỘ LOGIC CÒN LẠI ---
+        function resetExerciseData() { if(confirm("CẢNH BÁO: Hành động này sẽ xoá sạch danh sách quân nhân của BÀI BẮN HIỆN TẠI. Đồng ý?")) { const rK = 'round_' + currentExercise; const bK = 'bay_' + currentExercise; mainData.forEach(d => { d[rK] = null; d[bK] = null; }); uploadDataToCloud(); renderEngine(); } }
         function registerSoldier() {
             const n = document.getElementById('s-name').value.trim(); const u = document.getElementById('s-unit').value.trim(); const b = document.getElementById('s-bay').value; const r = parseInt(document.getElementById('s-round').value) || 1; const editUid = document.getElementById('edit-uid').value;
-            if(!n || !u) return alert("Điền đủ Tên và Đơn vị!");
+            if(!n || !u) return alert("Vui lòng điền đủ Tên và Đơn vị!");
             const rKey = 'round_' + currentExercise; const bKey = 'bay_' + currentExercise;
-            if (mainData.some(item => item[rKey] == r && item[bKey] == b && item.uid != editUid)) return alert(`⚠️ Bệ ${b} Loạt ${r} đã có người!`);
+            if (mainData.some(item => item[rKey] == r && item[bKey] == b && item.uid != editUid)) return alert(`⚠️ CHÚ Ý: Bệ số ${b} của Loạt ${r} đã có người!`);
             if(editUid) { const idx = mainData.findIndex(d => d.uid == editUid); if(idx !== -1) { mainData[idx].name = n; mainData[idx].unit = u; mainData[idx][bKey] = b; mainData[idx][rKey] = r; } cancelEdit(); }
             else { mainData.push({ uid: Date.now(), name:n, unit:u, b4_1:0, b4_2:0, b4_3:0, b7_1:0, b7_2:0, b7_3:0, b8_1:0, b8_2:0, b8_3:0, ak_b2: { hit6:0, hit5:0, hit10:0, hit7b:0, hit8cn:0, hit8cc:0 }, k54_4d_1:0, k54_4d_2:0, k54_4d_3:0, k54_4d_4:0, k54_ken1:-1, k54_ken2:-1, k54_8e2:0, k54_8e1_3:0, k54_8e2_3:0, k54_mode: 0, [rKey]: r, [bKey]: b }); }
             renderEngine(); uploadDataToCloud();
         }
+
         function calculateTotal(item, ex) {
             if (ex === 1) return (item.b4_1||0) + (item.b4_2||0) + (item.b4_3||0);
             if (ex === 2) return (item.b7_1||0) + (item.b7_2||0) + (item.b7_3||0);
@@ -305,6 +271,7 @@
             let penalty = (item.k54_ken1 === 0 ? 10 : 0) + (item.k54_ken2 === 0 ? 10 : 0);
             return Math.max(0, base - penalty);
         }
+
         function getRankString(score, ex, item) {
             const rKey = 'round_' + ex; if(!item[rKey]) return '-';
             let played = (ex === 6) ? (Object.values(item.ak_b2||{}).some(v=>v===1)) : ([5,7].includes(ex) ? (score>0 || item.k54_ken1!==-1) : (score>0));
@@ -313,6 +280,7 @@
             let g, k, d; if(ex === 7) { g=160; k=132; d=100; } else if(ex === 5) { g=240; k=198; d=150; } else if(ex === 4) { g=72; k=65; d=50; } else { g=25; k=21; d=15; }
             if(score >= g) return 'Giỏi'; if(score >= k) return 'Khá'; if(score >= d) return 'Đạt'; return 'K. Đạt';
         }
+
         function renderEngine() {
             const head = document.getElementById('header-target'); const target = document.getElementById('render-target'); const query = document.getElementById('search-input').value.toLowerCase().trim();
             const rKey = 'round_' + currentExercise; const bKey = 'bay_' + currentExercise;
@@ -321,12 +289,15 @@
             const filtered = sortedData.filter(d => d.name.toLowerCase().includes(query) || d.unit.toLowerCase().includes(query));
             document.getElementById('record-count').innerText = filtered.length;
             const ammoBox = document.getElementById('ammo-summary-box'); if(currentExercise === 6) ammoBox.classList.remove('hidden'); else ammoBox.classList.add('hidden');
+
             const isAdmin = (deviceRole === 'admin');
             const actionHeader = isAdmin ? `<th class="p-3">#</th>` : '';
+
             if (currentExercise === 6) head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase text-center"><th class="p-3 border-r border-slate-800/60">STT</th><th class="p-3 border-r border-slate-800/60">Loạt/Bệ</th><th class="p-3 text-left border-r border-slate-800/60">Họ và Tên</th><th class="p-3 text-left border-r border-slate-800/60">Đơn vị</th><th class="p-2 border-r border-slate-800/60">B6</th><th class="p-2 border-r border-slate-800/60">B5</th><th class="p-2 border-r border-slate-800/60">B10</th><th class="p-2 border-r border-slate-800/60">B7b</th><th class="p-2 border-r border-slate-800/60">8cN</th><th class="p-2 border-r border-slate-800/60">8cC</th><th class="p-3 border-r border-slate-800/60">Tổng điểm</th><th class="p-3 border-r border-slate-800/60">Thành tích</th><th class="p-3 border-l border-slate-800/60">Đạn thừa</th>${actionHeader}</tr>`;
             else if (currentExercise === 5 || currentExercise === 7) { let col8e = currentExercise === 5 ? `<th class="p-2 border-r border-slate-800/60">8e/2</th><th class="p-2 border-r border-slate-800/60">8e1/3</th><th class="p-2 border-r border-slate-800/60">8e2/3</th>` : `<th class="p-2 border-r border-slate-800/60">8e/2</th>`; head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase text-center"><th class="p-3 border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loạt/Bệ</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Họ và Tên</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Đơn vị</th><th class="p-2 border-r border-slate-800/60" colspan="4">Bia 4d</th><th class="p-2 border-r border-slate-800/60" colspan="2">Bia Ken</th>${col8e}<th class="p-3 border-r border-slate-800/60" rowspan="2">Tổng điểm</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Thành tích</th>${isAdmin ? '<th class="p-3 text-center" rowspan="2">#</th>' : ''}</tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center"><th class="p-2 border-r border-slate-800/40">M1</th><th class="p-2 border-r border-slate-800/40">M2</th><th class="p-2 border-r border-slate-800/40">M3</th><th class="p-2 border-r border-slate-800/40">M4</th><th class="p-2 border-r border-slate-800/40">B1</th><th class="p-2 border-r border-slate-800/40">B2</th>${currentExercise===5?'<th>5-10đ</th><th>5-10đ</th><th>5-10đ</th>':'<th>5-10đ</th>'}</tr>`; }
             else if (currentExercise === 4) head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase text-center"><th class="p-3 border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loạt/Bệ</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Họ và Tên</th><th class="p-3 text-left border-r border-slate-800/60" rowspan="2">Đơn vị</th><th colspan="3" class="text-center border-r border-slate-800/60">Bia 4</th><th colspan="3" class="text-center border-r border-slate-800/60">Bia 7</th><th colspan="3" class="text-center border-r border-slate-800/60">Bia 8</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Tổng điểm</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Thành tích</th>${isAdmin ? '<th class="p-3 text-center" rowspan="2">#</th>' : ''}</tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center"><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th></tr>`;
             else head.innerHTML = `<tr class="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase text-center"><th class="p-3 border-r border-slate-800/60" rowspan="2">STT</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Loạt/Bệ</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Họ Tên</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Đơn vị</th><th colspan="3" class="text-center border-r border-slate-800/60">ĐIỂM BẮN</th><th class="p-3 text-center border-r border-slate-800/60" rowspan="2">Tổng điểm</th><th class="p-3 border-r border-slate-800/60" rowspan="2">Thành tích</th>${isAdmin ? '<th class="p-3 text-center" rowspan="2">#</th>' : ''}</tr><tr class="bg-slate-900/40 border-b border-slate-800 text-[10px] text-slate-500 text-center"><th>V1</th><th>V2</th><th class="border-r border-slate-800/60">V3</th></tr>`;
+
             target.innerHTML = ''; let lastRound = -1; let ammoTotal = 0;
             filtered.forEach((item, index) => {
                 let rNum = item[rKey]; if (rNum !== lastRound) { lastRound = rNum; let roundBtn = (currentExercise === 6 && deviceRole === 'admin') ? `<button onclick="openB2LoatModal(${lastRound})" class="ml-4 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[9px] rounded-lg shadow-lg">HIỆN MỤC TIÊU</button>` : ''; let cSpan = (currentExercise === 4) ? 16 : 14; target.innerHTML += `<tr class="bg-slate-950/90 text-yellow-500 font-bold text-center"><td colspan="${cSpan}" class="p-2 uppercase tracking-widest text-[10px] border-y border-slate-800">--- LOẠT BẮN SỐ ${lastRound} --- ${roundBtn}</td></tr>`; }
@@ -335,7 +306,171 @@
                 const iS = (deviceRole === 'admin') ? "w-11 bg-slate-950 border border-slate-800 text-center text-yellow-400 font-bold rounded py-1 cursor-pointer" : "w-11 bg-transparent text-center text-slate-200 py-1";
                 const actionH = (deviceRole==='admin') ? `<td class="p-2 text-center flex justify-center gap-2"><button onclick="editSoldier(${item.uid})" class="text-blue-400 hover:text-white"><i class="fa-solid fa-user-pen"></i></button><button onclick="purgeSoldier(${item.uid})" class="text-slate-500 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button></td>` : ``;
                 let rankStyle = rankStr.includes('Giỏi') || rankStr === 'GIỎI' ? 'text-emerald-400 font-bold' : rankStr.includes('Khá') || rankStr === 'KHÁ' ? 'text-blue-400 font-bold' : rankStr.includes('Đạt') && !rankStr.includes('K') ? 'text-amber-500 font-bold' : rankStr === '-' ? 'text-slate-600' : 'text-red-500 font-bold';
-                if (currentExercise === 6) { const b = item.ak_b2 || {}; const btnC = "w-8 h-8 rounded border flex items-center justify-center font-bold text-[10px]"; target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item.round_6}-B${item.bay_6}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><button class="${btnC} ${b.hit6?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">6</button></td><td class="p-1"><button class="${btnC} ${b.hit5?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">5</button></td><td class="p-1"><button class="${btnC} ${b.hit10?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">10</button></td><td class="p-1"><button class="${btnC} ${b.hit7b?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">7b</button></td><td class="p-1"><button class="${btnC} ${b.hit8cn?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">8cN</button></td><td class="p-1"><button class="${btnC} ${b.hit8cc?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">8cC</button></td><td class="p-3 font-bold text-white border-r border-slate-800/40">${rankStr==='-'?'0':t}</td><td class="p-3 border-r border-slate-800/40 ${rankStyle}">${rankStr}</td><td class="p-1 border-l border-slate-800/60"><input value="${item.ammo_left_6 || 0}" onclick="openScorePad(${item.uid},'ammo_left_6')" class="${iS} text-emerald-400 border-emerald-900/30" readonly></td>${actionH}</tr>`; } 
-                else if (currentExercise === 5 || currentExercise === 7) { let lock8e2 = (item.k54_ken1 === 1 || item.k54_ken2 === 1) ? "" : "disabled opacity-30"; let col8eData = currentExercise === 5 ? `<td class="p-1"><input value="${item.k54_8e2}" onclick="openScorePad(${item.uid},'k54_8e2')" class="${iS}" ${lock8e2} readonly></td><td class="p-1"><input value="${item.k54_8e1_3}" onclick="openScorePad(${item.uid},'k54_8e1_3')" class="${iS}" readonly></td><td class="p-1"><input value="${item.k54_8e2_3}" onclick="openScorePad(${item.uid},'k54_8e2_3')" class="${iS}" readonly></td>` : `<td class="p-1 border-r border-slate-800/40"><input value="${item.k54_8e2}" onclick="openScorePad(${item.uid},'k54_8e2')" class="${iS}" ${lock8e2} readonly></td>`; target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item[rKey]}-B${item[bKey]}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${item.k54_4d_1}" onclick="openScorePad(${item.uid},'k54_4d_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.k54_4d_2}" onclick="openScorePad(${item.uid},'k54_4d_2')" class="${iS}" readonly></td><td class="p-1"><input value="${item.k54_4d_3}" onclick="openScorePad(${item.uid},'k54_4d_3')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_4d_4}" onclick="openScorePad(${item.uid},'k54_4d_4')" class="${iS}" readonly></td><td class="p-1 text-[9px]"><input type="radio" onchange="checkCrossMode(${item.uid},'k54_ken1',1)" ${item.k54_ken1===1?'checked':''} ${isAdmin?'':'disabled'}> T <input type="radio" onchange="checkCrossMode(${item.uid},'k54_ken1',0)" ${item.k54_ken1===0?'checked':''} ${isAdmin?'':'disabled'}> H</td><td class="p-1 text-[9px] border-r border-slate-800/40"><input type="radio" onchange="checkCrossMode(${item.uid},'k54_ken2',1)" ${item.k54_ken2===1?'checked':''} ${isAdmin?'':'disabled'}> T <input type="radio" onchange="checkCrossMode(${item.uid},'k54_ken2',0)" ${item.k54_ken2===0?'checked':''} ${isAdmin?'':'disabled'}> H</td>${col8eData}<td class="p-3 font-bold text-white">${rankStr==='-'?'0':t}</td><td class="p-3 border-r border-slate-800/40 ${rankStyle}">${rankStr}</td>${actionH}</tr>`; } 
-                else if (currentExercise === 4) { target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item.round_4}-B${item.bay_4}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${item.b4_1}" onclick="openScorePad(${item.uid},'b4_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b4_2}" onclick="openScorePad(${item.uid},'b4_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b4_3}" onclick="openScorePad(${item.uid},'b4_3')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b7_1}" onclick="openScorePad(${item.uid},'b7_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b7_2}" onclick="openScorePad(${item.uid},'b7_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b7_3}" onclick="openScorePad(${item.uid},'b7_3')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b8_1}" onclick="openScorePad(${item.uid},'b8_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b8_2}" onclick="openScorePad(${item.uid},'b8_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b8_3}" onclick="openScorePad(${item.uid},'b8_3')" class="${iS}" readonly></td><td class="p-3 font-bold text-white border-r border-slate-800/40">${rankStr==='-'?'0':t}</td><td class="p-3 border-r border-slate-800/40 ${rankStyle}">${rankStr}</td>${actionH}</tr>`; } 
-                else { let field=(currentExercise===1?'b4':(currentExercise===2?'b7':'b8')); target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 bord
+
+                if (currentExercise === 6) {
+                    const b = item.ak_b2 || {}; const btnC = "w-8 h-8 rounded border flex items-center justify-center font-bold text-[10px]"; target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item.round_6}-B${item.bay_6}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><button class="${btnC} ${b.hit6?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">6</button></td><td class="p-1"><button class="${btnC} ${b.hit5?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">5</button></td><td class="p-1"><button class="${btnC} ${b.hit10?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">10</button></td><td class="p-1"><button class="${btnC} ${b.hit7b?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">7b</button></td><td class="p-1"><button class="${btnC} ${b.hit8cn?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">8cN</button></td><td class="p-1"><button class="${btnC} ${b.hit8cc?'bg-emerald-600 border-emerald-400 text-white':'bg-slate-950 border-slate-700 text-slate-500'}">8cC</button></td><td class="p-3 font-bold text-white border-r border-slate-800/40">${rankStr==='-'?'0':t}</td><td class="p-3 border-r border-slate-800/40 ${rankStyle}">${rankStr}</td><td class="p-1 border-l border-slate-800/60"><input value="${item.ammo_left_6 || 0}" onclick="openScorePad(${item.uid},'ammo_left_6')" class="${iS} text-emerald-400 border-emerald-900/30" readonly></td>${actionH}</tr>`;
+                } else if (currentExercise === 5 || currentExercise === 7) {
+                    let lock8e2 = (item.k54_ken1 === 1 || item.k54_ken2 === 1) ? "" : "disabled opacity-30";
+                    let col8eData = currentExercise === 5 ? `<td class="p-1"><input value="${item.k54_8e2}" onclick="openScorePad(${item.uid},'k54_8e2')" class="${iS}" ${lock8e2} readonly></td><td class="p-1"><input value="${item.k54_8e1_3}" onclick="openScorePad(${item.uid},'k54_8e1_3')" class="${iS}" readonly></td><td class="p-1"><input value="${item.k54_8e2_3}" onclick="openScorePad(${item.uid},'k54_8e2_3')" class="${iS}" readonly></td>` : `<td class="p-1 border-r border-slate-800/40"><input value="${item.k54_8e2}" onclick="openScorePad(${item.uid},'k54_8e2')" class="${iS}" ${lock8e2} readonly></td>`;
+                    target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item[rKey]}-B${item[bKey]}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${item.k54_4d_1}" onclick="openScorePad(${item.uid},'k54_4d_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.k54_4d_2}" onclick="openScorePad(${item.uid},'k54_4d_2')" class="${iS}" readonly></td><td class="p-1"><input value="${item.k54_4d_3}" onclick="openScorePad(${item.uid},'k54_4d_3')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/40"><input value="${item.k54_4d_4}" onclick="openScorePad(${item.uid},'k54_4d_4')" class="${iS}" readonly></td><td class="p-1 text-[9px]"><input type="radio" onchange="checkCrossMode(${item.uid},'k54_ken1',1)" ${item.k54_ken1===1?'checked':''} ${isAdmin?'':'disabled'}> T <input type="radio" onchange="checkCrossMode(${item.uid},'k54_ken1',0)" ${item.k54_ken1===0?'checked':''} ${isAdmin?'':'disabled'}> H</td><td class="p-1 text-[9px] border-r border-slate-800/40"><input type="radio" onchange="checkCrossMode(${item.uid},'k54_ken2',1)" ${item.k54_ken2===1?'checked':''} ${isAdmin?'':'disabled'}> T <input type="radio" onchange="checkCrossMode(${item.uid},'k54_ken2',0)" ${item.k54_ken2===0?'checked':''} ${isAdmin?'':'disabled'}> H</td>${col8eData}<td class="p-3 font-bold text-white">${rankStr==='-'?'0':t}</td><td class="p-3 border-r border-slate-800/40 ${rankStyle}">${rankStr}</td>${actionH}</tr>`;
+                } else if (currentExercise === 4) {
+                    target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item.round_4}-B${item.bay_4}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${item.b4_1}" onclick="openScorePad(${item.uid},'b4_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b4_2}" onclick="openScorePad(${item.uid},'b4_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b4_3}" onclick="openScorePad(${item.uid},'b4_3')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b7_1}" onclick="openScorePad(${item.uid},'b7_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b7_2}" onclick="openScorePad(${item.uid},'b7_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b7_3}" onclick="openScorePad(${item.uid},'b7_3')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b8_1}" onclick="openScorePad(${item.uid},'b8_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b8_2}" onclick="openScorePad(${item.uid},'b8_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b8_3}" onclick="openScorePad(${item.uid},'b8_3')" class="${iS}" readonly></td><td class="p-3 font-bold text-white border-r border-slate-800/40">${rankStr==='-'?'0':t}</td><td class="p-3 border-r border-slate-800/40 ${rankStyle}">${rankStr}</td>${actionH}</tr>`;
+                } else {
+                    let field=(currentExercise===1?'b4':(currentExercise===2?'b7':'b8'));
+                    target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item[rKey]}-B${item[bKey]}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${item[field+'_1']}" onclick="openScorePad(${item.uid},'${field}_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item[field+'_2']}" onclick="openScorePad(${item.uid},'field}_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item[field+'_3']}" onclick="openScorePad(${item.uid},'${field}_3')" class="${iS}" readonly></td><td class="p-3 font-bold text-white border-r border-slate-800/40">${rankStr==='-'?'0':t}</td><td class="p-3 border-r border-slate-800/40 ${rankStyle}">${rankStr}</td>${actionH}</tr>`;
+                }
+            });
+            document.getElementById('global-ammo-total').innerText = ammoTotal; updatePieChartLogic(); updateUnitStatistics();
+        }
+
+        function cancelEdit() { document.getElementById('edit-uid').value = ""; document.getElementById('s-name').value = ""; document.getElementById('s-unit').value = ""; document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-user-plus mr-2"></i>Xếp bệ bắn mới`; document.getElementById('btn-submit').innerText = "Vào bệ bắn"; document.getElementById('btn-cancel-edit').classList.add('hidden'); }
+        function editSoldier(uid) { const item = mainData.find(d => d.uid == uid); if(!item) return; document.getElementById('edit-uid').value = uid; document.getElementById('s-name').value = item.name; document.getElementById('s-unit').value = item.unit; document.getElementById('s-round').value = item['round_' + currentExercise] || 1; document.getElementById('s-bay').value = item['bay_' + currentExercise] || 1; document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-user-pen mr-2"></i>Sửa thông tin`; document.getElementById('btn-submit').innerText = "Cập nhật"; document.getElementById('btn-cancel-edit').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+        function checkCrossMode(uid, f, v) { if(deviceRole !== 'admin') return; const item = mainData.find(d => d.uid === uid); if(currentExercise === 5 && item.k54_mode === 7) return alert("⚠️ Đã thi Bài 2b!"); if(currentExercise === 7 && item.k54_mode === 5) return alert("⚠️ Đã thi Bài 2!"); modifyScore(uid, f, v); }
+        function openScorePad(uid, f) { if(deviceRole !== 'admin') return; const item = mainData.find(d => d.uid === uid); if(currentExercise === 5 && item.k54_mode === 7) return alert("⚠️ Đã thi Bài 2b!"); if(currentExercise === 7 && item.k54_mode === 5) return alert("⚠️ Đã thi Bài 2!"); activePadTarget={uid,f}; padSum = 0; document.getElementById('score-pad-display').innerText = '0'; const grid = document.getElementById('pad-grid'); grid.innerHTML = ''; let start = (currentExercise === 5 || currentExercise === 7) ? 5 : 0; for(let i=start; i<=10; i++) { grid.innerHTML += `<button onclick="handlePadClick(${i})" class="score-btn py-3 text-white rounded-lg font-bold">${i}</button>`; } document.getElementById('modal-pad-title').innerText = (currentExercise === 5 || currentExercise === 7) ? "Nhập điểm K54 (Cộng dồn)" : "Mời nhập số"; document.getElementById('score-pad-modal').classList.replace('hidden','flex'); }
+        function handlePadClick(v) { if((currentExercise === 5 || currentExercise === 7)) { padSum += v; document.getElementById('score-pad-display').innerText = padSum; } else { modifyScore(activePadTarget.uid, activePadTarget.f, v); closeScorePad(); } }
+        function confirmPad() { modifyScore(activePadTarget.uid, activePadTarget.f, padSum); closeScorePad(); }
+        function resetPad() { padSum = 0; document.getElementById('score-pad-display').innerText = '0'; }
+        function closeScorePad() { document.getElementById('score-pad-modal').classList.replace('flex', 'hidden'); resetPad(); }
+        function modifyScore(uid, f, v) { const idx = mainData.findIndex(d => d.uid === uid); if(idx !== -1) { mainData[idx][f] = parseInt(v); if(currentExercise === 5 || currentExercise === 7) mainData[idx].k54_mode = currentExercise; uploadDataToCloud(); renderEngine(); } }
+        function purgeSoldier(uid) { if(confirm("Xóa quân nhân khỏi bài này?")) { const idx = mainData.findIndex(d => d.uid === uid); if(idx !== -1) { mainData[idx]['round_' + currentExercise] = null; mainData[idx]['bay_' + currentExercise] = null; uploadDataToCloud(); renderEngine(); } } }
+
+        function openB2LoatModal(roundNo) { if(deviceRole !== 'admin') return; const rK = 'round_6'; const soldiers = mainData.filter(d => d[rK] == roundNo).sort((a,b) => a.bay_6 - b.bay_6); if(soldiers.length === 0) return; activeB2Uids = soldiers.map(s => s.uid); tempMultiB2Hits = {}; const container = document.getElementById('b2-multi-container'); container.innerHTML = ''; soldiers.forEach(s => { tempMultiB2Hits[s.uid] = s.ak_b2 ? {...s.ak_b2} : { hit6:0, hit5:0, hit10:0, hit7b:0, hit8cn:0, hit8cc:0 }; container.innerHTML += `<div class="bg-slate-800/40 border border-slate-700 p-6 rounded-3xl shadow-xl min-w-[320px]"><div class="mb-6 text-center border-b border-slate-700 pb-4"><div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mx-auto mb-2">B${s.bay_6}</div><h4 class="text-white font-bold text-sm uppercase">${s.name}</h4><p class="text-[10px] text-slate-400">${s.unit}</p></div><div class="flex flex-col gap-10 items-center"><div class="flex gap-10">${renderTargetSVG(s.uid, 'hit8cn', '8c Ngang', 60, 40, '<rect x="10" y="20" width="80" height="30" fill="#166534" stroke="#facc15" stroke-width="2"/><circle cx="50" cy="35" r="5" fill="#facc15"/>')}${renderTargetSVG(s.uid, 'hit8cc', '8c Chếch', 60, 40, '<path d="M20 50 L80 20 L90 35 L30 65 Z" fill="#166534" stroke="#facc15" stroke-width="2"/>')}</div><div class="flex gap-10">${renderTargetSVG(s.uid, 'hit10', 'Bia 10', 50, 50, '<circle cx="50" cy="50" r="45" fill="#1e293b" stroke="#facc15" stroke-width="3"/><rect x="40" y="10" width="20" height="80" fill="#166534"/>')}${renderTargetSVG(s.uid, 'hit7b', 'Bia 7b', 50, 60, '<path d="M10 100 L50 10 L90 100 Z" fill="#166534" stroke="#facc15" stroke-width="3"/>')}</div><div class="flex gap-10">${renderTargetSVG(s.uid, 'hit6', 'Bia 6', 50, 60, '<path d="M20 20 H80 V100 H20 Z" fill="#166534" stroke="#facc15" stroke-width="2"/><rect x="35" y="10" width="30" height="20" fill="#166534"/>')}<div onclick="toggleMultiB2Target(${s.uid}, 'hit5')" id="multi-bia-${s.uid}-hit5" class="target-container flex flex-col items-center"><svg width="40" height="40" viewBox="0 0 100 100"><rect x="30" y="30" width="40" height="40" fill="#166534" stroke="#facc15" stroke-width="2"/></svg><span class="text-[8px] mt-2 font-bold uppercase text-slate-500">Bia 5</span></div></div></div></div>`; }); 
+            const modal = document.getElementById('ak-b2-modal');
+            modal.classList.add('flex'); modal.classList.remove('hidden');
+            refreshMultiB2UI(); 
+        }
+        function renderTargetSVG(uid, key, label, w, h, paths) { return `<div onclick="toggleMultiB2Target(${uid}, '${key}')" id="multi-bia-${uid}-${key}" class="target-container text-center flex flex-col items-center"><svg width="${w}" height="${h}" viewBox="0 0 100 ${(h/w)*100}">${paths}</svg><span class="text-[8px] mt-2 font-bold uppercase text-slate-500">${label}</span></div>`; }
+        function toggleMultiB2Target(uid, key) { tempMultiB2Hits[uid][key] = tempMultiB2Hits[uid][key] === 1 ? 0 : 1; refreshMultiB2UI(); }
+        function refreshMultiB2UI() { for(let uid in tempMultiB2Hits) { for(let key in tempMultiB2Hits[uid]) { const el = document.getElementById(`multi-bia-${uid}-${key}`); if(tempMultiB2Hits[uid][key] === 1) el.classList.add('target-down'); else el.classList.remove('target-down'); } } }
+        
+        function saveB2Targets() { 
+            for(let uid in tempMultiB2Hits) { const idx = mainData.findIndex(d => d.uid == uid); if(idx !== -1) mainData[idx].ak_b2 = tempMultiB2Hits[uid]; } 
+            uploadDataToCloud(); 
+            renderEngine(); 
+            closeB2Modal(); 
+        }
+        function resetB2Targets() { for(let uid in tempMultiB2Hits) { tempMultiB2Hits[uid] = { hit6:0, hit5:0, hit10:0, hit7b:0, hit8cn:0, hit8cc:0 }; } refreshMultiB2UI(); }
+        function closeB2Modal() { 
+            const modal = document.getElementById('ak-b2-modal');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+            activeB2Uids = []; 
+        }
+
+        function switchExercise(ex) { currentExercise = ex; document.querySelectorAll('#exercise-selector button').forEach(b => { b.classList.remove('active-pill', 'text-white'); b.classList.add('text-slate-400'); }); if([1,2,3,4].includes(ex)) document.getElementById('group-ak-label').classList.add('active-pill', 'text-white'); else { let btn = document.getElementById(`ex-btn-${ex}`); if(btn) btn.classList.add('active-pill', 'text-white'); } renderEngine(); }
+        
+        function getUnitStatsData() { 
+            let stats = {}; let sumQS=0, sumG=0, sumK=0, sumD=0, sumH=0; 
+            const rK = 'round_'+currentExercise; 
+            mainData.filter(d => d[rK]).forEach(i => { 
+                let c = calculateTotal(i, currentExercise); 
+                let rank = getRankString(c, currentExercise, i); 
+                if(rank === '-') return; 
+                let u = i.unit.toUpperCase().trim() || "CHƯA RÕ"; 
+                if(!stats[u]) stats[u] = { ts: 0, g: 0, k: 0, d: 0, h: 0 }; 
+                stats[u].ts++; sumQS++; 
+                if(rank === 'GIỎI' || rank === 'Giỏi') { stats[u].g++; sumG++; } 
+                else if(rank === 'KHÁ' || rank === 'Khá') { stats[u].k++; sumG++; } // Sửa lỗi rank Khá trong code gốc cộng vào giỏi
+                else if(rank === 'ĐẠT' || rank === 'Đạt') { stats[u].d++; sumD++; } 
+                else { stats[u].h++; sumH++; } 
+            }); 
+            return { stats, sumQS, sumG, sumK, sumD, sumH }; 
+        }
+
+        function updateUnitStatistics() { 
+            const t = document.getElementById('unit-stats-target'); if(!t) return; t.innerHTML = ''; const d = getUnitStatsData(); 
+            document.getElementById('summary-total').innerText = d.sumQS; 
+            document.getElementById('summary-g').innerText = `${d.sumG} (${d.sumQS?(d.sumG/d.sumQS*100).toFixed(1):0}%)`; 
+            document.getElementById('summary-k').innerText = `${d.sumK} (${d.sumQS?(d.sumK/d.sumQS*100).toFixed(1):0}%)`; 
+            document.getElementById('summary-d').innerText = `${d.sumD} (${d.sumQS?(d.sumD/d.sumQS*100).toFixed(1):0}%)`; 
+            document.getElementById('summary-h').innerText = `${d.sumH} (${d.sumQS?(d.sumH/d.sumQS*100).toFixed(1):0}%)`; 
+            document.getElementById('summary-rate').innerText = `${d.sumQS?(((d.sumG+d.sumK+d.sumD)/d.sumQS)*100).toFixed(1):0}%`; 
+            for(let u in d.stats) { let it = d.stats[u]; let rP = (((it.g+it.k+it.d)/it.ts)*100).toFixed(1); t.innerHTML += `<tr><td class="p-3 font-bold text-yellow-500 text-left pl-6 text-xs uppercase">${u}</td><td class="p-3 text-white font-bold border-r border-slate-700">${it.ts}</td><td class="p-3 text-emerald-400 font-bold">${it.g} (${(it.g/it.ts*100).toFixed(1)}%)</td><td class="p-3 text-blue-400 font-bold">${it.k} (${(it.k/it.ts*100).toFixed(1)}%)</td><td class="p-3 text-amber-500 font-bold">${it.d} (${(it.d/it.ts*100).toFixed(1)}%)</td><td class="p-3 text-red-500 font-bold">${it.h} (${(it.h/it.ts*100).toFixed(1)}%)</td><td class="p-3 font-black text-emerald-400 text-sm">${rP}%</td></tr>`; } 
+        }
+
+        function updatePieChartLogic() { 
+            let g=0, k=0, d=0, h=0; const rKey = 'round_'+currentExercise; 
+            mainData.forEach(i => { if(!i[rKey]) return; let c = calculateTotal(i, currentExercise); let rank = getRankString(c, currentExercise, i); if(rank === '-') return; if(rank === 'GIỎI' || rank === 'Giỏi') g++; else if(rank === 'KHÁ' || rank === 'Khá') k++; else if(rank === 'ĐẠT' || rank === 'Đạt') d++; else h++; }); 
+            const ctx = document.getElementById('achievementChart').getContext('2d'); if(pieChartInstance) pieChartInstance.destroy(); pieChartInstance = new Chart(ctx, { type: 'pie', data: { labels: ['Giỏi', 'Khá', 'Đạt', 'K. Đạt'], datasets: [{ data: [g, k, d, h], backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'] }] }, options: { responsive: true, maintainAspectRatio: false } }); 
+        }
+        
+        function exportToExcel() { 
+            let wb = XLSX.utils.book_new(); let rows = []; 
+            if ([5,7].includes(currentExercise)) { 
+                rows.push(["BẢNG TỔNG HỢP KẾT QUẢ BẮN SÚNG NGẮN K54 (BÀI 2 & 2B)"]); 
+                let h = ["STT", "Loạt", "Bệ", "Họ Tên", "Đơn vị", "Đối tượng", "Tổng điểm", "Thành tích"];
+                if (currentExercise === 6) h.push("Đạn thừa");
+                rows.push(h); 
+                mainData.forEach((d,i)=>{ if(d.round_5 || d.round_7) { let exT = d.round_7 ? 7 : 5; let c = calculateTotal(d, exT); let r = [i+1, d['round_'+exT], d['bay_'+exT], d.name, d.unit, (exT === 7 ? "Trên 45 (2b)" : "Dưới 45 (2)"), c, getRankString(c, exT, d)]; if(currentExercise === 6) r.push(d['ammo_left_'+exT]||0); rows.push(r); } }); 
+            } else { 
+                let h = ["STT", "Loạt", "Bệ", "Họ Tên", "Đơn vị", "Tổng điểm", "Thành tích"];
+                if (currentExercise === 6) h.push("Đạn thừa");
+                rows.push(h);
+                const rK = 'round_'+currentExercise; const bK = 'bay_'+currentExercise; mainData.filter(d => d[rK]).sort((a,b)=>(a[rK]-b[rK])||(a[bK]-b[bK])).forEach((d,i)=>{ let c = calculateTotal(d, currentExercise); let r = [i+1, d[rK], d[bK], d.name, d.unit, c, getRankString(c, currentExercise, d)]; if(currentExercise === 6) r.push(d['ammo_left_'+currentExercise]||0); rows.push(r); }); 
+            } 
+            rows.push([]); rows.push(["THỐNG KÊ CHI TIẾT THEO ĐƠN VỊ"]); rows.push(["Đơn vị", "QS đã bắn", "Giỏi", "Khá", "Đạt", "K. Đạt", "Tỉ lệ đạt (%)"]);
+            let dData = getUnitStatsData(); for(let u in dData.stats) { let it = dData.stats[u]; let pG = ((it.g/it.ts)*100).toFixed(1); let pK = ((it.k/it.ts)*100).toFixed(1); let pD = ((it.d/it.ts)*100).toFixed(1); let pH = ((it.h/it.ts)*100).toFixed(1); rows.push([u, it.ts, `${it.g} (${pG}%)`, `${it.k} (${pK}%)`, `${it.d} (${pD}%)`, `${it.h} (${pH}%)`, (((it.g+it.k+it.d)/it.ts)*100).toFixed(1) + "%"]); }
+            let ws = XLSX.utils.aoa_to_sheet(rows); XLSX.utils.book_append_sheet(wb, ws, "KetQua"); XLSX.writeFile(wb, "Ket_Qua_Ban_Sung.xlsx"); 
+        }
+
+        function exportShooterTemplate() { 
+            let rows = [["Họ và Tên", "Đơn vị", "Bài 1-Loạt", "Bài 1-Bệ", "Bài 2-Loạt", "Bài 2-Bệ", "Bài 3-Loạt", "Bài 3-Bệ", "Bài 4-Loạt", "Bài 4-Bệ", "Bài 2 AH-Loạt", "Bài 2 AH-Bệ", "Bài 2 K54-Loạt", "Bài 2 K54-Bệ", "Bài 2b K54-Loạt", "Bài 2b K54-Bệ", "B4_V1", "B4_V2", "B4_V3", "B7_V1", "B7_V2", "B7_V3", "B8_V1", "B8_V2", "B8_V3", "B6", "B5", "B10", "B7b", "B8cN", "B8cC", "Ammo6", "K54_4d1", "K54_4d2", "K54_4d3", "K54_4d4", "Ken1", "Ken2", "K54_8e2", "K54_8e1_3", "K54_8e2_3", "K54_Mode"]]; 
+            mainData.forEach(d => { 
+                rows.push([
+                    d.name, d.unit, d.round_1||"", d.bay_1||"", d.round_2||"", d.bay_2||"", d.round_3||"", d.bay_3||"", d.round_4||"", d.bay_4||"", d.round_6||"", d.bay_6||"", d.round_5||"", d.bay_5||"", d.round_7||"", d.bay_7||"",
+                    d.b4_1||0, d.b4_2||0, d.b4_3||0, d.b7_1||0, d.b7_2||0, d.b7_3||0, d.b8_1||0, d.b8_2||0, d.b8_3||0, 
+                    d.ak_b2?.hit6||0, d.ak_b2?.hit5||0, d.ak_b2?.hit10||0, d.ak_b2?.hit7b||0, d.ak_b2?.hit8cn||0, d.ak_b2?.hit8cc||0, d.ammo_left_6||0,
+                    d.k54_4d_1||0, d.k54_4d_2||0, d.k54_4d_3||0, d.k54_4d_4||0, d.k54_ken1||-1, d.k54_ken2||-1, d.k54_8e2||0, d.k54_8e1_3||0, d.k54_8e2_3||0, d.k54_mode||0
+                ]); 
+            });
+            if(rows.length === 1) rows.push(["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]);
+            let ws = XLSX.utils.aoa_to_sheet(rows); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "DanhSach"); XLSX.writeFile(wb, "Du_Lieu_Luu_Tru.xlsx"); 
+        }
+
+        function importShooters(e) { 
+            const file = e.target.files[0]; if(!file) return; 
+            const reader = new FileReader(); 
+            reader.onload = function(evt) { 
+                const workbook = XLSX.read(evt.target.result, {type: 'binary'}); 
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]); 
+                if(json.length > 0) { 
+                    if(confirm(`Nạp dữ liệu từ file Excel (${json.length} quân nhân)? Hệ thống sẽ thay thế danh sách hiện tại.`)) { 
+                        mainData = []; 
+                        json.forEach(row => { 
+                            const name = row["Họ và Tên"] || row["Tên"]; 
+                            const unit = row["Đơn vị"]; 
+                            if(name && unit) { 
+                                mainData.push({ 
+                                    uid: Date.now() + Math.random(), name, unit, 
+                                    round_1: row["Bài 1-Loạt"], bay_1: row["Bài 1-Bệ"], 
+                                    round_2: row["Bài 2-Loạt"], bay_2: row["Bài 2-Bệ"], 
+                                    round_3: row["Bài 3-Loạt"], bay_3: row["Bài 3-Bệ"], 
+                                    round_4: row["Bài 4-Loạt"], bay_4: row["Bài 4-Bệ"], 
+                                    round_6: row["Bài 2 AH-Loạt"], bay_6: row["Bài 2 AH-Bệ"], 
+                                    round_5: row["Bài 2 K54-Loạt"], bay_5: row["Bài 2 K54-Bệ"], 
+                                    round_7: row["Bài 2b K54-Loạt"], bay_7: row["Bài 2b K54-Bệ"], 
+                                    b4_1: row["B4_V1"]||0, b4_2: row["B4_V2"]||0, b4_3: row["B4_V3"]||0, 
+                                    b7_1: row["B7_V1"]||0, b7_2: row["B7_V2"]||0, b7_3: row["B7_V3"]||0, 
+                                    b8_1: row["B8_V1"]||0, b8_2: row["B8_V2"]||0, b8_3: row["B8_V3"]||0, 
+                                    ammo_left_6: row["Ammo6"]||0,
+                                    ak_b2: { 
+                                        hit6: row["B6"]||0, hit5: row["B5"]||0, hit10: row["B10"]||0, 
+                                        hit7b: row["B7b"]||0, hit8cn: row["B8cN"]||0, hit8cc: row["B8cC"]||0 
+                                    }, 
+                                    k54_4d_1: row["K54_4d1"]||0, k54_4d_2: row["K54_4d2"]||0, k54_4d_3: row["K54_4d3"]||0, k54_4d_4: row["K54_4d4"]||0, 
+                                    k54_ken1: row["Ken1"] !== undefined ? row["Ken1"] : -1, 
+                                    k54_ken2: row["Ken2"] !== undefined ? row["Ken2"] : -1, 
+                                    k54_8e2: row["K54_8e2"]||0, k54_8e1_3: row["K54_8e1_3"]||0, k54_8e2_3: row["K54_8e2_3"]||0, 
+                                    k54_mode: row["K54_Mode"]||0 
+                                }); 
+                            } 
+                        }); 
+                        renderEngine(); uploadDataToCloud(); 
+                    } 
+                } 
+            }; 
+            reader.readAsBinaryString(file); 
+        }
+    </script>
+</body>
+</html>
