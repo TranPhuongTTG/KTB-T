@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -171,19 +172,22 @@
 
         function generateConnectionQR(roomId) { 
             const container = document.getElementById('qrcode-container'); 
+            if(!container) return;
             container.innerHTML = ""; 
             container.classList.remove('hidden'); 
-            // Fix link QR: Lấy URL hiện tại sạch hơn
-            let currentUrl = window.location.href.split('?')[0];
-            let fullURL = currentUrl + "?room=" + roomId + "&role=viewer"; 
-            new QRCode(container, { text: fullURL, width: 72, height: 72, colorDark: "#0f172a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H }); 
+            // Fix: Sử dụng URL hiện tại một cách chính xác nhất
+            let baseUrl = window.location.href.split('?')[0];
+            let fullURL = baseUrl + "?room=" + roomId + "&role=viewer"; 
+            try {
+                new QRCode(container, { text: fullURL, width: 72, height: 72, colorDark: "#0f172a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H }); 
+            } catch(e) { console.error("QR Error", e); }
         }
         
         window.onload = function() {
             const savedData = localStorage.getItem('ShootingResults'); if(savedData) mainData = JSON.parse(savedData);
             const urlParams = new URLSearchParams(window.location.search);
             
-            // Xử lý khi quét mã QR hoặc có tham số room
+            // ƯU TIÊN LẤY PHÒNG TỪ URL (KHI QUÉT QR)
             if(urlParams.get('room')) {
                 currentRoom = urlParams.get('room');
                 document.getElementById('sync-room-id').value = currentRoom;
@@ -196,7 +200,7 @@
                 document.getElementById('left-control-panel').style.display = 'block'; 
                 document.getElementById('right-table-panel').className = "col-span-12 lg:col-span-9 space-y-4"; 
                 document.getElementById('admin-action-buttons').style.display = 'flex';
-                // Nếu chưa có room thì tạo mới
+                // Tạo mới nếu chưa có, hoặc hiện QR nếu đã có
                 if(!currentRoom) createNewBinOnCloud(); 
                 else { updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(currentRoom); }
             }
@@ -216,7 +220,8 @@
             let val = document.getElementById('sync-room-id').value.trim();
             if(val.length > 10) {
                 currentRoom = val; 
-                downloadDataFromCloud(); 
+                downloadDataFromCloud();
+                updateStatus("Đang đồng bộ...", "success");
             }
         }
 
@@ -234,19 +239,18 @@
                     document.getElementById('sync-room-id').value = currentRoom; 
                     updateStatus("Trực tuyến (Admin)", "success"); 
                     generateConnectionQR(currentRoom); 
-                    // Cập nhật URL mà không reload trang
-                    let newUrl = window.location.href.split('?')[0] + "?room=" + currentRoom;
-                    window.history.replaceState(null, "", newUrl);
+                    // Cập nhật URL ẩn để lưu trạng thái phòng
+                    window.history.replaceState(null, "", "?room=" + currentRoom);
                 } 
             }).catch(err => {
-                updateStatus("Lỗi tạo mã. Thử lại sau.", "error");
-            }); 
+                updateStatus("Lỗi API: Không tạo được mã.", "error");
+            });
         }
 
         function downloadDataFromCloud() { 
-            let t = currentRoom || document.getElementById('sync-room-id').value.trim(); 
-            if (t.length < 10) return; 
-            fetch(`${SYNC_SERVER}/${t}/latest`, { 
+            let targetId = currentRoom || document.getElementById('sync-room-id').value.trim();
+            if (targetId.length < 10) return; 
+            fetch(`${SYNC_SERVER}/${targetId}/latest`, { 
                 method: 'GET', 
                 headers: { 'X-Master-Key': MASTER_KEY }, 
                 cache: 'no-store' 
@@ -391,7 +395,7 @@
                 if(!stats[u]) stats[u] = { ts: 0, g: 0, k: 0, d: 0, h: 0 }; 
                 stats[u].ts++; sumQS++; 
                 if(rank === 'GIỎI' || rank === 'Giỏi') { stats[u].g++; sumG++; } 
-                else if(rank === 'KHÁ' || rank === 'Khá') { stats[u].k++; sumK++; } 
+                else if(rank === 'KHÁ' || rank === 'Khá') { stats[u].k++; sumG++; } 
                 else if(rank === 'ĐẠT' || rank === 'Đạt') { stats[u].d++; sumD++; } 
                 else { stats[u].h++; sumH++; } 
             }); 
