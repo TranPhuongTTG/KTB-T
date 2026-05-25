@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -11,6 +10,10 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- THÊM THƯ VIỆN FIREBASE ĐỂ THAY THẾ JSONBIN -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
@@ -54,7 +57,7 @@
             </div>
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end" id="sync-control-area">
                 <label class="text-[11px] font-bold text-slate-400 uppercase">ID Kết nối:</label>
-                <input type="text" id="sync-room-id" oninput="forceSyncData()" class="w-full sm:w-64 bg-slate-900 border border-slate-700 text-yellow-400 font-mono font-bold px-3 py-1.5 text-xs rounded-lg focus:outline-none" placeholder="Dán mã ID vào đây...">
+                <input type="text" id="sync-room-id" oninput="forceSyncData()" class="w-full sm:w-64 bg-slate-900 border border-slate-700 text-yellow-400 font-mono font-bold px-3 py-1.5 text-xs rounded-lg focus:outline-none" placeholder="Nhập mã ID vào đây...">
                 <button onclick="forceSyncData()" class="px-3 py-1.5 bg-blue-600 text-white text-[11px] font-bold rounded-lg transition-all"><i class="fa-solid fa-sync-alt"></i></button>
             </div>
         </div>
@@ -153,13 +156,18 @@
     <div id="ak-b2-modal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[120] hidden items-center justify-center p-4"><div class="bg-slate-900 border-2 border-slate-700 w-full max-w-[95vw] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"><div class="bg-slate-800 p-4 flex justify-between items-center"><div class="text-left"><h3 id="b2-modal-title" class="text-yellow-500 font-bold text-sm uppercase">Ghi nhận bia Bài 2 (ẨN HIỆN)</h3></div><button onclick="closeB2Modal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button></div><div class="p-4 flex-grow overflow-x-auto overflow-y-auto custom-scrollbar"><div class="flex flex-row gap-8 justify-center min-w-max pb-8" id="b2-multi-container"></div></div><div class="bg-slate-950 p-6 flex justify-center gap-4"><button onclick="resetB2Targets()" class="px-8 bg-slate-800 text-slate-400 py-4 rounded-xl font-bold text-xs uppercase">Dựng lại tất cả</button><button onclick="saveB2Targets()" class="px-12 bg-red-700 text-white py-4 rounded-xl font-bold text-sm uppercase shadow-xl">Lưu kết quả loạt bắn</button></div></div></div>
 
     <script>
+        // CẤU HÌNH FIREBASE THAY THẾ JSONBIN
+        const firebaseConfig = {
+            databaseURL: "https://thong-ke-ban-sung-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         let currentExercise = 1; let mainData = []; let pieChartInstance = null;
         let deviceRole = (window.innerWidth < 1024) ? 'viewer' : 'admin';
         let currentRoom = ""; 
         let activePadTarget = null; let padSum = 0;
         let activeB2Uids = []; let tempMultiB2Hits = {};
-        const MASTER_KEY = "$2a$10$Q9wC3DLyzOq0JM64EXJmGuwtG8flBOVIgLik4fsZNYhJOi.vAXCNS";
-        const SYNC_SERVER = "https://api.jsonbin.io/v3/b";
 
         window.addEventListener('keydown', function(e) { if ((e.which || e.keyCode) == 116 || (e.ctrlKey && (e.which || e.keyCode) == 82)) e.preventDefault(); });
 
@@ -200,17 +208,56 @@
                 document.getElementById('left-control-panel').style.display = 'none'; 
                 document.getElementById('right-table-panel').className = "col-span-12 space-y-4"; 
                 document.getElementById('admin-action-buttons').style.display = 'none';
-                // ĐÃ XÓA DÒNG ẨN sync-control-area ĐỂ NGƯỜI XEM CÓ THỂ NHẬP ID
                 updateStatus("Chế độ Máy Xem", "success");
             }
             renderEngine();
         };
 
         function resetExerciseData() { if(confirm("CẢNH BÁO: Hành động này sẽ xoá sạch danh sách quân nhân của BÀI BẮN HIỆN TẠI. Đồng ý?")) { const rK = 'round_' + currentExercise; const bK = 'bay_' + currentExercise; mainData.forEach(d => { d[rK] = null; d[bK] = null; }); uploadDataToCloud(); renderEngine(); } }
-        function forceSyncData() { currentRoom = document.getElementById('sync-room-id').value.trim(); downloadDataFromCloud(); }
-        function createNewBinOnCloud() { fetch(SYNC_SERVER, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' }, body: JSON.stringify({ room: "auto_" + Date.now(), data: mainData }) }).then(res => res.json()).then(res => { if(res.metadata && res.metadata.id) { currentRoom = res.metadata.id; document.getElementById('sync-room-id').value = currentRoom; updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(currentRoom); window.history.replaceState(null, "", "?room=" + currentRoom); } }); }
-        function downloadDataFromCloud() { let t = document.getElementById('sync-room-id').value.trim(); if (t.length < 20) return; fetch(`${SYNC_SERVER}/${t}/latest`, { method: 'GET', headers: { 'X-Master-Key': MASTER_KEY }, cache: 'no-store' }).then(res => res.json()).then(res => { if (res.record && res.record.data) { mainData = res.record.data; renderEngine(); updateStatus("Đồng bộ OK", "success"); } }).catch(e => updateStatus("Lỗi kết nối", "error")); }
-        function uploadDataToCloud() { localStorage.setItem('ShootingResults', JSON.stringify(mainData)); if (deviceRole !== 'admin' || !currentRoom || currentRoom.length < 20) return; fetch(`${SYNC_SERVER}/${currentRoom}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY }, body: JSON.stringify({ room: currentRoom, data: mainData }) }); }
+        
+        // CẬP NHẬT CÁC HÀM CLOUD DÙNG FIREBASE
+        function forceSyncData() { downloadDataFromCloud(); }
+        
+        function createNewBinOnCloud() { 
+            // Tạo ID ngẫu nhiên ngắn gọn (6 số)
+            const roomId = Math.floor(100000 + Math.random() * 900000).toString();
+            currentRoom = roomId;
+            document.getElementById('sync-room-id').value = currentRoom;
+            
+            db.ref('rooms/' + currentRoom).set({
+                data: mainData,
+                lastUpdate: Date.now()
+            }).then(() => {
+                updateStatus("Trực tuyến (Admin)", "success"); 
+                generateConnectionQR(currentRoom); 
+                window.history.replaceState(null, "", "?room=" + currentRoom);
+            });
+        }
+
+        function downloadDataFromCloud() { 
+            let t = document.getElementById('sync-room-id').value.trim(); 
+            if (t.length < 3) return; 
+            currentRoom = t;
+            
+            db.ref('rooms/' + t).once('value').then((snapshot) => {
+                const val = snapshot.val();
+                if (val && val.data) {
+                    mainData = val.data;
+                    renderEngine();
+                    updateStatus("Đồng bộ OK", "success");
+                }
+            }).catch(e => updateStatus("Lỗi kết nối", "error"));
+        }
+
+        function uploadDataToCloud() { 
+            localStorage.setItem('ShootingResults', JSON.stringify(mainData)); 
+            if (deviceRole !== 'admin' || !currentRoom) return; 
+            
+            db.ref('rooms/' + currentRoom).update({
+                data: mainData,
+                lastUpdate: Date.now()
+            });
+        }
 
         function registerSoldier() {
             const n = document.getElementById('s-name').value.trim(); const u = document.getElementById('s-unit').value.trim(); const b = document.getElementById('s-bay').value; const r = parseInt(document.getElementById('s-round').value) || 1; const editUid = document.getElementById('edit-uid').value;
