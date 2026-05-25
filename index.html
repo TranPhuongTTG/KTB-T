@@ -1,6 +1,3 @@
---- START OF FILE Paste May 25, 2026 - 10:24PM ---
-
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -176,23 +173,21 @@
             const container = document.getElementById('qrcode-container'); 
             container.innerHTML = ""; 
             container.classList.remove('hidden'); 
-            // Cải tiến link QR bao gồm đầy đủ URL hiện tại
-            let fullURL = window.location.href.split('?')[0] + "?room=" + roomId + "&role=viewer"; 
+            // Fix link QR: Lấy URL hiện tại sạch hơn
+            let currentUrl = window.location.href.split('?')[0];
+            let fullURL = currentUrl + "?room=" + roomId + "&role=viewer"; 
             new QRCode(container, { text: fullURL, width: 72, height: 72, colorDark: "#0f172a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H }); 
         }
         
         window.onload = function() {
             const savedData = localStorage.getItem('ShootingResults'); if(savedData) mainData = JSON.parse(savedData);
-            
-            // ƯU TIÊN THAM SỐ TỪ URL (QUÉT QR SẼ NHẬN LINK NÀY)
             const urlParams = new URLSearchParams(window.location.search);
-            const urlRoom = urlParams.get('room');
-            const urlRole = urlParams.get('role');
-
-            if(urlRole) deviceRole = urlRole; // Thiết lập role từ URL
-            if(urlRoom) {
-                currentRoom = urlRoom;
+            
+            // Xử lý khi quét mã QR hoặc có tham số room
+            if(urlParams.get('room')) {
+                currentRoom = urlParams.get('room');
                 document.getElementById('sync-room-id').value = currentRoom;
+                if(urlParams.get('role')) deviceRole = urlParams.get('role');
                 downloadDataFromCloud();
             }
 
@@ -201,6 +196,7 @@
                 document.getElementById('left-control-panel').style.display = 'block'; 
                 document.getElementById('right-table-panel').className = "col-span-12 lg:col-span-9 space-y-4"; 
                 document.getElementById('admin-action-buttons').style.display = 'flex';
+                // Nếu chưa có room thì tạo mới
                 if(!currentRoom) createNewBinOnCloud(); 
                 else { updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(currentRoom); }
             }
@@ -216,20 +212,45 @@
 
         function resetExerciseData() { if(confirm("CẢNH BÁO: Hành động này sẽ xoá sạch danh sách quân nhân của BÀI BẮN HIỆN TẠI. Đồng ý?")) { const rK = 'round_' + currentExercise; const bK = 'bay_' + currentExercise; mainData.forEach(d => { d[rK] = null; d[bK] = null; }); uploadDataToCloud(); renderEngine(); } }
         
-        // Sửa lỗi dán ID thủ công không cập nhật vòng lặp
         function forceSyncData() { 
             let val = document.getElementById('sync-room-id').value.trim();
-            if (val.length >= 20) {
+            if(val.length > 10) {
                 currentRoom = val; 
                 downloadDataFromCloud(); 
             }
         }
 
-        function createNewBinOnCloud() { fetch(SYNC_SERVER, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' }, body: JSON.stringify({ room: "auto_" + Date.now(), data: mainData }) }).then(res => res.json()).then(res => { if(res.metadata && res.metadata.id) { currentRoom = res.metadata.id; document.getElementById('sync-room-id').value = currentRoom; updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(currentRoom); window.history.replaceState(null, "", "?room=" + currentRoom); } }); }
-        
+        function createNewBinOnCloud() { 
+            updateStatus("Đang tạo mã kết nối...", "error");
+            fetch(SYNC_SERVER, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Private': 'false' }, 
+                body: JSON.stringify({ room: "auto_" + Date.now(), data: mainData }) 
+            })
+            .then(res => res.json())
+            .then(res => { 
+                if(res.metadata && res.metadata.id) { 
+                    currentRoom = res.metadata.id; 
+                    document.getElementById('sync-room-id').value = currentRoom; 
+                    updateStatus("Trực tuyến (Admin)", "success"); 
+                    generateConnectionQR(currentRoom); 
+                    // Cập nhật URL mà không reload trang
+                    let newUrl = window.location.href.split('?')[0] + "?room=" + currentRoom;
+                    window.history.replaceState(null, "", newUrl);
+                } 
+            }).catch(err => {
+                updateStatus("Lỗi tạo mã. Thử lại sau.", "error");
+            }); 
+        }
+
         function downloadDataFromCloud() { 
-            if (!currentRoom || currentRoom.length < 20) return; 
-            fetch(`${SYNC_SERVER}/${currentRoom}/latest`, { method: 'GET', headers: { 'X-Master-Key': MASTER_KEY }, cache: 'no-store' })
+            let t = currentRoom || document.getElementById('sync-room-id').value.trim(); 
+            if (t.length < 10) return; 
+            fetch(`${SYNC_SERVER}/${t}/latest`, { 
+                method: 'GET', 
+                headers: { 'X-Master-Key': MASTER_KEY }, 
+                cache: 'no-store' 
+            })
             .then(res => res.json())
             .then(res => { 
                 if (res.record && res.record.data) { 
@@ -240,7 +261,15 @@
             }).catch(e => updateStatus("Lỗi kết nối", "error")); 
         }
 
-        function uploadDataToCloud() { localStorage.setItem('ShootingResults', JSON.stringify(mainData)); if (deviceRole !== 'admin' || !currentRoom || currentRoom.length < 20) return; fetch(`${SYNC_SERVER}/${currentRoom}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY }, body: JSON.stringify({ room: currentRoom, data: mainData }) }); }
+        function uploadDataToCloud() { 
+            localStorage.setItem('ShootingResults', JSON.stringify(mainData)); 
+            if (deviceRole !== 'admin' || !currentRoom || currentRoom.length < 10) return; 
+            fetch(`${SYNC_SERVER}/${currentRoom}`, { 
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY }, 
+                body: JSON.stringify({ room: currentRoom, data: mainData }) 
+            }); 
+        }
 
         function registerSoldier() {
             const n = document.getElementById('s-name').value.trim(); const u = document.getElementById('s-unit').value.trim(); const b = document.getElementById('s-bay').value; const r = parseInt(document.getElementById('s-round').value) || 1; const editUid = document.getElementById('edit-uid').value;
