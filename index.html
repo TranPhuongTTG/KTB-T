@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
-    <!-- THAY THẾ ĐƯỜNG TRUYỀN BẰNG THƯ VIỆN FIREBASE -->
+    <!-- THƯ VIỆN FIREBASE (PHIÊN BẢN 8.10.0 ỔN ĐỊNH) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
@@ -45,7 +45,7 @@
             <div>
                 <div class="flex items-center gap-3">
                     <span class="w-3 h-3 rounded-full bg-rose-500 animate-pulse" id="status-dot"></span>
-                    <p class="text-xs text-slate-300 font-medium" id="status-text">Đang kết nối hệ thống...</p>
+                    <p class="text-xs text-slate-300 font-medium" id="status-text">Đang kết nối...</p>
                 </div>
                 <p class="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-tight">Quét mã QR hoặc nhập ID thủ công để kết nối</p>
             </div>
@@ -133,7 +133,7 @@
                         <hr class="border-slate-800"><p class="text-[12px] flex justify-between font-black text-emerald-500 uppercase">TỈ LỆ CHUNG: <span id="summary-rate">0%</span></p>
                     </div>
                 </div>
-                <div id="unit-stats-container" class="lg:col-span-2 animate-fade-in"><div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl h-full flex flex-col"><div class="bg-slate-950 p-4 border-b border-slate-800 text-sm font-bold text-yellow-500 uppercase tracking-widest text-center uppercase">THỐNG KÊ CHI TIẾT THEO ĐƠN VỊ</div><div class="overflow-x-auto flex-grow max-h-[300px] custom-scrollbar"><table class="w-full text-[10px] text-center border-collapse"><thead class="bg-slate-800/50 text-slate-400 font-bold sticky top-0 z-10 shadow-sm"><tr><th class="p-3 border-r border-slate-700 text-left pl-6">Đơn vị</th><th class="p-3 border-r border-slate-700">QS</th><th class="p-3 border-r border-slate-700 text-emerald-400">Giỏi (%)</th><th class="p-3 border-r border-slate-700 text-blue-400">Khá (%)</th><th class="p-3 border-r border-slate-700 text-amber-500">Đạt (%)</th><th class="p-3 border-r border-slate-700 text-red-500">K. ĐẠT (%)</th><th class="p-3">Tỉ lệ đạt</th></tr></thead><tbody id="unit-stats-target" class="divide-y divide-slate-800"></tbody></table></div></div></div>
+                <div id="unit-stats-container" class="lg:col-span-2 animate-fade-in"><div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl h-full flex flex-col"><div class="bg-slate-950 p-4 border-b border-slate-800 text-sm font-bold text-yellow-500 uppercase tracking-widest text-center uppercase">THỐNG KÊ CHI TIẾT THEO ĐƠ vỊ</div><div class="overflow-x-auto flex-grow max-h-[300px] custom-scrollbar"><table class="w-full text-[10px] text-center border-collapse"><thead class="bg-slate-800/50 text-slate-400 font-bold sticky top-0 z-10 shadow-sm"><tr><th class="p-3 border-r border-slate-700 text-left pl-6">Đơn vị</th><th class="p-3 border-r border-slate-700">QS</th><th class="p-3 border-r border-slate-700 text-emerald-400">Giỏi (%)</th><th class="p-3 border-r border-slate-700 text-blue-400">Khá (%)</th><th class="p-3 border-r border-slate-700 text-amber-500">Đạt (%)</th><th class="p-3 border-r border-slate-700 text-red-500">K. ĐẠT (%)</th><th class="p-3">Tỉ lệ đạt</th></tr></thead><tbody id="unit-stats-target" class="divide-y divide-slate-800"></tbody></table></div></div></div>
             </div>
         </div>
     </div>
@@ -162,8 +162,18 @@
         let activePadTarget = null; let padSum = 0;
         let activeB2Uids = []; let tempMultiB2Hits = {};
 
-        // --- CẤU HÌNH ĐƯỜNG TRUYỀN MỚI (FIREBASE) ---
-        const firebaseConfig = { databaseURL: "https://stv-shooting-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+        // --- CẤU HÌNH FIREBASE CỦA BẠN (ĐÃ CẬP NHẬT CHÍNH XÁC) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyA2Zig8bOMyKAc0YtN1_NJG1f-8sA0itls",
+            authDomain: "hethongbandanthat.firebaseapp.com",
+            databaseURL: "https://hethongbandanthat-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "hethongbandanthat",
+            storageBucket: "hethongbandanthat.firebasestorage.app",
+            messagingSenderId: "113638127095",
+            appId: "1:113638127095:web:d46f4696e89f4a39552af2",
+            measurementId: "G-0HVFKHT31Y"
+        };
+        
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -187,19 +197,27 @@
         window.onload = function() {
             const savedData = localStorage.getItem('ShootingResults'); if(savedData) mainData = JSON.parse(savedData);
             const urlParams = new URLSearchParams(window.location.search);
+            
             if(urlParams.get('room')) {
                 currentRoom = urlParams.get('room');
                 document.getElementById('sync-room-id').value = currentRoom;
                 if(urlParams.get('role')) deviceRole = urlParams.get('role');
                 downloadDataFromCloud();
             }
+
             if(deviceRole === 'admin') { 
                 document.getElementById('role-admin-badge').className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-blue-600 shadow-md"; 
                 document.getElementById('left-control-panel').style.display = 'block'; 
                 document.getElementById('right-table-panel').className = "col-span-12 lg:col-span-9 space-y-4"; 
                 document.getElementById('admin-action-buttons').style.display = 'flex';
-                if(!currentRoom) createNewBinOnCloud(); 
-                else { updateStatus("Trực tuyến (Admin)", "success"); generateConnectionQR(currentRoom); }
+                
+                if(!currentRoom) {
+                    createNewBinOnCloud();
+                } else { 
+                    updateStatus("Trực tuyến (Admin)", "success"); 
+                    generateConnectionQR(currentRoom);
+                    downloadDataFromCloud();
+                }
             }
             else { 
                 document.getElementById('role-viewer-badge').className = "px-3 py-1.5 text-[11px] font-bold rounded text-white bg-amber-600 shadow-md"; 
@@ -211,33 +229,42 @@
             renderEngine();
         };
 
-        // --- CÁC HÀM XỬ LÝ ĐƯỜNG TRUYỀN MỚI ---
+        // --- CÁC HÀM ĐỒNG BỘ THỜI GIAN THỰC (FIREBASE) ---
         function createNewBinOnCloud() {
             let roomId = Math.floor(100000 + Math.random() * 900000).toString();
             currentRoom = roomId;
             document.getElementById('sync-room-id').value = currentRoom;
-            db.ref('rooms/' + roomId).set({ data: mainData, lastUpdate: Date.now() }).then(() => {
+            db.ref('shooting_rooms/' + roomId).set({ data: mainData, lastUpdate: Date.now() }).then(() => {
                 updateStatus("Trực tuyến (Admin)", "success");
                 generateConnectionQR(currentRoom);
                 window.history.replaceState(null, "", "?room=" + currentRoom);
+                downloadDataFromCloud(); // Bắt đầu nghe
             });
         }
 
         function forceSyncData() { 
             currentRoom = document.getElementById('sync-room-id').value.trim();
-            if(currentRoom.length >= 5) downloadDataFromCloud();
+            if(currentRoom.length >= 5) {
+                window.history.replaceState(null, "", "?room=" + currentRoom);
+                downloadDataFromCloud();
+                generateConnectionQR(currentRoom);
+            }
         }
 
         function downloadDataFromCloud() {
             if(!currentRoom) return;
             updateStatus("Đang đồng bộ...", "success");
-            db.ref('rooms/' + currentRoom).on('value', (snap) => {
+            // Sử dụng .on để lắng nghe thay đổi thời gian thực
+            db.ref('shooting_rooms/' + currentRoom).on('value', (snap) => {
                 if(snap.exists()){
-                    mainData = snap.val().data;
-                    renderEngine();
-                    updateStatus("Đồng bộ OK (Realtime)", "success");
+                    const cloudData = snap.val().data;
+                    if (cloudData) {
+                        mainData = cloudData;
+                        renderEngine();
+                        updateStatus("Đồng bộ thời gian thực OK", "success");
+                    }
                 } else {
-                    updateStatus("Không tìm thấy ID", "error");
+                    updateStatus("ID không tồn tại", "error");
                 }
             });
         }
@@ -245,10 +272,10 @@
         function uploadDataToCloud() {
             localStorage.setItem('ShootingResults', JSON.stringify(mainData));
             if (deviceRole !== 'admin' || !currentRoom) return;
-            db.ref('rooms/' + currentRoom).update({ data: mainData, lastUpdate: Date.now() });
+            db.ref('shooting_rooms/' + currentRoom).update({ data: mainData, lastUpdate: Date.now() });
         }
 
-        // --- GIỮ NGUYÊN TOÀN BỘ LOGIC CÒN LẠI ---
+        // --- LOGIC NGHIỆP VỤ (GIỮ NGUYÊN NHƯ BẢN GỐC) ---
         function resetExerciseData() { if(confirm("CẢNH BÁO: Hành động này sẽ xoá sạch danh sách quân nhân của BÀI BẮN HIỆN TẠI. Đồng ý?")) { const rK = 'round_' + currentExercise; const bK = 'bay_' + currentExercise; mainData.forEach(d => { d[rK] = null; d[bK] = null; }); uploadDataToCloud(); renderEngine(); } }
         function registerSoldier() {
             const n = document.getElementById('s-name').value.trim(); const u = document.getElementById('s-unit').value.trim(); const b = document.getElementById('s-bay').value; const r = parseInt(document.getElementById('s-round').value) || 1; const editUid = document.getElementById('edit-uid').value;
@@ -317,7 +344,7 @@
                     target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item.round_4}-B${item.bay_4}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${item.b4_1}" onclick="openScorePad(${item.uid},'b4_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b4_2}" onclick="openScorePad(${item.uid},'b4_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b4_3}" onclick="openScorePad(${item.uid},'b4_3')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b7_1}" onclick="openScorePad(${item.uid},'b7_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b7_2}" onclick="openScorePad(${item.uid},'b7_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b7_3}" onclick="openScorePad(${item.uid},'b7_3')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b8_1}" onclick="openScorePad(${item.uid},'b8_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item.b8_2}" onclick="openScorePad(${item.uid},'b8_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item.b8_3}" onclick="openScorePad(${item.uid},'b8_3')" class="${iS}" readonly></td><td class="p-3 font-bold text-white border-r border-slate-800/40">${rankStr==='-'?'0':t}</td><td class="p-3 border-r border-slate-800/40 ${rankStyle}">${rankStr}</td>${actionH}</tr>`;
                 } else {
                     let field=(currentExercise===1?'b4':(currentExercise===2?'b7':'b8'));
-                    target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item[rKey]}-B${item[bKey]}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${item[field+'_1']}" onclick="openScorePad(${item.uid},'${field}_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item[field+'_2']}" onclick="openScorePad(${item.uid},'field}_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item[field+'_3']}" onclick="openScorePad(${item.uid},'${field}_3')" class="${iS}" readonly></td><td class="p-3 font-bold text-white border-r border-slate-800/40">${rankStr==='-'?'0':t}</td><td class="p-3 border-r border-slate-800/40 ${rankStyle}">${rankStr}</td>${actionH}</tr>`;
+                    target.innerHTML += `<tr class="hover:bg-slate-800/20 text-center transition-colors"><td class="p-3 text-slate-500 border-r border-slate-800/40">${index+1}</td><td class="p-3 text-blue-400 font-bold border-r border-slate-800/40">L${item[rKey]}-B${item[bKey]}</td><td class="p-3 font-semibold text-slate-200 text-left border-r border-slate-800/40">${item.name}</td><td class="p-3 text-slate-400 text-left border-r border-slate-800/40">${item.unit}</td><td class="p-1"><input value="${item[field+'_1']}" onclick="openScorePad(${item.uid},'${field}_1')" class="${iS}" readonly></td><td class="p-1"><input value="${item[field+'_2']}" onclick="openScorePad(${item.uid},'${field}_2')" class="${iS}" readonly></td><td class="p-1 border-r border-slate-800/60"><input value="${item[field+'_3']}" onclick="openScorePad(${item.uid},'${field}_3')" class="${iS}" readonly></td><td class="p-3 font-bold text-white border-r border-slate-800/40">${rankStr==='-'?'0':t}</td><td class="p-3 border-r border-slate-800/40 ${rankStyle}">${rankStr}</td>${actionH}</tr>`;
                 }
             });
             document.getElementById('global-ammo-total').innerText = ammoTotal; updatePieChartLogic(); updateUnitStatistics();
@@ -370,7 +397,7 @@
                 if(!stats[u]) stats[u] = { ts: 0, g: 0, k: 0, d: 0, h: 0 }; 
                 stats[u].ts++; sumQS++; 
                 if(rank === 'GIỎI' || rank === 'Giỏi') { stats[u].g++; sumG++; } 
-                else if(rank === 'KHÁ' || rank === 'Khá') { stats[u].k++; sumG++; } // Sửa lỗi rank Khá trong code gốc cộng vào giỏi
+                else if(rank === 'KHÁ' || rank === 'Khá') { stats[u].k++; sumK++; } 
                 else if(rank === 'ĐẠT' || rank === 'Đạt') { stats[u].d++; sumD++; } 
                 else { stats[u].h++; sumH++; } 
             }); 
